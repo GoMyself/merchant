@@ -3,7 +3,7 @@
 git checkout main
 git pull origin main
 git submodule init
-git submodule update --remote
+git submodule update
 
 PROJECT="merchant"
 GitReversion=`git rev-parse HEAD`
