@@ -1,0 +1,85 @@
+package controller
+
+import (
+	"merchant2/contrib/helper"
+	"merchant2/contrib/validator"
+	"merchant2/model"
+
+	"github.com/valyala/fasthttp"
+)
+
+type GroupController struct{}
+
+/**
+* @Description: 用户组信息更新
+* @Author: carl
+ */
+func (that *GroupController) Update(ctx *fasthttp.RequestCtx) {
+
+	data := model.Group{}
+	err := validator.Bind(ctx, &data)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	id := string(ctx.PostArgs().Peek("id"))
+	if !helper.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	err = model.GroupUpdate(id, data)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, "succeed")
+}
+
+/**
+* @Description: 用户组插入
+* @Author: carl
+ */
+func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
+
+	group := model.Group{}
+	err := validator.Bind(ctx, &group)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	pid := string(ctx.PostArgs().Peek("pid"))
+	if !helper.CtypeDigit(pid) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	// 新增权限信息
+	group.CreateAt = int32(ctx.Time().Unix())
+	err = model.GroupInsert(pid, group)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, "succeed")
+}
+
+/**
+* @Description: 用户组列表获取
+* @Author: carl
+ */
+func (that *GroupController) List(ctx *fasthttp.RequestCtx) {
+
+	// 获取权限列表
+	data, err := model.GroupList()
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.PrintJson(ctx, true, data)
+}

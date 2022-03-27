@@ -1,0 +1,412 @@
+package controller
+
+import (
+	"fmt"
+	"merchant2/contrib/helper"
+	"merchant2/contrib/validator"
+	"merchant2/model"
+	"strings"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/shopspring/decimal"
+	"github.com/valyala/fasthttp"
+)
+
+type dividendInsertParam struct {
+	Username      string `rule:"alnum" name:"username" min:"4" max:"9" msg:"username error"`
+	Wallet        int    `rule:"digit" name:"wallet" min:"1" max:"2" msg:"wallet error"`
+	Ty            int    `rule:"digit" name:"ty" min:"211" max:"222"  msg:"ty error"`
+	WaterLimit    uint8  `rule:"digit" name:"water_limit" min:"1" max:"2"  msg:"water_limit error"`
+	PlatformID    string `rule:"none" name:"platform_id" default:"0"`
+	Amount        string `rule:"float" name:"amount"  msg:"amount error"`
+	WaterMultiple int64  `rule:"digit" name:"water_multiple" min:"0" max:"1000" default:"0" required:"0"  msg:"water_multiple error"`
+	Remark        string `rule:"filter" name:"remark" min:"1" max:"300"  msg:"remark error"`
+}
+
+// 红利审核列表参数
+type dividendUpdateParam struct {
+	IDS          string `rule:"sDigit" name:"ids" msg:"ids error"`                               // 订单号
+	ReviewRemark string `rule:"filter" name:"review_remark" max:"300" msg:"review_remark error"` // 审核备注
+	State        int    `name:"state" rule:"digit" min:"232" max:"233" msg:"state error"`        // 231 审核中 232 审核不通过  232 审核通过
+}
+
+// 修改红利审核备注
+type dividendReviewRemarkUpdateParam struct {
+	ID           string `rule:"digit" name:"id" msg:"id error"`
+	ReviewRemark string `rule:"filter" name:"review_remark" min:"1" max:"100"`
+}
+
+type DividendController struct{}
+
+func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
+
+	param := dividendInsertParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if param.PlatformID == "7426646715018523638" || //CQ9捕鱼
+		param.PlatformID == "2854123669982643138" || //DS捕鱼
+		param.PlatformID == "934076801660754329" { //DS棋牌
+		helper.Print(ctx, false, helper.PlatIDErr)
+		return
+	}
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	var (
+		ok bool
+	)
+	amount := decimal.Decimal{}
+	// 仅中心钱包红利支持负数
+	if param.Wallet == 1 {
+		amount, ok = validator.CheckFloatScope(param.Amount, "-20000000.000", "20000000.000")
+		if !ok {
+			helper.Print(ctx, false, helper.AmountErr)
+			return
+		}
+	} else {
+		amount, ok = validator.CheckFloatScope(param.Amount, "0.000", "20000000.000")
+		if !ok {
+			helper.Print(ctx, false, helper.AmountErr)
+			return
+		}
+	}
+
+	waterFlow := decimal.Decimal{}
+	// 需要流水限制
+	if param.WaterLimit == 2 {
+
+		// 红利金额为负数，不允许有流水
+		if amount.Cmp(decimal.Zero) == -1 {
+			helper.Print(ctx, false, helper.TurnoverMutiErr)
+			return
+		}
+
+		if param.WaterMultiple == 0 {
+			helper.Print(ctx, false, helper.TurnoverMutiErr)
+			return
+		}
+
+		waterFlow = amount.Mul(decimal.NewFromInt(param.WaterMultiple))
+	}
+
+	m, err := model.MemberFindOne(param.Username)
+	if err != nil || m.UID == "" {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	mb, err := decimal.NewFromString(m.Balance)
+	if err != nil {
+		helper.Print(ctx, false, helper.AmountErr)
+		return
+	}
+
+	// 红利金额为负数，判断会员余额
+	if amount.Cmp(decimal.Zero) == -1 {
+		// 余额不够扣除
+		if mb.Add(amount).Cmp(decimal.Zero) == -1 {
+			helper.Print(ctx, false, fmt.Sprintf("%s,%s%s", helper.AmountErr, mb.String(), amount.String()))
+			return
+		}
+	}
+
+	data := g.Record{
+		"id":          helper.GenId(),
+		"uid":         m.UID,
+		"username":    param.Username,
+		"top_uid":     m.TopUid,
+		"top_name":    m.TopName,
+		"parent_uid":  m.ParentUid,
+		"parent_name": m.ParentName,
+		"wallet":      param.Wallet,
+		"ty":          param.Ty,
+		"water_limit": param.WaterLimit,
+		"water_flow":  waterFlow.String(),
+		"amount":      param.Amount,
+		"remark":      param.Remark,
+		"apply_at":    uint64(ctx.Time().UnixNano() / 1e6),
+		"apply_uid":   admin["id"],
+		"apply_name":  admin["name"],
+		"automatic":   1, //手动发放
+		"state":       model.DividendReviewing,
+	}
+
+	if param.Wallet == 2 {
+		data["platform_id"] = param.PlatformID
+	}
+
+	err = model.DividendInsert(data)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
+// 红利列表
+func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
+
+	id := ctx.QueryArgs().GetUintOrZero("id")                            //订单号
+	username := string(ctx.QueryArgs().Peek("username"))                 //用户名
+	wallet := ctx.QueryArgs().GetUintOrZero("wallet")                    //1 中心钱包 2 场馆钱包
+	platformId := string(ctx.QueryArgs().Peek("platform_id"))            //场馆id
+	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //红利类型
+	waterLimit := ctx.QueryArgs().GetUintOrZero("water_limit")           //流水限制 1无需流水限制 2需要流水限制
+	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名字
+	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名字
+	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+	remarkFlag := ctx.QueryArgs().GetUintOrZero("remark_flag")           //0全部 1申请备注 2审核备注
+	remark := string(ctx.QueryArgs().Peek("remark"))                     //备注内容
+	page := ctx.QueryArgs().GetUintOrZero("page")                        //页数
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")               //页大小
+	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
+	state := ctx.QueryArgs().GetUintOrZero("state")                      //审核状态
+	handOutState := ctx.QueryArgs().GetUintOrZero("hand_out_state")      //发放状态
+
+	ex := g.Ex{}
+	if username != "" {
+		if !validator.CheckStringAlnum(username) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex["username"] = username
+	}
+
+	if wallet > 0 {
+		w := map[int]bool{
+			1: true, //中心钱包
+			2: true, //场馆钱包
+		}
+		if _, ok := w[wallet]; !ok {
+			helper.Print(ctx, false, helper.WalletTypeErr)
+			return
+		}
+
+		ex["wallet"] = wallet
+
+		if wallet == 2 && platformId != "" {
+			ex["platform_id"] = platformId
+		}
+	}
+
+	if ty != 0 {
+		if ty < model.DividendSite || ty > model.DividendAgency {
+			helper.Print(ctx, false, helper.DividendTypeErr)
+			return
+		}
+
+		ex["ty"] = ty
+	}
+
+	if waterLimit != 0 {
+		ex["water_limit"] = waterLimit
+	}
+
+	if applyName != "" && validator.CheckStringAlnum(applyName) {
+		ex["apply_name"] = applyName
+	}
+
+	if reviewName != "" && validator.CheckStringAlnum(reviewName) {
+		ex["review_name"] = reviewName
+	}
+
+	if remarkFlag > 0 && remark != "" {
+
+		if remarkFlag == 1 {
+			ex["remark"] = remark
+		}
+
+		if remarkFlag == 2 {
+			ex["review_remark"] = remark
+		}
+	}
+
+	// id查询，其他条件失效
+	if id != 0 {
+		ex = g.Ex{
+			"id": id,
+		}
+	}
+
+	// 红利审核列表
+	if flag == 1 {
+		ex["state"] = model.DividendReviewing //红利审核中
+	} else { //
+		// 默认为红利历史列表
+		s := map[int]bool{
+			model.DividendReviewPass:   true, //红利审核通过
+			model.DividendReviewReject: true, //红利审核拒绝
+		}
+
+		// 查询所有
+		if flag == 0 {
+			s[model.DividendReviewing] = true //红利审核中
+		}
+		if state > 0 {
+			if _, ok := s[state]; !ok {
+				helper.Print(ctx, false, helper.StateParamErr)
+				return
+			}
+
+			ex["state"] = state
+			// 只有审核通过才能判断发放成功或者失败状态
+			if state == model.DividendReviewPass && handOutState > 0 {
+				s := map[int]bool{
+					model.DividendFailed:      true, //红利发放失败
+					model.DividendSuccess:     true, //红利发放成功
+					model.DividendPlatDealing: true, //红利发放场馆处理中
+				}
+				if _, ok := s[handOutState]; !ok {
+					helper.Print(ctx, false, helper.HandOutStateErr)
+					return
+				}
+
+				ex["hand_out_state"] = handOutState
+			}
+		}
+	}
+
+	if page < 1 {
+		page = 1
+	}
+
+	if pageSize < 1 {
+		pageSize = 15
+	}
+	data, err := model.DividendList(page, pageSize, startTime, endTime, reviewStartTime, reviewEndTime, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+// 会员红利列表
+func (that *DividendController) MemberList(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.FormValue("username"))
+	ty := ctx.PostArgs().GetUintOrZero("ty")
+	state := ctx.PostArgs().GetUintOrZero("state")
+	startTime := string(ctx.FormValue("start_time"))
+	endTime := string(ctx.FormValue("end_time"))
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+
+	if username == "" || !validator.CheckUName(username, 4, 9) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	ex := g.Ex{
+		"username": username,
+	}
+
+	if page == 0 {
+		page = 1
+	}
+
+	if pageSize == 0 {
+		pageSize = 15
+	}
+
+	if ty != 0 {
+		if ty < model.DividendSite || ty > model.DividendAgency {
+			helper.Print(ctx, false, helper.DividendTypeErr)
+			return
+		}
+
+		ex["ty"] = ty
+	}
+
+	if state != 0 {
+		if state < model.DividendReviewing || state > model.DividendReviewReject {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
+		ex["state"] = state
+	}
+
+	data, err := model.DividendList(page, pageSize, startTime, endTime, "", "", ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+// 红利审核
+func (that *DividendController) Update(ctx *fasthttp.RequestCtx) {
+
+	param := dividendUpdateParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	ids := strings.Split(param.IDS, ",")
+	err = model.DividendReview(param.State, ctx.Time().Unix(), admin["id"], admin["name"], param.ReviewRemark, ids)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
+// 更新  红利审核备注
+func (that *DividendController) ReviewRemarkUpdate(ctx *fasthttp.RequestCtx) {
+
+	param := dividendReviewRemarkUpdateParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	state, err := model.DividendGetState(param.ID)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	if state == model.DividendReviewing {
+		helper.Print(ctx, false, helper.ReviewStateErr)
+		return
+	}
+
+	ex := g.Ex{
+		"id": param.ID,
+	}
+	record := g.Record{
+		"review_remark": param.ReviewRemark,
+	}
+	err = model.DividendUpdate(ex, record)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
