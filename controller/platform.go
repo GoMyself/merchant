@@ -44,6 +44,7 @@ type PlatformID struct {
  */
 func (that *PlatformController) Update(ctx *fasthttp.RequestCtx) {
 
+	return
 	param := PlatformParam{}
 	err := validator.Bind(ctx, &param)
 	if err != nil {
