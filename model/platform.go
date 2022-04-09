@@ -134,6 +134,9 @@ func PlatToMinio() error {
 		return errors.New(helper.FormatErr)
 	}
 
+	fmt.Println(string(navB))
+	fmt.Println(string(b))
+
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
@@ -144,6 +147,8 @@ func PlatToMinio() error {
 			fmt.Println("PlatToMinio error = ", err)
 			continue
 		}
+
+		fmt.Println(k, string(b1))
 		pipe.Unlink(ctx, k)
 		pipe.Set(ctx, k, string(b1), 0)
 		pipe.Persist(ctx, k)
