@@ -126,14 +126,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 
 	// 站点管理-场馆管理
 	get("/merchant/platform/list", platformCtl.List)
-	// 站点管理-场馆编辑
-	// 站点管理-锁定钱包
-	// 站点管理-维护
+	// 站点管理-场馆开启/关闭 维护/解除维护 修改排序
 	post("/merchant/platform/update", platformCtl.Update)
-	// 站点管理-场馆列表
-	get("/merchant/platform/plats", platformCtl.PlatList)
-	// 场馆费率
-	get("/merchant/platform/rate", platformCtl.PlatRate)
 
 	// 站点管理-场馆管理-游戏列表
 	post("/merchant/slots/list", slotsCtl.List)
