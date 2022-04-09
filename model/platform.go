@@ -23,12 +23,13 @@ type Platform struct {
 }
 
 type platJson struct {
-	ID       string `db:"id" json:"id"`
-	Name     string `db:"name" json:"name"`
-	GameType int    `db:"game_type" json:"game_type"`
-	Flags    int    `db:"flags" json:"flags"`
-	State    int    `db:"state" json:"state"`
-	Seq      int    `db:"seq" json:"seq"`
+	ID         string `db:"id" json:"id"`
+	Name       string `db:"name" json:"name"`
+	GameType   int    `db:"game_type" json:"game_type"`
+	Maintained int    `db:"maintained" json:"maintained"`
+	Flags      int    `db:"flags" json:"flags"`
+	State      int    `db:"state" json:"state"`
+	Seq        int    `db:"seq" json:"seq"`
 }
 
 type PlatformData struct {
