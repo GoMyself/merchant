@@ -12,12 +12,12 @@ type PlatformController struct{}
 //List 场馆列表
 func (that *PlatformController) List(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.PostArgs().Peek("id"))
-	state := ctx.PostArgs().GetUintOrZero("state")
-	maintained := ctx.PostArgs().GetUintOrZero("maintained")
-	gameType := ctx.PostArgs().GetUintOrZero("game_type")
-	page := ctx.PostArgs().GetUintOrZero("page")
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	id := string(ctx.QueryArgs().Peek("id"))
+	state := ctx.QueryArgs().GetUintOrZero("state")
+	maintained := ctx.QueryArgs().GetUintOrZero("maintained")
+	gameType := ctx.QueryArgs().GetUintOrZero("game_type")
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 
 	if page < 1 {
 		page = 1
