@@ -1665,7 +1665,7 @@ func memberInfoFindBatch(ids []string) (map[string]memberInfo, error) {
 	}
 
 	var mbs []memberInfo
-	query, _, _ := dialect.From("tbl_members").Select(colsMemberinfo...).Where(g.Ex{"uid": ids}).ToSQL()
+	query, _, _ := dialect.From("tbl_members").Select(colsMemberInfo...).Where(g.Ex{"uid": ids}).ToSQL()
 	err := meta.MerchantDB.Select(&mbs, query)
 	if err != nil {
 		return nil, pushLog(err, helper.DBErr)

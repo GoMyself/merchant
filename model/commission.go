@@ -727,7 +727,7 @@ func TopCommissionList(sortField string, isAsc, page, pageSize int, day string, 
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(colosTblCommissions...).Where(ex).
+	query, _, _ := t.Select(colsTblCommissions...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(orderBy).ToSQL()
 	fmt.Println("总代佣金:sql:", query)
 	err := meta.MerchantDB.Select(&data.D, query)
@@ -748,7 +748,7 @@ func CommissionRation(ts int64, adminID, adminName string, ids []string) error {
 		"id":     ids,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("tbl_commissions").Select(colosTblCommissions...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_commissions").Select(colsTblCommissions...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)

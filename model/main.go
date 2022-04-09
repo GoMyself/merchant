@@ -97,9 +97,9 @@ var (
 	colsCommPlan           = helper.EnumFields(CommissionPlan{})
 	colsCommissionTransfer = helper.EnumFields(CommissionTransfer{})
 	colsCommPlanDetail     = helper.EnumFields(CommissionDetail{})
-	colosTblCommissions    = helper.EnumFields(Commissions{})
+	colsTblCommissions     = helper.EnumFields(Commissions{})
 	colsMemberRebate       = helper.EnumFields(MemberRebate{})
-	colsMemberinfo         = helper.EnumFields(memberInfo{})
+	colsMemberInfo         = helper.EnumFields(memberInfo{})
 )
 
 func Constructor(mt *MetaTable, c *gorpc.Client) {
