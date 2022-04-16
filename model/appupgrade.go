@@ -3,9 +3,10 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
 	"merchant2/contrib/helper"
 	"time"
+
+	g "github.com/doug-martin/goqu/v9"
 )
 
 // app 自动升级配置
@@ -34,14 +35,17 @@ type UpgradeInfo struct {
 // 更新升级配置
 func AppUpgradeUpdate(device, version, content, url, isForce string, admin map[string]string) error {
 
-	query := fmt.Sprintf(`INSERT INTO tbl_app_upgrade (id,platform,version,content,url,is_force,updated_at,updated_uid,updated_name,prefix") 
-VALUES('%s','%s','%s','%s','%s','%s','%d','%s','%s','%s')
-on duplicate key update version = '%s',content = '%s',url = '%s',is_force = '%s',updated_at = %d,updated_uid = %s,updated_name = '%s',prefix = '%s'`,
+	//recs := AppUpgrade{}
+	//query, _, _ := dialect.From("tbl_app_upgrade").Rows(recs).Where(g.Ex{"prefix": meta.Prefix}).ToSQL()
+
+	query := fmt.Sprintf(`INSERT INTO tbl_app_upgrade (id,platform,version,content,url,is_force,updated_at,updated_uid,updated_name,prefix) VALUES('%s','%s','%s','%s','%s','%s','%d','%s','%s','%s') on duplicate key update version = '%s',content = '%s',url = '%s',is_force = '%s',updated_at = %d,updated_uid = %s,updated_name = '%s',prefix = '%s'`,
 		helper.GenId(), device, version, content, url, isForce, time.Now().Unix(), admin["id"], admin["name"], meta.Prefix,
 		version, content, url, isForce, time.Now().Unix(), admin["id"], admin["name"], meta.Prefix)
-	fmt.Println(query)
+
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
+		fmt.Println("AppUpgradeUpdate query = ", query)
+		fmt.Println("AppUpgradeUpdate err = ", err)
 		return pushLog(err, helper.DBErr)
 	}
 
