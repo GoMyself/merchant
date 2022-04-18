@@ -76,6 +76,7 @@ var (
 	colsGroup              = helper.EnumFields(Group{})
 	colsAdmin              = helper.EnumFields(Admin{})
 	colsMember             = helper.EnumFields(Member{})
+	colsMemberLevel        = helper.EnumFields(MemberLevel{})
 	colsBankcard           = helper.EnumFields(BankCard{})
 	colsPlatform           = helper.EnumFields(Platform{})
 	colsPlatJson           = helper.EnumFields(platJson{})
@@ -100,6 +101,7 @@ var (
 	colsTblCommissions     = helper.EnumFields(Commissions{})
 	colsMemberRebate       = helper.EnumFields(MemberRebate{})
 	colsMemberInfo         = helper.EnumFields(memberInfo{})
+	colLevelRecord         = helper.EnumFields(MemberLevelRecord{})
 )
 
 func Constructor(mt *MetaTable, c *gorpc.Client) {

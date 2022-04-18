@@ -650,3 +650,43 @@ type CommPlanPageData struct {
 	S       uint                          `json:"s"`
 	Details map[string][]CommissionDetail `json:"details"`
 }
+
+//VIP的数据库结构
+type MemberLevel struct {
+	ID                string  `db:"id" json:"id" name:"id" rule:"none"`
+	Level             int     `db:"level" json:"level" name:"level" rule:"digit" msg:"level error"`
+	LevelName         string  `db:"level_name" json:"level_name" name:"level_name" rule:"chnAlnum" msg:"level_name error"`
+	RechargeNum       int     `db:"recharge_num" json:"recharge_num" name:"recharge_num" rule:"digit" msg:"recharge_num error"`
+	UpgradeDeposit    int     `db:"upgrade_deposit" json:"upgrade_deposit" name:"upgrade_deposit" rule:"digit" msg:"upgrade_deposit error"`
+	UpgradeRecord     int     `db:"upgrade_record" json:"upgrade_record" name:"upgrade_record" rule:"digit" msg:"upgrade_record error"`
+	RelegationFlowing int     `db:"relegation_flowing" json:"relegation_flowing" name:"relegation_flowing" rule:"digit" msg:"relegation_flowing error"`
+	UpgradeGift       int     `db:"upgrade_gift" json:"upgrade_gift" name:"upgrade_gift" rule:"digit"msg:"upgrade_gift error"`
+	BirthGift         int     `db:"birth_gift" json:"birth_gift" name:"birth_gift" rule:"digit" msg:"birth_gift error"`
+	WithdrawCount     int     `db:"withdraw_count" json:"withdraw_count" name:"withdraw_count" rule:"digit" msg:"withdraw_count error"`
+	WithdrawMax       float64 `db:"withdraw_max" json:"withdraw_max" name:"withdraw_max" rule:"float" msg:"withdraw_max error"`
+	EarlyMonthPacket  int     `db:"early_month_packet" json:"early_month_packet" name:"early_month_packet" rule:"digit" msg:"early_month_packet error"`
+	LateMonthPacket   int     `db:"late_month_packet" json:"late_month_packet" name:"late_month_packet" rule:"digit" msg:"late_month_packet error"`
+	CreateAt          uint32  `db:"created_at" json:"created_at" name:"created_at" rule:"none"` // 创建时间
+	UpdatedAt         uint32  `db:"updated_at" json:"updated_at" name:"updated_at" rule:"none"`
+}
+
+type MemberLevelRecordData struct {
+	T int64               `json:"t"`
+	D []MemberLevelRecord `json:"d"`
+}
+
+// 会员等级调整记录
+type MemberLevelRecord struct {
+	ID                  string `db:"id" json:"id"`
+	UID                 string `db:"uid" json:"uid"`                                     //会员id
+	Username            string `db:"username" json:"username"`                           //会员账号
+	BeforeLevel         int    `db:"before_level" json:"before_level"`                   //调整前会员等级
+	AfterLevel          int    `db:"after_level" json:"after_level"`                     //调整后会员等级
+	TotalDeposit        string `db:"total_deposit" json:"total_deposit"`                 //累计存款
+	TotalWaterFlow      string `db:"total_water_flow" json:"total_water_flow"`           //累计流水
+	RelegationWaterFlow string `db:"relegation_water_flow" json:"relegation_water_flow"` //累计保级流水
+	Ty                  int    `db:"ty" json:"ty"`                                       //会员等级调整类型
+	CreatedAt           uint64 `db:"created_at" json:"created_at"`                       //操作时间
+	CreatedUid          string `db:"created_uid" json:"created_uid"`                     //操作人uid
+	CreatedName         string `db:"created_name" json:"created_name"`                   //操作人名
+}

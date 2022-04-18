@@ -71,6 +71,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	slotsCtl := new(controller.SlotsController)
 	//会员
 	memberCtl := new(controller.MemberController)
+	//会员等级设置
+	levelCtl := new(controller.MemberLevelController)
 	// 账户调整
 	adjustCtl := new(controller.AdjustController)
 	//银行卡管理
@@ -178,6 +180,15 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/history", memberCtl.History)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
 	post("/merchant/member/full", memberCtl.Full)
+
+	//用户VIP配置
+	get("/merchant/vip/list", levelCtl.List)
+	//用户VIP设置
+	post("/merchant/vip/update", levelCtl.Update)
+	//新增VIP
+	post("/merchant/vip/insert", levelCtl.Insert)
+	//用户VIP调整记录
+	get("/merchant/vip/record", levelCtl.Record)
 
 	// 会员列表-账户调整
 	post("/merchant/adjust/insert", adjustCtl.Insert)
@@ -295,6 +306,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/commission/plan/list", commissionCtl.PlanList)
 	// 佣金方案详情
 	get("/merchant/commission/plan/detail", commissionCtl.PlanDetail)
+
 	return router
 }
 

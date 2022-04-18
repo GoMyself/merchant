@@ -112,6 +112,14 @@ const (
 	TransferStateManualConfirm = 195 //场馆转账人工确认中
 )
 
+// 会员等级调整类型
+const (
+	MemberLevelUpgrade    = 201 //会员升级
+	MemberLevelRelegation = 202 //会员保级
+	MemberLevelDowngrade  = 203 //会员降级
+	MemberLevelRecover    = 204 //会员等级恢复
+)
+
 // 红利类型
 const (
 	DividendSite      = 211 //平台红利(站点)
