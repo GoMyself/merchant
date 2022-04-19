@@ -97,6 +97,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	recordCtl := new(controller.RecordController)
 	// 佣金
 	commissionCtl := new(controller.CommissionController)
+	//内容管理
+	msgCtl := new(controller.MessageController)
 
 	get("/merchant/version", Version)
 
@@ -306,6 +308,37 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/commission/plan/list", commissionCtl.PlanList)
 	// 佣金方案详情
 	get("/merchant/commission/plan/detail", commissionCtl.PlanDetail)
+
+	//运营管理-内容管理-模板内容-添加模板
+	post("/merchant/message/tplinsert", msgCtl.TemplateInsert)
+	//运营管理-内容管理-模板内容-模板列表
+	post("/merchant/message/tpllist", msgCtl.TemplateList)
+	//运营管理-内容管理-模板内容-模板删除
+	get("/merchant/message/tpldelete", msgCtl.TemplateDel)
+	//运营管理-内容管理-模板内容-模板编辑
+	post("/merchant/message/tplupdate", msgCtl.TemplateUpdate)
+	//运营管理-内容管理-站内消息-添加
+	post("/merchant/message/letterinsert", msgCtl.LetterInsert)
+	//运营管理-内容管理-站内消息-列表
+	post("/merchant/message/letterlist", msgCtl.LetterList)
+	//运营管理-内容管理-站内消息-编辑
+	post("/merchant/message/letterupdate", msgCtl.LetterUpdate)
+	//运营管理-内容管理-站内消息-系统停用 启用 系统审核
+	post("/merchant/message/letterstate", msgCtl.LetterState)
+	//运营管理-内容管理-站内消息-删除
+	get("/merchant/message/letterdelete", msgCtl.LetterDel)
+	//运营管理-内容管理-站内消息-系统审核详情
+	get("/merchant/message/letterdetail", msgCtl.LetterDetail)
+	//运营管理-内容管理-系统站内信管理-列表
+	post("/merchant/message/sys/tpllist", msgCtl.SystemTemplateList)
+	//运营管理-内容管理-系统站内信管理-新增
+	post("/merchant/message/sys/tplinsert", msgCtl.SystemTemplateInsert)
+	//运营管理-内容管理-系统站内信管理-编辑
+	post("/merchant/message/sys/tplupdate", msgCtl.SystemTemplateUpdate)
+	//运营管理-内容管理-系统站内信管理-删除
+	get("/merchant/message/sys/tpldelete", msgCtl.SystemTemplateDelete)
+	//运营管理-内容管理-系统站内信管理-状态(启用|停用)
+	post("/merchant/message/sys/tplstate", msgCtl.SystemTemplateState)
 
 	return router
 }

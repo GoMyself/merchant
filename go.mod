@@ -20,6 +20,7 @@ require (
 	github.com/goccy/go-json v0.9.4
 	github.com/ipipdotnet/ipdb-go v1.3.1
 	github.com/jmoiron/sqlx v1.3.4
+	github.com/json-iterator/go v1.1.12
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/minio/md5-simd v1.1.2
 	github.com/minio/minio-go/v7 v7.0.20
@@ -34,6 +35,7 @@ require (
 	github.com/tinylib/msgp v1.1.6
 	github.com/valyala/fasthttp v1.31.0
 	github.com/valyala/fastjson v1.6.3
+	github.com/valyala/fasttemplate v1.2.1
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
 	github.com/wI2L/jettison v0.7.3
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
@@ -63,7 +65,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
