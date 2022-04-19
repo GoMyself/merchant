@@ -124,6 +124,7 @@ type MemberRebateResult_t struct {
 	TY decimal.Decimal
 	DZ decimal.Decimal
 	DJ decimal.Decimal
+	CP decimal.Decimal
 }
 
 func MemberInsert(username, password, remark, maintainName, planID string, createdAt uint32, mr MemberRebate) error {
@@ -1848,6 +1849,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("dz").As("dz"),
 		g.MAX("dj").As("dj"),
 		g.MAX("ty").As("ty"),
+		g.MAX("cp").As("cp"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
@@ -1859,12 +1861,14 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.TY = decimal.NewFromFloat(data.TY.Float64)
 	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
+	res.CP = decimal.NewFromFloat(data.CP.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
 	res.TY = res.TY.Truncate(1)
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
+	res.CP = res.DZ.Truncate(1)
 
 	return res, nil
 }
@@ -1881,6 +1885,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 		g.C("dz").As("dz"),
 		g.C("dj").As("dj"),
 		g.C("ty").As("ty"),
+		g.C("cp").As("cp"),
 	).Where(g.Ex{"uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
@@ -1892,12 +1897,14 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.TY = decimal.NewFromFloat(data.TY.Float64)
 	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
+	res.CP = decimal.NewFromFloat(data.CP.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
 	res.TY = res.TY.Truncate(1)
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
+	res.CP = res.CP.Truncate(1)
 
 	return res, nil
 }

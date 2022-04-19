@@ -112,6 +112,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	sqp := string(ctx.PostArgs().Peek("qp"))
 	sdj := string(ctx.PostArgs().Peek("dj"))
 	sdz := string(ctx.PostArgs().Peek("dz"))
+	scp := string(ctx.PostArgs().Peek("cp"))
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
 	if len(maintainName) == 0 {
@@ -144,6 +145,11 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
+	cp, err := decimal.NewFromString(scp)
+	if err != nil || cp.IsNegative() || cp.GreaterThan(vs.CP) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+
 	if !validator.CheckUName(name, 4, 9) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -165,6 +171,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		QP: qp.StringFixed(1),
 		DJ: dj.StringFixed(1),
 		DZ: dz.StringFixed(1),
+		CP: cp.StringFixed(1),
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
