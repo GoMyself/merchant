@@ -107,6 +107,7 @@ type MemberListCol struct {
 	QP          string  `json:"qp" db:"qp"`
 	DJ          string  `json:"dj" db:"dj"`
 	DZ          string  `json:"dz" db:"dz"`
+	CP          string  `json:"cp" db:"cp"`
 	Lvl         int     `json:"lvl" db:"-"`
 	PlanID      string  `json:"plan_id" db:"-"`
 	PlanName    string  `json:"plan_name" db:"-"`
@@ -545,6 +546,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, maintainName, startTi
 			data.D[i].ZR = rb.ZR
 			data.D[i].QP = rb.QP
 			data.D[i].DZ = rb.DZ
+			data.D[i].CP = rb.CP
 		}
 
 		if lv, ok := lvls[v.UID]; ok {
