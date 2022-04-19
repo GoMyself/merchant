@@ -98,7 +98,7 @@ func GameToMinio(pid ...string) error {
 	var data []platJson
 	ex := g.Ex{
 		"state":     1,
-		"game_type": []int64{4, 7},
+		"game_type": []int64{3, 4, 7},
 		"prefix":    meta.Prefix,
 	}
 
