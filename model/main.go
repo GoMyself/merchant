@@ -103,6 +103,7 @@ var (
 	colsMemberRebate       = helper.EnumFields(MemberRebate{})
 	colsMemberInfo         = helper.EnumFields(memberInfo{})
 	colLevelRecord         = helper.EnumFields(MemberLevelRecord{})
+	colsMemberListShow     = helper.EnumFields(memberListShow{})
 )
 
 func Constructor(mt *MetaTable, c *gorpc.Client) {

@@ -162,6 +162,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/agency/update", memberCtl.UpdateTopMember)
 	// 代理管理-代理编辑维护人
 	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
+	// 代理管理下级成员
+	post("/merchant/agency/memberlist", memberCtl.MemberList)
 	// 会员管理-会员列表-用户标签
 	get("/merchant/member/tags", memberCtl.Tags)
 	// 会员管理-会员列表-批量添加标签/编辑标签

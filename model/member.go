@@ -703,10 +703,10 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 			g.Or(
 				g.And(
 					g.C("uid").In(parentID),
-					g.C("parent_uid").Eq(g.C("uid")),
+					g.C("data_type").Eq(2),
 				),
 				g.And(
-					g.C("uid").Neq(g.C("parent_uid")),
+					g.C("data_type").Eq(1),
 					g.C("parent_uid").Eq(parentID),
 				),
 			),
@@ -1369,6 +1369,25 @@ func MemberBalanceBatch(uids []string) (string, error) {
 	return string(data), nil
 }
 
+//根据 uid数组，redis批量获取用户余额
+func memMapBalanceBatch(uids []string) (map[string]MBBalance, error) {
+
+	var mbs []MBBalance
+	mbsm := map[string]MBBalance{}
+	t := dialect.From("tbl_members")
+	query, _, _ := t.Select(colsMemberBalance...).Where(g.Ex{"uid": uids}).ToSQL()
+	err := meta.MerchantDB.Select(&mbs, query)
+	if err != nil {
+		return nil, pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range mbs {
+		mbsm[v.UID] = v
+	}
+
+	return mbsm, nil
+}
+
 // 解锁场馆钱包限制
 func memberPlatformRetryReset(username, pid string) error {
 
@@ -1912,4 +1931,185 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.CP = res.CP.Truncate(1)
 
 	return res, nil
+}
+
+//代理管理 下级会员
+func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
+
+	res := AgencyMemberData{}
+	//查询MySQL,必须是代理的下级会员
+	ex := g.Ex{}
+
+	if param.ParentName != "" {
+		ex["parent_name"] = param.ParentName
+	}
+
+	if param.State != 0 {
+		ex["state"] = param.State
+	}
+
+	if param.Username != "" {
+		ex["username"] = param.Username
+	}
+
+	if param.RegStart != "" && param.RegEnd != "" {
+
+		startAt, err := helper.DayOfStart(param.RegStart, loc)
+		if err != nil {
+			return res, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.DayOfEnd(param.RegEnd, loc)
+		if err != nil {
+			return res, errors.New(helper.TimeTypeErr)
+		}
+
+		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	}
+
+	t := dialect.From("tbl_members")
+	if param.Page == 1 {
+		countQuery, _, _ := t.Select(g.COUNT(1)).Where(ex).ToSQL()
+		err := meta.MerchantDB.Get(&res.T, countQuery)
+		if err != nil {
+			return res, pushLog(fmt.Errorf("%s,[%s]", err.Error(), countQuery), helper.DBErr)
+		}
+
+		if res.T == 0 {
+			return res, nil
+		}
+	}
+
+	var memberList []memberListShow
+	offset := (param.Page - 1) * param.PageSize
+	query, _, _ := t.Select(colsMemberListShow...).
+		Where(ex).Offset(uint(offset)).Limit(uint(param.PageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&memberList, query)
+	if err != nil {
+		return res, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	var (
+		uids        []string
+		agencyNames []string
+	)
+
+	for _, val := range memberList {
+		uids = append(uids, val.UID)
+
+		if val.ParentName != "" && val.ParentName != "root" {
+			agencyNames = append(agencyNames, val.ParentName)
+		}
+	}
+
+	// 用户中心钱包余额
+	balanceMap, err := memMapBalanceBatch(uids)
+	if err != nil {
+		return res, err
+	}
+
+	rangeParam := map[string][]interface{}{}
+	if param.StartAt != "" && param.EndAt != "" {
+
+		startAt, err := helper.DayOfStart(param.StartAt, loc)
+		if err != nil {
+			return res, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.DayOfEnd(param.EndAt, loc)
+		if err != nil {
+			return res, errors.New(helper.TimeTypeErr)
+		}
+
+		rangeParam["report_time"] = []interface{}{startAt, endAt}
+	}
+
+	// 获取用户数据
+	md, err := MemberSumByRange(param.StartAt, param.EndAt, uids)
+	if err != nil {
+		return res, err
+	}
+
+	for _, m := range memberList {
+
+		val := memberListData{memberListShow: m}
+		if md, ok := md[m.UID]; ok {
+			val.NetAmount, _ = decimal.NewFromFloat(md.NetAmount).Truncate(4).Float64()
+			val.Deposit, _ = decimal.NewFromFloat(md.DepositAmount).Truncate(4).Float64()
+			val.Withdraw, _ = decimal.NewFromFloat(md.WithdrawAmount).Truncate(4).Float64()
+			val.BetAmount, _ = decimal.NewFromFloat(md.ValidBetAmount).Truncate(4).Float64()
+			val.RebateAmount, _ = decimal.NewFromFloat(md.RebateAmount).Truncate(4).Float64()
+			val.DividendAmount, _ = decimal.NewFromFloat(md.DividendAmount).Truncate(4).Float64()
+			val.DividendAgency, _ = decimal.NewFromFloat(md.DividendAgency).Truncate(4).Float64()
+		}
+
+		if _, o := balanceMap[m.UID]; o {
+			val.Balance = balanceMap[m.UID].Balance
+		}
+
+		res.D = append(res.D, val)
+	}
+
+	return res, nil
+}
+
+func MemberSumByRange(start, end string, uids []string) (map[string]AgencyBaseSumField, error) {
+
+	if start != "" && end != "" {
+
+		startAt, err := helper.DayOfStart(start, loc)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.DayOfEnd(end, loc)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, errors.New(helper.TimeTypeErr)
+		}
+
+		var (
+			result = map[string]AgencyBaseSumField{}
+			data   []MemReport
+			num    int
+		)
+		ex := g.Ex{
+			"uid":         uids,
+			"report_time": g.Op{"between": g.Range(startAt, endAt)},
+			"report_type": 2,
+			"data_type":   2,
+		}
+		query, _, _ := dialect.From("tbl_report_agency").
+			Select(g.COUNT("uid").As("num")).Where(ex).Order(g.C("uid").Desc()).ToSQL()
+		fmt.Println(query)
+		err = meta.ReportDB.Get(&num, query)
+		if num > 0 {
+
+			query, _, _ = dialect.From("tbl_report_agency").
+				Select(g.C("uid").As("uid"), g.SUM("deposit_amount").As("deposit_amount"), g.SUM("withdrawal_amount").As("withdrawal_amount"),
+					g.SUM("adjust_amount").As("adjust_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+					g.SUM("company_net_amount").As("company_net_amount"), g.SUM("dividend_amount").As("dividend_amount"),
+					g.SUM("rebate_amount").As("rebate_amount"),
+				).Where(ex).GroupBy("uid").Order(g.C("uid").Desc()).ToSQL()
+			fmt.Println(query)
+			err = meta.ReportDB.Select(&data, query)
+			if err != nil {
+				return result, err
+			}
+			for _, v := range data {
+				obj := AgencyBaseSumField{
+					DepositAmount:  v.DepositAmount,
+					WithdrawAmount: v.WithdrawalAmount,
+					ValidBetAmount: v.ValidBetAmount,
+					NetAmount:      v.CompanyNetAmount,
+					DividendAmount: v.DividendAmount,
+					RebateAmount:   v.RebateAmount,
+					AdjustAmount:   v.AdjustAmount,
+				}
+				result[v.Uid] = obj
+			}
+			return result, nil
+		}
+	}
+	return nil, nil
+
 }

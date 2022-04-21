@@ -1079,3 +1079,34 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, helper.Success)
 }
+
+func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
+	param := model.MemberListParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if param.Username != "" {
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+	}
+
+	if param.ParentName != "" {
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+	}
+
+	data, err := model.AgencyMemberList(param)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}

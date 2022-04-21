@@ -2,13 +2,11 @@ package model
 
 import "database/sql"
 
-// 获取不到代理信息，默认归属root下，为直客
 type MemberData struct {
 	Member
 	RealName string `json:"real_name"`
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`
-	IsRisk   int    `json:"is_risk"`
 }
 type MemberPageData struct {
 	T int64        `json:"t"`
@@ -693,4 +691,74 @@ type MemberLevelRecord struct {
 	CreatedAt           uint64 `db:"created_at" json:"created_at"`                       //操作时间
 	CreatedUid          string `db:"created_uid" json:"created_uid"`                     //操作人uid
 	CreatedName         string `db:"created_name" json:"created_name"`                   //操作人名
+}
+
+type MemberListParam struct {
+	ParentName string `rule:"none" name:"parent_name"`
+	Username   string `rule:"none" name:"username"`
+	State      int    `rule:"none" name:"state"`
+	StartAt    string `rule:"none" name:"start_at"`
+	EndAt      string `rule:"none" name:"end_at"`
+	RegStart   string `rule:"none" name:"reg_start"`
+	RegEnd     string `rule:"none" name:"reg_end"`
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`
+	PageSize   int    `rule:"digit" min:"10" max:"200" msg:"page_size error" name:"page_size"`
+}
+
+type memberListShow struct {
+	UID            string `db:"uid" json:"uid" redis:"uid"`               //
+	Name           string `db:"username" json:"name" redis:"name"`        //
+	State          int    `db:"state" json:"state" redis:"state"`         //状态 1正常 2禁用
+	ParentUID      string `db:"parent_uid" json:"parent_uid"`             //
+	ParentName     string `db:"parent_name" json:"parent_name"`           //
+	TopUID         string `db:"top_uid" json:"top_uid"`                   //
+	TopName        string `db:"top_name" json:"top_name"`                 //
+	CreatedAt      uint32 `db:"created_at" json:"created_at"`             //
+	FirstDepositAt uint32 `db:"first_deposit_at" json:"first_deposit_at"` //
+	LastLoginIP    string `db:"last_login_ip" json:"last_login_ip"`       //
+	LastLoginAt    uint32 `db:"last_login_at" json:"last_login_at"`       //成为代理时间
+}
+
+type AgencyBaseSumField struct {
+	DepositAmount  float64 `json:"deposit_amount"`   // 存款
+	WithdrawAmount float64 `json:"withdraw_amount"`  // 提款
+	ValidBetAmount float64 `json:"valid_bet_amount"` // 有效流水
+	NetAmount      float64 `json:"net_amount"`       // 输赢
+	DividendAmount float64 `json:"dividend_amount"`  // 红利
+	DividendAgency float64 `json:"dividend_agency"`  // 代理红利
+	RebateAmount   float64 `json:"rebate_amount"`    // 返水
+	AdjustAmount   float64 `json:"adjust_amount"`    // 调整
+}
+
+type MemReport struct {
+	Id               string  `json:"id" db:"id"`
+	ReportTime       int64   `json:"report_time" db:"report_time"`
+	DepositAmount    float64 `json:"deposit_amount" db:"deposit_amount"`
+	WithdrawalAmount float64 `json:"withdrawal_amount" db:"withdrawal_amount"`
+	AdjustAmount     float64 `json:"adjust_amount" db:"adjust_amount"`
+	ValidBetAmount   float64 `json:"valid_bet_amount" db:"valid_bet_amount"`
+	CompanyNetAmount float64 `json:"company_net_amount" db:"company_net_amount"`
+	DividendAmount   float64 `json:"dividend_amount" db:"dividend_amount"`
+	RebateAmount     float64 `json:"rebate_amount" db:"rebate_amount"`
+	Prefix           string  `json:"prefix" db:"prefix"`
+	Uid              string  `json:"uid" db:"uid"`
+	Username         string  `json:"username" db:"username"`
+}
+
+type memberListData struct {
+	memberListShow
+	Withdraw       float64 `json:"withdraw"`
+	Deposit        float64 `json:"deposit"`
+	NetAmount      float64 `json:"net_amount"`
+	BetAmount      float64 `json:"bet_amount"`
+	Balance        string  `json:"balance"`
+	RebateAmount   float64 `json:"rebate_amount"`
+	DividendAmount float64 `json:"dividend_amount"`
+	DividendAgency float64 `json:"dividend_agency"`
+	IsRisk         int     `json:"is_risk"`
+}
+
+type AgencyMemberData struct {
+	D []memberListData `json:"d"`
+	T int              `json:"t"`
 }
