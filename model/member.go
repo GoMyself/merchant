@@ -7,6 +7,7 @@ import (
 	"merchant2/contrib/helper"
 	"merchant2/contrib/session"
 	"merchant2/contrib/validator"
+	"strconv"
 	"strings"
 	"time"
 
@@ -128,7 +129,7 @@ type MemberRebateResult_t struct {
 	CP decimal.Decimal
 }
 
-func MemberInsert(username, password, remark, maintainName, planID string, createdAt uint32, mr MemberRebate) error {
+func MemberInsert(username, password, remark, maintainName, groupName, agencyType, planID string, createdAt uint32, mr MemberRebate) error {
 
 	userName := strings.ToLower(username)
 	if MemberExist(userName) {
@@ -140,7 +141,7 @@ func MemberInsert(username, password, remark, maintainName, planID string, creat
 	mr.CreatedAt = createdAt
 	mr.ParentUID = "0"
 	mr.Prefix = meta.Prefix
-
+	agtype, _ := strconv.ParseInt(agencyType, 10, 64)
 	m := Member{
 		UID:                uid,
 		Username:           userName,
@@ -162,6 +163,8 @@ func MemberInsert(username, password, remark, maintainName, planID string, creat
 		Commission:         "0.000",
 		Remarks:            remark,
 		MaintainName:       maintainName,
+		GroupName:          groupName,
+		AgencyType:         agtype,
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务

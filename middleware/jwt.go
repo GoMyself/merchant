@@ -51,11 +51,11 @@ func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 	ctx.SetUserValue("token", data)
 
 	// 需要otp校验的路由
-	if _, ok := otpList[path]; ok {
-		if !otp(ctx, data) {
-			return errors.New(`{"status":false,"data":"otp"}`)
-		}
-	}
+	//if _, ok := otpList[path]; ok {
+	//	if !otp(ctx, data) {
+	//		return errors.New(`{"status":false,"data":"otp"}`)
+	//	}
+	//}
 
 	gid := fastjson.GetString(data, "group_id")
 	if path != "/merchant/admin/login" && path != "/merchant/admin/logout" {
