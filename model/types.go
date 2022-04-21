@@ -50,7 +50,7 @@ type Member struct {
 	Commission         string `db:"commission" json:"commission,omitempty"`                     //佣金
 	MaintainName       string `db:"maintain_name" json:"maintain_name"`                         //维护人
 	GroupName          string `db:"group_name" json:"group_name"`                               //团队名称
-	AgencyType         int64  `json:"agency_type" json:"agency_type"`                           //391团队代理 393普通代理
+	AgencyType         int64  `db:"agency_type" json:"agency_type"`                             //391团队代理 393普通代理
 }
 
 // MemberPlatform 会员场馆表
