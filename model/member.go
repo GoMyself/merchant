@@ -471,7 +471,7 @@ func memberList(page, pageSize int, ex g.Ex) (MemberPageData, error) {
 	return data, nil
 }
 
-func AgencyList(ex exp.ExpressionList, parentID, username, maintainName, startTime, endTime, sortField string, isAsc, page, pageSize, agencyType int) (MemberListData, error) {
+func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, sortField string, isAsc, page, pageSize, agencyType int) (MemberListData, error) {
 
 	data := MemberListData{}
 	startAt, err := helper.TimeToLoc(startTime, loc)

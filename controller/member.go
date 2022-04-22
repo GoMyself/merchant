@@ -433,6 +433,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))          //会员帐号
 	maintainName := string(ctx.PostArgs().Peek("maintain_name")) //维护人
+	groupName := string(ctx.PostArgs().Peek("group_name"))       //团队名称
 	state := ctx.PostArgs().GetUintOrZero("state")               //状态 0:全部,1:启用,2:禁用
 	regStartTime := string(ctx.PostArgs().Peek("start_time"))    //注册开始时间
 	regEndTime := string(ctx.PostArgs().Peek("end_time"))        //注册结束时间
@@ -473,6 +474,10 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 		press = press.Append(g.C("maintain_name").Eq(maintainName))
 	}
 
+	if agencyType == 391 && groupName != "" {
+		press = press.Append(g.C("group_name").Eq(groupName))
+	}
+
 	if sortField != "" {
 		sortFields := map[string]bool{
 			"deposit":      true,
@@ -493,7 +498,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	data, err := model.AgencyList(press, parentID, username, maintainName, regStartTime, regEndTime, sortField, isAsc, page, pageSize, agencyType)
+	data, err := model.AgencyList(press, parentID, username, regStartTime, regEndTime, sortField, isAsc, page, pageSize, agencyType)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
