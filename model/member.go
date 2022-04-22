@@ -94,6 +94,7 @@ type memberInfo struct {
 	State        uint8  `db:"state" json:"state"`                 //状态 1正常 2禁用
 	Remarks      string `db:"remarks" json:"remarks"`             //备注
 	MaintainName string `db:"maintain_name" json:"maintain_name"` //
+	GroupName    string `db:"group_name" json:"group_name"`       //团队名称
 }
 
 type MemberListCol struct {
@@ -471,7 +472,7 @@ func memberList(page, pageSize int, ex g.Ex) (MemberPageData, error) {
 	return data, nil
 }
 
-func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, sortField string, isAsc, page, pageSize, agencyType int) (MemberListData, error) {
+func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, sortField string, isAsc, page, pageSize int, agencyType string) (MemberListData, error) {
 
 	data := MemberListData{}
 	startAt, err := helper.TimeToLoc(startTime, loc)
@@ -490,7 +491,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 
 	data.S = pageSize
 
-	if sortField != "" && username == "" { // 排序
+	if sortField != "" && username == "" && agencyType != "391" { // 排序
 		data.D, data.T, err = memberListSort(ex, parentID, sortField, startAt, endAt, isAsc, page, pageSize)
 		if err != nil {
 			return data, err
@@ -727,6 +728,7 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 		Limit(uint(pageSize)).
 		Order(orderBy).
 		ToSQL()
+	fmt.Println(query)
 	err := meta.ReportDB.Select(&data, query)
 	if err != nil {
 		return data, number, pushLog(err, helper.DBErr)
@@ -735,12 +737,12 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 	return data, number, nil
 }
 
-func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int, parentID string, agencyType int) ([]MemberListCol, int, error) {
+func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int, parentID, agencyType string) ([]MemberListCol, int, error) {
 
 	var data []MemberListCol
 	number := 0
 	ex = ex.Append(g.C("prefix").Eq(meta.Prefix))
-	if agencyType != 0 {
+	if agencyType == "391" {
 		ex = ex.Append(g.C("agency_type").Eq(391))
 	}
 	if page == 1 {
@@ -759,6 +761,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	offset := (page - 1) * pageSize
 	query, _, _ := dialect.From("tbl_members").Select("uid").Where(ex).Offset(uint(offset)).
 		Limit(uint(pageSize)).Order(g.L("created_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&members, query)
 	if err != nil {
 		return data, number, pushLog(err, helper.DBErr)

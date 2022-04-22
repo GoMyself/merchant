@@ -443,7 +443,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 	parentID := string(ctx.PostArgs().Peek("uid"))
 	sortField := string(ctx.PostArgs().Peek("sort_field"))
 	isAsc := ctx.PostArgs().GetUintOrZero("is_asc")
-	agencyType := ctx.PostArgs().GetUintOrZero("agency_type")
+	agencyType := string(ctx.PostArgs().Peek("agency_type"))
 
 	if page < 1 {
 		page = 1
@@ -475,9 +475,12 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 		press = press.Append(g.C("maintain_name").Eq(maintainName))
 	}
 
-	if agencyType == 391 && groupName != "" {
+	if agencyType == "391" && groupName != "" {
 		press = press.Append(g.C("group_name").Eq(groupName))
 	}
+
+	fmt.Println(agencyType)
+	fmt.Println(groupName)
 
 	if sortField != "" {
 		sortFields := map[string]bool{
