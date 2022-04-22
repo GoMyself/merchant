@@ -105,6 +105,12 @@ var (
 	colsMemberInfo         = helper.EnumFields(memberInfo{})
 	colLevelRecord         = helper.EnumFields(MemberLevelRecord{})
 	colsMemberListShow     = helper.EnumFields(memberListShow{})
+	rebateFields           = []string{"id", "prefix", "parent_uid", "parent_name", "level", "uid", "agency_type", "username", "rebate_at", "ration_at", "should_amount", "rebate_amount", "check_at", "state", "check_note", "ration_flag", "check_uid", "check_name", "create_at"}
+	dividendFields         = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "wallet", "batch", "batch_id", "level", "ty", "agency_type", "water_limit", "platform_id", "username", "amount", "hand_out_amount", "water_flow", "notify", "state", "hand_out_state", "remark", "review_remark", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
+	adjustFields           = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
+	depositFields          = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
+	withdrawFields         = []string{"id", "parent_name", "prefix", "bid", "flag", "finance_type", "oid", "uid", "level", "parent_uid", "agency_type", "username", "pid", "amount", "state", "automatic", "created_at", "confirm_at", "confirm_uid", "review_remark", "withdraw_at", "confirm_name", "withdraw_uid", "withdraw_name", "withdraw_remark", "bank_name", "card_name", "card_no"}
+	loginLogFields         = []string{"username", "ip", "ips", "device", "device_no", "date", "serial", "agency", "parents"}
 )
 
 func Constructor(mt *MetaTable, c *gorpc.Client) {

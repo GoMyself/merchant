@@ -2,7 +2,10 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/olivere/elastic/v7"
+	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
@@ -10,6 +13,81 @@ import (
 	"strconv"
 	"strings"
 )
+
+type gameAdminParam struct {
+	Username   string `rule:"none" msg:"username error" name:"username"`                                    // 下级账号
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	Pid        string `rule:"digit" default:"0" msg:"pid error" name:"pid"`                                 // 场馆
+	Flag       string `rule:"digit" default:"1" min:"1" max:"3" name:"flag"`                                //
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type loginLogParam struct {
+	Username  string `rule:"none" name:"username"`                                                         // 下级账号
+	Ip        string `rule:"none" name:"ip"`                                                               //
+	StartTime string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime   string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page      int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize  int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type depositParam struct {
+	Username   string `rule:"none" name:"username"`                                                         // 下级账号
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	State      uint16 `rule:"digit" default:"0" min:"0" max:"363" name:"state"`                             // 361:待确认 362:存款成功 363:已取消
+	ChannelId  uint64 `rule:"digit" default:"0" min:"0" name:"channel_id"`                                  // 通道ID
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type dividendParam struct {
+	Username   string `rule:"none" name:"username"`                                                         // 下级账号
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	Ty         uint16 `rule:"digit" default:"0" min:"0" max:"222" name:"ty"`                                //211 平台红利、212 升级红利、213 生日红利、214 每月红利、215 红包红利、216 维护补偿、217 存款优惠、218 活动红利、219 推荐红利、220 红利调整、221 负数清零
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type rebateParam struct {
+	Username   string `rule:"none" name:"username"`                                                         // 下级账号
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type adjustRecordParam struct {
+	Username   string `rule:"none" name:"username"`                                                         // 下级账号
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	AdjustType string `rule:"digit" default:"0" min:"0" max:"3" name:"adjust_type" msg:"adjust type error"` //
+	State      int    `rule:"digit" default:"0" min:"0" max:"263" name:"state" msg:"state error"`           //
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
+type withdrawParam struct {
+	Username       string `rule:"none" name:"username"`                                                         // 下级账号
+	ParentName     string `rule:"none" name:"parent_name"`                                                      //
+	State          uint16 `rule:"digit" default:"0" min:"0" max:"379" name:"state"`                             //371:审核中 372:审核拒绝 373:出款中 374:提款成功 375:出款失败 376:异常订单 377:代付失败
+	MinAmount      string `rule:"none" default:"0" min:"0" name:"min_amount"`                                   //
+	MaxAmount      string `rule:"none" default:"0" min:"0" name:"max_amount"`                                   //
+	StartTime      string `rule:"none"  name:"start_time"`                                                      // 查询开始时间
+	EndTime        string `rule:"none"  name:"end_time"`                                                        // 查询结束时间
+	ApplyStartTime string `rule:"none"  name:"apply_start_time"`                                                // 查询开始时间
+	ApplyEndTime   string `rule:"none"  name:"apply_end_time"`                                                  // 查询结束时间
+	Page           int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize       int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
 
 type RecordController struct{}
 
@@ -309,4 +387,388 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, data)
 
+}
+
+func (that *RecordController) Game(ctx *fasthttp.RequestCtx) {
+
+	param := gameAdminParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery()
+	if param.ParentName != "" {
+
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.AgentNameErr)
+			return
+		}
+
+		query = query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+	}
+
+	if param.ParentName == "" {
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+	}
+
+	// 校验username
+	// 如果username为空则取改代理下所有的会员
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("name", param.Username))
+	}
+
+	if param.Pid != "0" {
+		query.Filter(elastic.NewTermQuery("api_type", param.Pid))
+	}
+
+	data, err := model.RecordAdminGame(
+		param.Flag, param.StartTime, param.EndTime, param.Page, param.PageSize, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) LoginLog(ctx *fasthttp.RequestCtx) {
+
+	param := loginLogParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery().MustNot(elastic.NewTermsQuery("parents.keyword", "root", ""))
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("username", param.Username))
+	}
+
+	if param.Ip != "" {
+
+		ip, err := helper.Ip2long(param.Ip)
+		if err != nil {
+			helper.Print(ctx, false, helper.IPErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("ip", ip))
+	}
+
+	data, err := model.RecordLoginLog(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
+
+	param := depositParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery()
+	if param.ParentName != "" {
+
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.AgentNameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+	}
+
+	if param.ParentName == "" {
+		query.MustNot(elastic.NewTermsQuery("parentname", "root", ""))
+	}
+
+	if param.State > 0 {
+
+		if !validator.CheckIntScope(fmt.Sprintf("%d", param.State), model.DepositConfirming, model.DepositCancelled) {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("state", param.State))
+	}
+
+	if param.State == 0 {
+		query.Filter(elastic.NewTermsQuery("state", model.DepositSuccess, model.DepositCancelled))
+	}
+
+	if param.Username != "" {
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("username", param.Username))
+	}
+
+	if param.ChannelId > 0 {
+
+		query.Filter(elastic.NewTermQuery("channel_id", param.ChannelId))
+	}
+
+	data, err := model.RecordDeposit(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
+
+	param := dividendParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery()
+	if param.ParentName != "" {
+
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.AgentNameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+	}
+
+	if param.ParentName == "" {
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+	}
+
+	if param.Ty > 0 {
+
+		if !validator.CheckIntScope(fmt.Sprintf("%d", param.Ty), model.DividendSite, model.DividendAgency) {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("ty", param.Ty))
+	}
+
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("username", param.Username))
+	}
+
+	data, err := model.RecordDividend(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) Rebate(ctx *fasthttp.RequestCtx) {
+
+	param := rebateParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	ex := g.Ex{}
+
+	if param.Username != "" {
+
+		if !validator.CheckStringAlnum(param.Username) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex["username"] = param.Username
+	}
+
+	data, err := model.RecordRebate(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
+
+	param := adjustRecordParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery()
+	if param.ParentName != "" {
+
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.AgentNameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+	}
+
+	if param.ParentName == "" {
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+	}
+
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("username", param.Username))
+	}
+
+	if param.State > 0 {
+
+		if param.State < model.AdjustFailed || param.State > model.AdjustPlatDealing {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("hand_out_state", param.State))
+	}
+
+	if param.AdjustType != "0" {
+
+		if !validator.CheckIntScope(param.AdjustType, 1, 3) {
+			helper.Print(ctx, false, helper.AdjustTyErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("adjust_type", param.AdjustType))
+	}
+
+	data, err := model.RecordAdjust(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+// 代理管理-记录管理-提款
+func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
+
+	param := withdrawParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	query := elastic.NewBoolQuery()
+	if param.ParentName != "" {
+
+		if !validator.CheckUName(param.ParentName, 4, 9) {
+			helper.Print(ctx, false, helper.AgentNameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+	}
+
+	if param.ParentName == "" {
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+	}
+
+	if param.State > 0 {
+
+		if !validator.CheckIntScope(fmt.Sprintf("%d", param.State), model.WithdrawReviewing, model.WithdrawDispatched) {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("state", param.State))
+	}
+
+	if param.MinAmount != "0" || param.MaxAmount != "0" {
+
+		state, err := validator.CheckAmountRange(param.MinAmount, param.MaxAmount)
+		if err != nil || state == -1 {
+			helper.Print(ctx, false, helper.AmountErr)
+			return
+		}
+
+		min, err := decimal.NewFromString(param.MinAmount)
+		if err != nil {
+			helper.Print(ctx, false, helper.AmountErr)
+			return
+		}
+
+		max, err := decimal.NewFromString(param.MaxAmount)
+		if err != nil {
+			helper.Print(ctx, false, helper.AmountErr)
+			return
+		}
+
+		minVal, _ := min.Float64()
+		maxVal, _ := max.Float64()
+
+		query.Filter(elastic.NewRangeQuery("amount").Gte(minVal).Lte(maxVal))
+	}
+
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		query.Filter(elastic.NewTermQuery("username", param.Username))
+	}
+
+	data, err := model.RecordWithdraw(param.Page,
+		param.PageSize, param.StartTime, param.EndTime, param.ApplyStartTime, param.ApplyEndTime, query)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	rs, err := model.WithdrawDealListData(data)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, rs)
 }

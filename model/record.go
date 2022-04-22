@@ -543,3 +543,421 @@ func recordGameESQuery(index, sortField string, page, pageSize int,
 
 	return data, nil
 }
+
+func RecordAdminGame(flag, startTime, endTime string, page, pageSize int, query *elastic.BoolQuery) (GameRecordData, error) {
+
+	data := GameRecordData{}
+
+	startAt, err := helper.TimeToLocMs(startTime, loc)
+	if err != nil {
+		return data, errors.New(helper.DateTimeErr)
+	}
+
+	endAt, err := helper.TimeToLocMs(endTime, loc)
+	if err != nil {
+		return data, errors.New(helper.DateTimeErr)
+	}
+
+	if startAt >= endAt {
+		return data, errors.New(helper.QueryTimeRangeErr)
+	}
+
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix),
+		elastic.NewRangeQuery(betTimeFlags[flag]).Gte(startAt).Lte(endAt))
+
+	t, esResult, _, err := EsQuerySearch(pullPrefixIndex("tbl_game_record"), "bet_time", page, pageSize, gameRecordFields, query, nil)
+	if err != nil {
+		return data, err
+	}
+
+	data.T = t
+	var names []string
+	for _, v := range esResult {
+		record := GameRecord{}
+		record.ID = v.Id
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ApiTypes = fmt.Sprintf("%d", record.ApiType)
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
+	}
+
+	return data, nil
+}
+
+func RecordLoginLog(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (MemberLoginLogData, error) {
+
+	data := MemberLoginLogData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("date").Gte(startAt).Lte(endAt))
+	}
+
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("memberlogin"), "date", page, pageSize, loginLogFields, query, nil)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	var names []string
+	data.S = pageSize
+	data.T = t
+	for _, v := range esResult {
+
+		log := MemberLoginLog{}
+		_ = helper.JsonUnmarshal(v.Source, &log)
+		data.D = append(data.D, log)
+		names = append(names, log.Parents)
+	}
+
+	return data, nil
+}
+
+func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (FDepositData, error) {
+
+	data := FDepositData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
+	}
+
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_deposit"), "created_at", page, pageSize, depositFields, query, nil)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	var names []string
+	data.T = t
+	for _, v := range esResult {
+
+		record := Deposit{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
+	}
+
+	return data, nil
+}
+
+func RecordDividend(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (DividendData, error) {
+
+	data := DividendData{}
+	query.Filter(elastic.NewTermQuery("hand_out_state", DividendSuccess))
+
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLocMs(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.DateTimeErr)
+		}
+
+		endAt, err := helper.TimeToLocMs(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.DateTimeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("apply_at").Gte(startAt).Lte(endAt))
+	}
+
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_member_dividend"), "apply_at", page, pageSize, dividendFields, query, nil)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	var names []string
+	data.T = t
+	for _, v := range esResult {
+
+		record := MemberDividend{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
+	}
+
+	return data, nil
+}
+
+func RecordRebate(page, pageSize int, startTime, endTime string, ex g.Ex) (RebateData, error) {
+
+	data := RebateData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	}
+	ex["prefix"] = meta.Prefix
+	t := dialect.From("tbl_commission_transaction")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(colsCommissionTransfer...).Where(ex).
+		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	return data, nil
+}
+
+func RecordAdjust(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (AdjustData, error) {
+
+	data := AdjustData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
+	}
+
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_member_adjust"), "apply_at", page, pageSize, adjustFields, query, nil)
+	if err != nil {
+		return data, err
+	}
+
+	data.T = t
+	var names []string
+	for _, v := range esResult {
+
+		record := MemberAdjust{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
+	}
+
+	return data, nil
+}
+
+// 代理管理-记录管理-提款
+func RecordWithdraw(page, pageSize int, startTime, endTime, applyStartTime, applyEndTime string, query *elastic.BoolQuery) (FWithdrawData, error) {
+
+	data := FWithdrawData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("withdraw_at").Gte(startAt).Lte(endAt))
+	}
+
+	if applyStartTime != "" && applyEndTime != "" {
+
+		startAt, err := helper.TimeToLoc(applyStartTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(applyEndTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
+	}
+
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_withdraw"), "created_at", page, pageSize, withdrawFields, query, nil)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	data.T = t
+	for _, v := range esResult {
+
+		record := Withdraw{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+	}
+
+	return data, nil
+}
+
+// 处理 提款订单返回数据
+func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
+
+	result := WithdrawListData{
+		T:   data.T,
+		Agg: data.Agg,
+	}
+
+	if len(data.D) == 0 {
+		return result, nil
+	}
+
+	// 组装获取rpc数据参数
+	rpcParam := make(map[string][]string)
+	namesMap := make(map[string]string)
+	var agencyNames []string
+	for _, v := range data.D {
+		rpcParam["bankcard"] = append(rpcParam["bankcard"], v.BID)
+		rpcParam["realname"] = append(rpcParam["realname"], v.UID)
+		namesMap[v.Username] = v.UID
+		agencyNames = append(agencyNames, v.ParentName)
+	}
+
+	// 遍历用户map 读取标签数据
+	var names []string
+	for name, _ := range namesMap {
+		// 组装需要通过name获取的 redis参数
+		names = append(names, name)
+	}
+
+	bankcards, err := bankcardListDBByIDs(rpcParam["bankcard"])
+	if err != nil {
+		return result, pushLog(err, helper.DBErr)
+	}
+
+	bankcardNos, err := RpcGetDecode("bankcard", true, rpcParam["bankcard"])
+	if err != nil {
+		return result, pushLog(err, helper.DBErr)
+	}
+
+	realNames, err := RpcGetDecode("realname", true, rpcParam["realname"])
+	if err != nil {
+		return result, pushLog(err, helper.DBErr)
+	}
+
+	// 处理返回前端的数据
+	for k, v := range data.D {
+
+		cardNo := bankcardNos[k].Res
+		realName := realNames[k].Res
+
+		w := withdrawCols{
+			Withdraw:           v,
+			MemberBankNo:       cardNo,
+			MemberBankRealName: realName,
+			MemberRealName:     realName,
+		}
+
+		card, ok := bankcards[v.BID]
+		if ok {
+			w.MemberBankID = card.BankID
+			w.MemberBankAddress = card.BankAddress
+		}
+
+		result.D = append(result.D, w)
+	}
+
+	return result, nil
+}
+
+func bankcardListDBByIDs(ids []string) (map[string]BankCard, error) {
+
+	data := make(map[string]BankCard)
+	if len(ids) == 0 {
+		return nil, errors.New(helper.UsernameErr)
+	}
+
+	ex := g.Ex{"id": ids}
+	bankcards, _, err := BankcardsList(ex)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range bankcards {
+		data[v.ID] = v
+	}
+
+	return data, nil
+}
+
+func BankcardsList(ex g.Ex) ([]BankCard, string, error) {
+
+	var data []BankCard
+	t := dialect.From("tbl_member_bankcard")
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		return data, "db", err
+	}
+
+	return data, "", nil
+}
