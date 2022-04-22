@@ -1149,19 +1149,19 @@ func (that *MemberController) Transfer(ctx *fasthttp.RequestCtx) {
 	destName := string(ctx.PostArgs().Peek("dest_name"))
 	// 已有下线，不允许使用跳线转代
 	if model.MemberSubCheck(username) {
-		helper.Print(ctx, false, errors.New(helper.MemberHaveSubAlready))
+		helper.Print(ctx, false, helper.MemberHaveSubAlready)
 		return
 	}
 
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
-		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
 
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
-		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+		helper.Print(ctx, false, helper.AgentNameErr)
 		return
 	}
 
@@ -1187,13 +1187,13 @@ func (that *MemberController) TransferGroup(ctx *fasthttp.RequestCtx) {
 	destName := string(ctx.PostArgs().Peek("dest_name"))
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
-		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
 
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
-		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+		helper.Print(ctx, false, helper.AgentNameErr)
 		return
 	}
 
