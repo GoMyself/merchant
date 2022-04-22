@@ -1159,11 +1159,13 @@ func (that *MemberController) Transfer(ctx *fasthttp.RequestCtx) {
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
 		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+		return
 	}
 
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
 		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+		return
 	}
 
 	err = transferRebateRateCheck(mb, destMb)
@@ -1189,11 +1191,13 @@ func (that *MemberController) TransferGroup(ctx *fasthttp.RequestCtx) {
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
 		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+		return
 	}
 
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
 		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+		return
 	}
 
 	err = transferRebateRateCheck(mb, destMb)

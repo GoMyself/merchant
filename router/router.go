@@ -202,7 +202,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 跳线转代
 	post("/merchant/member/transfer", memberCtl.Transfer)
 	// 团队转代
-	post("/merchant/member/transfergroup", memberCtl.Transfer)
+	post("/merchant/member/transfergroup", memberCtl.TransferGroup)
 
 	//用户VIP配置
 	get("/merchant/vip/list", levelCtl.List)
