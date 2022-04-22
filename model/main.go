@@ -55,6 +55,7 @@ type MetaTable struct {
 	MinioClient       *minio.Client
 	Grpc              *gorpc.DispatcherClient
 	BeanPool          cpool.Pool
+	BeanBetPool       cpool.Pool
 	ES                *elastic.Client
 	NatsConn          *nats.Conn
 	AutoCommission    bool

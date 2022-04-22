@@ -21,6 +21,11 @@ type conf struct {
 		MaxIdle int    `json:"maxIdle"`
 		MaxCap  int    `json:"maxCap"`
 	} `json:"beanstalkd"`
+	BeanBet struct {
+		Addr    string `json:"addr"`
+		MaxIdle int    `json:"maxIdle"`
+		MaxCap  int    `json:"maxCap"`
+	} `json:"bean_bet"`
 	Db struct {
 		Master struct {
 			Addr        string `json:"addr"`

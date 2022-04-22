@@ -1112,24 +1112,14 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, data)
 }
 
-func transferRebateRateCheck(username, destName string) error {
-
-	mb, err := model.MemberFindOne(username)
-	if err != nil {
-		return errors.New(helper.UsernameErr)
-	}
-
-	mbDest, err := model.MemberFindOne(destName)
-	if err != nil {
-		return errors.New(helper.AgentNameErr)
-	}
+func transferRebateRateCheck(mb, destMb model.Member) error {
 
 	src, err := model.MemberRebateFindOne(mb.UID)
 	if err != nil {
 		return err
 	}
 
-	dest, err := model.MemberRebateFindOne(mbDest.UID)
+	dest, err := model.MemberRebateFindOne(destMb.UID)
 	if err != nil {
 		return err
 	}
@@ -1146,16 +1136,40 @@ func transferRebateRateCheck(username, destName string) error {
 	return nil
 }
 
-// Transfer  跳线转
+// Transfer  跳线转代
 func (that *MemberController) Transfer(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	destName := string(ctx.PostArgs().Peek("dest_name"))
-	err := transferRebateRateCheck(username, destName)
+	// 已有下线，不允许使用跳线转代
+	if model.MemberSubCheck(username) {
+		helper.Print(ctx, false, errors.New(helper.MemberHaveSubAlready))
+		return
+	}
+
+	mb, err := model.MemberFindOne(username)
+	if err != nil {
+		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+	}
+
+	destMb, err := model.MemberFindOne(destName)
+	if err != nil {
+		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+	}
+
+	err = transferRebateRateCheck(mb, destMb)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+
+	err = model.MemberTransferAg(mb, destMb)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }
 
 // TransferGroup  团队转代
@@ -1163,9 +1177,32 @@ func (that *MemberController) TransferGroup(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	destName := string(ctx.PostArgs().Peek("dest_name"))
-	err := transferRebateRateCheck(username, destName)
+	mb, err := model.MemberFindOne(username)
+	if err != nil {
+		helper.Print(ctx, false, errors.New(helper.UsernameErr))
+	}
+
+	destMb, err := model.MemberFindOne(destName)
+	if err != nil {
+		helper.Print(ctx, false, errors.New(helper.AgentNameErr))
+	}
+
+	err = transferRebateRateCheck(mb, destMb)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+
+	// 没有下线，相当于跳线转代
+	if !model.MemberSubCheck(username) {
+		err = model.MemberTransferAg(mb, destMb)
+	} else {
+		err = model.MemberTransferGroup(mb, destMb)
+	}
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }

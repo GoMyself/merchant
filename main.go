@@ -54,6 +54,7 @@ func main() {
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, cfg.Redis.Db)
 	mt.MinioClient = conn.InitMinio(cfg.Minio.Endpoint, cfg.Minio.AccessKeyID, cfg.Minio.SecretAccessKey, cfg.Minio.UseSSL)
 	mt.BeanPool = conn.InitBeanstalk(cfg.Beanstalkd.Addr, 15, cfg.Beanstalkd.MaxIdle, cfg.Beanstalkd.MaxCap)
+	mt.BeanBetPool = conn.InitBeanstalk(cfg.BeanBet.Addr, 15, cfg.BeanBet.MaxIdle, cfg.BeanBet.MaxCap)
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
 	//mt.NatsConn = conn.InitNatsIO(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 

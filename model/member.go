@@ -2114,12 +2114,62 @@ func MemberSumByRange(start, end string, uids []string) (map[string]AgencyBaseSu
 	return nil, nil
 }
 
-//MemberTransferAg 跳线转代
-func MemberTransferAg() {
+// MemberSubCheck 检查当前会员是否有下级
+func MemberSubCheck(username string) bool {
 
+	var num int
+	ex := g.Ex{
+		"parent_name": username,
+	}
+	query, _, _ := dialect.From("tbl_members").Select(g.COUNT("uid").As("num")).Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.ReportDB.Get(&num, query)
+	if err == nil && num == 0 {
+		return false
+	}
+
+	return true
+}
+
+//MemberTransferAg 跳线转代
+func MemberTransferAg(mb, destMb Member) error {
+
+	tx, err := meta.MerchantDB.Begin() // 开启事务
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	query := fmt.Sprintf("delete from tbl_member_tree where descendant = %s and prefix = %s", mb.UID, meta.Prefix)
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
+	}
+
+	treeNode := MemberClosureInsert(mb.UID, destMb.UID)
+	_, err = tx.Exec(treeNode)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
+	}
+
+	_ = tx.Commit()
+
+	param := map[string]interface{}{
+		"uid":         mb.UID,
+		"username":    mb.Username,
+		"parent_uid":  destMb.UID,
+		"parent_name": destMb.Username,
+		"top_uid":     destMb.TopUid,
+		"top_name":    destMb.TopName,
+		"prefix":      meta.Prefix,
+	}
+	_, _ = BeanBetPut("transfer_ag", param, 0)
+
+	return nil
 }
 
 //MemberTransferGroup 团队转代
-func MemberTransferGroup() {
-
+func MemberTransferGroup(mb, destMb Member) error {
+	return nil
 }
