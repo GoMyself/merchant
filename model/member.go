@@ -2145,7 +2145,23 @@ func MemberTransferAg(mb, destMb Member) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	query := fmt.Sprintf("delete from tbl_members_tree where descendant = %s and prefix = '%s'", mb.UID, meta.Prefix)
+	ex := g.Ex{
+		"uid": mb.UID,
+	}
+	record := g.Record{
+		"parent_uid":  destMb.UID,
+		"parent_name": destMb.Username,
+		"top_uid":     destMb.TopUid,
+		"top_name":    destMb.TopName,
+	}
+	query, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
+	}
+
+	query = fmt.Sprintf("delete from tbl_members_tree where descendant = %s and prefix = '%s'", mb.UID, meta.Prefix)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
