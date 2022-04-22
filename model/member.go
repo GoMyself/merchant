@@ -471,7 +471,7 @@ func memberList(page, pageSize int, ex g.Ex) (MemberPageData, error) {
 	return data, nil
 }
 
-func AgencyList(ex exp.ExpressionList, parentID, username, maintainName, startTime, endTime, sortField string, isAsc, page, pageSize int) (MemberListData, error) {
+func AgencyList(ex exp.ExpressionList, parentID, username, maintainName, startTime, endTime, sortField string, isAsc, page, pageSize, agencyType int) (MemberListData, error) {
 
 	data := MemberListData{}
 	startAt, err := helper.TimeToLoc(startTime, loc)
@@ -496,7 +496,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, maintainName, startTi
 			return data, err
 		}
 	} else {
-		data.D, data.T, err = agencyList(ex, startAt, endAt, page, pageSize, parentID)
+		data.D, data.T, err = agencyList(ex, startAt, endAt, page, pageSize, parentID, agencyType)
 		if err != nil {
 			return data, err
 		}
@@ -735,11 +735,14 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 	return data, number, nil
 }
 
-func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int, parentID string) ([]MemberListCol, int, error) {
+func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int, parentID string, agencyType int) ([]MemberListCol, int, error) {
 
 	var data []MemberListCol
 	number := 0
 	ex = ex.Append(g.C("prefix").Eq(meta.Prefix))
+	if agencyType != 0 {
+		ex = ex.Append(g.C("agency_type").Eq(391))
+	}
 	if page == 1 {
 		query, _, _ := dialect.From("tbl_members").Select(g.COUNT(1)).Where(ex).ToSQL()
 		err := meta.MerchantDB.Get(&number, query)

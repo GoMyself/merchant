@@ -441,6 +441,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 	parentID := string(ctx.PostArgs().Peek("uid"))
 	sortField := string(ctx.PostArgs().Peek("sort_field"))
 	isAsc := ctx.PostArgs().GetUintOrZero("is_asc")
+	agencyType := ctx.PostArgs().GetUintOrZero("agency_type")
 
 	if page < 1 {
 		page = 1
@@ -492,7 +493,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	data, err := model.AgencyList(press, parentID, username, maintainName, regStartTime, regEndTime, sortField, isAsc, page, pageSize)
+	data, err := model.AgencyList(press, parentID, username, maintainName, regStartTime, regEndTime, sortField, isAsc, page, pageSize, agencyType)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
