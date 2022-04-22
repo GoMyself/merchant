@@ -2145,7 +2145,7 @@ func MemberTransferAg(mb, destMb Member) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	query := fmt.Sprintf("delete from tbl_member_tree where descendant = %s and prefix = %s", mb.UID, meta.Prefix)
+	query := fmt.Sprintf("delete from tbl_members_tree where descendant = %s and prefix = '%s'", mb.UID, meta.Prefix)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
