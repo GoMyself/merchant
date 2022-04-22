@@ -2188,6 +2188,8 @@ func MemberTransferAg(mb, destMb Member) error {
 	}
 	_, _ = BeanBetPut("transfer_ag", param, 0)
 
+	// todo 记录转代日志
+
 	return nil
 }
 

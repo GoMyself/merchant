@@ -1162,6 +1162,11 @@ func (that *MemberController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if mb.ParentName == destName {
+		helper.Print(ctx, false, helper.IsAgentSubAlready)
+		return
+	}
+
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
 		helper.Print(ctx, false, helper.AgentNameErr)
