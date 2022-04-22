@@ -762,3 +762,122 @@ type AgencyMemberData struct {
 	D []memberListData `json:"d"`
 	T int              `json:"t"`
 }
+
+// Withdraw 出款
+type Withdraw struct {
+	ID                string  `db:"id" json:"id"`                                   //
+	Prefix            string  `db:"prefix" json:"prefix"`                           //转账后的金额
+	BID               string  `db:"bid" json:"bid"`                                 //转账前的金额
+	Flag              int     `db:"flag" json:"flag"`                               //
+	OID               string  `db:"oid" json:"oid"`                                 //转账前的金额
+	Level             int     `db:"level" json:"level"`                             //
+	UID               string  `db:"uid" json:"uid"`                                 //用户ID
+	ParentUID         string  `db:"parent_uid" json:"parent_uid"`                   //上级代理ID
+	ParentName        string  `db:"parent_name" json:"parent_name"`                 //上级代理
+	TopUID            string  `db:"top_uid" json:"top_uid"`                         //总代uid
+	TopName           string  `db:"top_name" json:"top_name"`                       //总代
+	Username          string  `db:"username" json:"username"`                       //用户名
+	PID               string  `db:"pid" json:"pid"`                                 //用户ID
+	Amount            float64 `db:"amount" json:"amount"`                           //金额
+	State             int     `db:"state" json:"state"`                             //0:待确认:1存款成功2:已取消
+	Automatic         int     `db:"automatic" json:"automatic"`                     //1:自动转账2:脚本确认3:人工确认
+	BankName          string  `db:"bank_name" json:"bank_name"`                     //银行名
+	RealName          string  `db:"real_name" json:"real_name"`                     //持卡人姓名
+	CardNO            string  `db:"card_no" json:"card_no"`                         //银行卡号
+	CreatedAt         int64   `db:"created_at" json:"created_at"`                   //
+	ConfirmAt         int64   `db:"confirm_at" json:"confirm_at"`                   //确认时间
+	ConfirmUID        string  `db:"confirm_uid" json:"confirm_uid"`                 //确认人uid
+	ConfirmName       string  `db:"confirm_name" json:"confirm_name"`               //确认人名
+	ReviewRemark      string  `db:"review_remark" json:"review_remark"`             //确认人名
+	WithdrawAt        int64   `db:"withdraw_at" json:"withdraw_at"`                 //三方场馆ID
+	WithdrawRemark    string  `db:"withdraw_remark" json:"withdraw_remark"`         //确认人名
+	WithdrawUID       string  `db:"withdraw_uid" json:"withdraw_uid"`               //确认人uid
+	WithdrawName      string  `db:"withdraw_name" json:"withdraw_name"`             //确认人名
+	FinanceType       int     `db:"finance_type" json:"finance_type"`               // 财务类型 442=提款 444=代客提款 446=代理提款
+	LastDepositAmount float64 `db:"last_deposit_amount" json:"last_deposit_amount"` // 上笔成功存款金额
+	RealNameHash      string  `db:"real_name_hash" json:"real_name_hash"`           //真实姓名哈希
+	HangUpUID         string  `db:"hang_up_uid" json:"hang_up_uid"`                 // 挂起人uid
+	HangUpRemark      string  `db:"hang_up_remark" json:"hang_up_remark"`           // 挂起备注
+	HangUpName        string  `db:"hang_up_name" json:"hang_up_name"`               //  挂起人名字
+	RemarkID          int     `db:"remark_id" json:"remark_id"`                     // 挂起原因ID
+	HangUpAt          int     `db:"hang_up_at" json:"hang_up_at"`                   //  挂起时间
+	ReceiveAt         int64   `db:"receive_at" json:"receive_at"`                   //领取时间
+	WalletFlag        int     `db:"wallet_flag" json:"wallet_flag"`                 //钱包类型:1=中心钱包,2=佣金钱包
+}
+
+// Deposit 存款
+type Deposit struct {
+	ID              string  `db:"id" json:"id"`                               //
+	Prefix          string  `db:"prefix" json:"prefix"`                       //转账后的金额
+	OID             string  `db:"oid" json:"oid"`                             //转账前的金额
+	Level           int     `db:"level" json:"level"`                         //
+	UID             string  `db:"uid" json:"uid"`                             //用户ID
+	ParentUID       string  `db:"parent_uid" json:"parent_uid"`               //上级代理ID
+	ParentName      string  `db:"parent_name" json:"parent_name"`             //上级代理
+	TopUID          string  `db:"top_uid" json:"top_uid"`                     //总代uid
+	TopName         string  `db:"top_name" json:"top_name"`                   //总代
+	Username        string  `db:"username" json:"username"`                   //用户名
+	ChannelID       string  `db:"channel_id" json:"channel_id"`               //
+	CID             string  `db:"cid" json:"cid"`                             //分类ID
+	PID             string  `db:"pid" json:"pid"`                             //用户ID
+	FinanceType     int     `db:"finance_type" json:"finance_type"`           //
+	Amount          float64 `db:"amount" json:"amount"`                       //金额
+	USDTFinalAmount float64 `db:"usdt_final_amount" json:"usdt_final_amount"` // 到账金额
+	USDTApplyAmount float64 `db:"usdt_apply_amount" json:"usdt_apply_amount"` // 提单金额
+	Rate            float64 `db:"rate" json:"rate"`                           // 汇率
+	State           int     `db:"state" json:"state"`                         //0:待确认:1存款成功2:已取消
+	Automatic       int     `db:"automatic" json:"automatic"`                 //1:自动转账2:脚本确认3:人工确认
+	CreatedAt       int64   `db:"created_at" json:"created_at"`               //
+	CreatedUID      string  `db:"created_uid" json:"created_uid"`             //三方场馆ID
+	CreatedName     string  `db:"created_name" json:"created_name"`           //确认人名
+	ReviewRemark    string  `db:"review_remark" json:"review_remark"`         //确认人名
+	ConfirmAt       int64   `db:"confirm_at" json:"confirm_at"`               //确认时间
+	ConfirmUID      string  `db:"confirm_uid" json:"confirm_uid"`             //确认人uid
+	ConfirmName     string  `db:"confirm_name" json:"confirm_name"`           //确认人名
+	IsRisk          int     `db:"-" json:"is_risk"`                           //是否风控
+	ProtocolType    string  `db:"protocol_type" json:"protocol_type"`         //地址类型 trc20 erc20
+	Address         string  `db:"address" json:"address"`                     //收款地址
+	HashID          string  `db:"hash_id" json:"hash_id"`                     //区块链订单号
+	Flag            int     `db:"flag" json:"flag"`                           // 1 三方订单 2 三方usdt订单 3 线下转卡订单 4 线下转usdt订单
+	BankcardID      string  `db:"bankcard_id" json:"bankcard_id"`             // 线下转卡 收款银行卡id
+	ManualRemark    string  `db:"manual_remark" json:"manual_remark"`         // 线下转卡订单附言
+	BankCode        string  `db:"bank_code" json:"bank_code"`                 // 银行编号
+	BankNo          string  `db:"bank_no" json:"bank_no"`                     // 银行卡号
+}
+
+// 取款数据
+type FWithdrawData struct {
+	T   int64             `json:"t"`
+	D   []Withdraw        `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+// 存款数据
+type FDepositData struct {
+	T   int64             `json:"t"`
+	D   []Deposit         `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type withdrawCols struct {
+	Withdraw
+	MemberBankID       string `json:"member_bank_id"`
+	MemberBankNo       string `json:"member_bank_no"`
+	MemberBankRealName string `json:"member_bank_real_name"`
+	MemberBankAddress  string `json:"member_bank_address"`
+	MemberRealName     string `json:"member_real_name"`
+	IsRisk             int    `json:"is_risk"`
+}
+
+type WithdrawListData struct {
+	T   int64             `json:"t"`
+	D   []withdrawCols    `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+// 返水数据
+type RebateData struct {
+	T   int64                `json:"t"`
+	D   []CommissionTransfer `json:"d"`
+	Agg map[string]string    `json:"agg"`
+}
