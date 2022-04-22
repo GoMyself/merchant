@@ -184,6 +184,10 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/history", memberCtl.History)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
 	post("/merchant/member/full", memberCtl.Full)
+	// 跳线转代
+	post("/merchant/member/transfer", memberCtl.Transfer)
+	// 团队转代
+	post("/merchant/member/transfergroup", memberCtl.Transfer)
 
 	//用户VIP配置
 	get("/merchant/vip/list", levelCtl.List)

@@ -2110,6 +2110,16 @@ func MemberSumByRange(start, end string, uids []string) (map[string]AgencyBaseSu
 			return result, nil
 		}
 	}
+
 	return nil, nil
+}
+
+//MemberTransferAg 跳线转代
+func MemberTransferAg() {
+
+}
+
+//MemberTransferGroup 团队转代
+func MemberTransferGroup() {
 
 }

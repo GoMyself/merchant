@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
@@ -1109,4 +1110,62 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, data)
+}
+
+func transferRebateRateCheck(username, destName string) error {
+
+	mb, err := model.MemberFindOne(username)
+	if err != nil {
+		return errors.New(helper.UsernameErr)
+	}
+
+	mbDest, err := model.MemberFindOne(destName)
+	if err != nil {
+		return errors.New(helper.AgentNameErr)
+	}
+
+	src, err := model.MemberRebateFindOne(mb.UID)
+	if err != nil {
+		return err
+	}
+
+	dest, err := model.MemberRebateFindOne(mbDest.UID)
+	if err != nil {
+		return err
+	}
+
+	if src.TY.GreaterThan(dest.TY) || //体育返水比例
+		src.ZR.GreaterThan(dest.ZR) || //真人返水比例
+		src.QP.GreaterThan(dest.QP) || //棋牌返水比例
+		src.DJ.GreaterThan(dest.DJ) || //电竞返水比例
+		src.DZ.GreaterThan(dest.DZ) || //电子返水比例
+		src.CP.GreaterThan(dest.CP) { //彩票返水比例
+		return errors.New(helper.RebateOutOfRange)
+	}
+
+	return nil
+}
+
+// Transfer  跳线转
+func (that *MemberController) Transfer(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.PostArgs().Peek("username"))
+	destName := string(ctx.PostArgs().Peek("dest_name"))
+	err := transferRebateRateCheck(username, destName)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+}
+
+// TransferGroup  团队转代
+func (that *MemberController) TransferGroup(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.PostArgs().Peek("username"))
+	destName := string(ctx.PostArgs().Peek("dest_name"))
+	err := transferRebateRateCheck(username, destName)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
 }
