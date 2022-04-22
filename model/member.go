@@ -2129,7 +2129,7 @@ func MemberSubCheck(username string) bool {
 	}
 	query, _, _ := dialect.From("tbl_members").Select(g.COUNT("uid").As("num")).Where(ex).ToSQL()
 	fmt.Println(query)
-	err := meta.ReportDB.Get(&num, query)
+	err := meta.MerchantDB.Get(&num, query)
 	if err == nil && num == 0 {
 		return false
 	}
