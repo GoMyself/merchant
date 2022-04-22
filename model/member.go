@@ -2146,7 +2146,8 @@ func MemberTransferAg(mb, destMb Member) error {
 	}
 
 	ex := g.Ex{
-		"uid": mb.UID,
+		"uid":    mb.UID,
+		"prefix": meta.Prefix,
 	}
 	record := g.Record{
 		"parent_uid":  destMb.UID,
