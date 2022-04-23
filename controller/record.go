@@ -89,6 +89,16 @@ type withdrawParam struct {
 	PageSize       int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
 }
 
+type groupParam struct {
+	Username  string `rule:"none" name:"username"`                                                         // 下级账号
+	Uid       string `rule:"none" name:"uid"`                                                              //
+	GroupName string `rule:"none" name:"group_name"`                                                       //
+	StartTime string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime   string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page      int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize  int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
 type RecordController struct{}
 
 // Transaction 账变记录列表
@@ -771,4 +781,53 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, rs)
+}
+
+func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
+
+	param := groupParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	ex := g.Ex{}
+	if param.Username != "" {
+
+		if !validator.CheckUName(param.Username, 4, 9) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex["username"] = param.Username
+	}
+
+	if param.Uid != "" {
+
+		if !validator.CheckStringDigit(param.Uid) {
+			helper.Print(ctx, false, helper.IDErr)
+			return
+		}
+
+		ex["uid"] = param.Uid
+	}
+
+	if param.GroupName != "" {
+
+		orEx := g.Or(
+			g.Ex{"after_name": param.GroupName},
+			g.Ex{"before_name": param.GroupName},
+		)
+
+		g.And(ex, orEx)
+	}
+
+	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
 }
