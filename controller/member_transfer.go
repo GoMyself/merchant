@@ -226,9 +226,41 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 // Review  团队转代申请审核
 func (that *MemberTransferController) Review(ctx *fasthttp.RequestCtx) {
 
+	id := string(ctx.PostArgs().Peek("id"))
+	status := ctx.PostArgs().GetUintOrZero("status")
+	reviewRemark := string(ctx.PostArgs().Peek("review_remark"))
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MemberTransferReview(id, reviewRemark, status, admin)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }
 
 // Delete  团队转代申请删除
 func (that *MemberTransferController) Delete(ctx *fasthttp.RequestCtx) {
 
+	id := string(ctx.QueryArgs().Peek("id"))
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MemberTransferDelete(id, admin)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }

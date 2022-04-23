@@ -202,3 +202,69 @@ func MemberTransferInsert(mb, destMb Member, admin map[string]string, remark str
 
 	return nil
 }
+
+//MemberTransferReview 团队转代申请审核
+func MemberTransferReview(id, reviewRemark string, status int, admin map[string]string) error {
+
+	ex := g.Ex{
+		"id": id,
+	}
+	var st int
+	query, _, _ := dialect.From("tbl_agency_transfer_apply").Select("status").Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&st, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if st == status {
+		return errors.New(helper.NoDataUpdate)
+	}
+
+	record := g.Record{
+		"status":        status,
+		"review_at":     time.Now().Unix(),
+		"review_uid":    admin["id"],
+		"review_name":   admin["name"],
+		"review_remark": reviewRemark,
+	}
+	query, _, _ = dialect.Update("tbl_agency_transfer_apply").Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	return nil
+}
+
+//MemberTransferDelete 团队转代申请删除
+func MemberTransferDelete(id string, admin map[string]string) error {
+
+	ex := g.Ex{
+		"id": id,
+	}
+	var st int
+	query, _, _ := dialect.From("tbl_agency_transfer_apply").Select("status").Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&st, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if st == 4 {
+		return errors.New(helper.NoDataUpdate)
+	}
+
+	record := g.Record{
+		"status": 4,
+	}
+	query, _, _ = dialect.Update("tbl_agency_transfer_apply").Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	return nil
+}
