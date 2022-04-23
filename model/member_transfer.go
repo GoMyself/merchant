@@ -1,9 +1,12 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
+	"time"
 )
 
 // MemberTransferSubCheck 检查当前会员是否有下级
@@ -12,6 +15,7 @@ func MemberTransferSubCheck(username string) bool {
 	var num int
 	ex := g.Ex{
 		"parent_name": username,
+		"prefix":      meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_members").Select(g.COUNT("uid").As("num")).Where(ex).ToSQL()
 	fmt.Println(query)
@@ -24,7 +28,7 @@ func MemberTransferSubCheck(username string) bool {
 }
 
 //MemberTransferAg 跳线转代
-func MemberTransferAg(mb, destMb Member) error {
+func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -80,7 +84,121 @@ func MemberTransferAg(mb, destMb Member) error {
 	return nil
 }
 
-//MemberTransferInsert 团队转代
-func MemberTransferInsert(mb, destMb Member) error {
+//MemberTransferExist 转代申请记录是否存在
+func MemberTransferExist(username string) bool {
+
+	var num int
+	ex := g.Ex{
+		"username": username,
+		"prefix":   meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_agency_transfer_apply").Select(g.COUNT("uid").As("num")).Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&num, query)
+	if err == nil && num == 0 {
+		return false
+	}
+
+	return true
+}
+
+//MemberTransferList 团队转代申请列表
+func MemberTransferList(page, pageSize int, startTime, endTime, reviewStartTime, reviewEndTime string, ex g.Ex) (AgencyTransferData, error) {
+
+	data := AgencyTransferData{}
+	// 没有查询条件  startTime endTime 必填
+	if len(ex) == 0 && (startTime == "" || endTime == "") {
+		return data, errors.New(helper.QueryTermsErr)
+	}
+
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLocMs(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.DateTimeErr)
+		}
+
+		endAt, err := helper.TimeToLocMs(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		ex["apply_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	}
+
+	if reviewStartTime != "" && reviewEndTime != "" {
+
+		rStart, err := helper.TimeToLoc(reviewStartTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		rEnd, err := helper.TimeToLoc(reviewEndTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if rStart >= rEnd {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		ex["review_at"] = g.Op{"between": exp.NewRangeVal(rStart, rEnd)}
+	}
+
+	t := dialect.From("tbl_agency_transfer_apply")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(colsDividend...).Where(ex).
+		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("apply_at").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	return data, nil
+}
+
+//MemberTransferInsert 团队转代申请提交
+func MemberTransferInsert(mb, destMb Member, admin map[string]string, remark string) error {
+
+	record := g.Record{
+		"id":            helper.GenId(),
+		"prefix":        meta.Prefix,
+		"uid":           mb.UID,            //转代会员uid
+		"username":      mb.Username,       //转代人名
+		"after_uid":     destMb.UID,        //转代后上级代理uid
+		"after_name":    destMb.Username,   //转代后上级代理名
+		"status":        1,                 //状态 1审核中 2审核通过 3审核拒绝 4删除
+		"created_at":    time.Now().Unix(), //添加时间
+		"created_uid":   admin["id"],       //添加人uid
+		"created_name":  admin["name"],     //添加人名
+		"updated_at":    0,                 //修改时间
+		"updated_uid":   0,                 //修改人uid
+		"updated_name":  "",                //修改人名
+		"remark":        remark,            //备注
+		"review_remark": "",                //审核备注
+	}
+	query, _, _ := dialect.Insert("tbl_agency_transfer_apply").Rows(record).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
 	return nil
 }

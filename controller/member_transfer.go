@@ -2,8 +2,10 @@ package controller
 
 import (
 	"errors"
+	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
+	"merchant2/contrib/validator"
 	"merchant2/model"
 )
 
@@ -67,7 +69,13 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.MemberTransferAg(mb, destMb)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MemberTransferAg(mb, destMb, admin)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -79,6 +87,91 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 // List  团队转代申请列表
 func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 
+	id := string(ctx.QueryArgs().Peek("id"))
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
+	username := string(ctx.QueryArgs().Peek("username"))                 //会员名
+	afterName := string(ctx.QueryArgs().Peek("after_name"))              //转以后代理名
+	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //提交人
+	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //提交人
+	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+
+	ex := g.Ex{}
+	if page == 0 {
+		page = 1
+	}
+	if pageSize < 10 {
+		page = 10
+	}
+
+	if id == "" {
+		flags := map[int]bool{
+			1: true,
+			2: true,
+		}
+		if _, ok := flags[flag]; !ok {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		if flag == 1 {
+			ex["status"] = 1
+		} else {
+			ex["status"] = []int{2, 3, 4}
+		}
+
+		if username != "" {
+			if !validator.CheckUName(username, 4, 9) {
+				helper.Print(ctx, false, helper.UsernameErr)
+				return
+			}
+
+			ex["username"] = username
+		}
+
+		if afterName != "" {
+			if !validator.CheckUName(afterName, 4, 9) {
+				helper.Print(ctx, false, helper.AgentNameErr)
+				return
+			}
+
+			ex["after_name"] = afterName
+		}
+
+		if applyName != "" {
+			if !validator.CheckAName(applyName, 5, 20) {
+				helper.Print(ctx, false, helper.AdminNameErr)
+				return
+			}
+
+			ex["apply_name"] = applyName
+		}
+
+		if reviewName != "" {
+			if !validator.CheckAName(reviewName, 5, 20) {
+				helper.Print(ctx, false, helper.AdminNameErr)
+				return
+			}
+
+			ex["review_name"] = reviewName
+		}
+	} else {
+		ex = g.Ex{
+			"id": id,
+		}
+	}
+
+	data, err := model.MemberTransferList(page, pageSize, startTime, endTime, reviewStartTime, reviewEndTime, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
 }
 
 // Insert  团队转代
@@ -86,6 +179,7 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	destName := string(ctx.PostArgs().Peek("dest_name"))
+	remark := string(ctx.PostArgs().Peek("remark"))
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
 		helper.Print(ctx, false, helper.UsernameErr)
@@ -104,11 +198,22 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
 	// 没有下线，相当于跳线转代
 	if !model.MemberTransferSubCheck(username) {
-		err = model.MemberTransferAg(mb, destMb)
+		err = model.MemberTransferAg(mb, destMb, admin)
 	} else {
-		err = model.MemberTransferInsert(mb, destMb)
+		if model.MemberTransferExist(mb.Username) {
+			helper.Print(ctx, false, helper.TransferApplyExist)
+			return
+		}
+
+		err = model.MemberTransferInsert(mb, destMb, admin, remark)
 	}
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

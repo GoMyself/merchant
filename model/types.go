@@ -15,40 +15,40 @@ type MemberPageData struct {
 }
 
 type Member struct {
-	UID                string `db:"uid" json:"uid,omitempty"`
-	Username           string `db:"username" json:"username,omitempty"`                         //会员名
-	Password           string `db:"password" json:"password,omitempty"`                         //密码
-	RealnameHash       uint64 `db:"realname_hash" json:"realname_hash,omitempty"`               //真实姓名哈希
-	EmailHash          uint64 `db:"email_hash" json:"email_hash,omitempty"`                     //邮件地址哈希
-	PhoneHash          uint64 `db:"phone_hash" json:"phone_hash,omitempty"`                     //电话号码哈希
-	Prefix             string `db:"prefix" json:"prefix,omitempty"`                             //站点前缀
-	WithdrawPwd        uint64 `db:"withdraw_pwd" json:"withdraw_pwd,omitempty"`                 //取款密码哈希
-	Regip              string `db:"regip" json:"regip,omitempty"`                               //注册IP
-	RegUrl             string `db:"reg_url" json:"reg_url,omitempty"`                           //注册域名
-	RegDevice          string `db:"reg_device" json:"reg_device,omitempty"`                     //注册设备号
-	CreatedAt          uint32 `db:"created_at" json:"created_at,omitempty"`                     //注册时间
-	LastLoginIp        string `db:"last_login_ip" json:"last_login_ip,omitempty"`               //最后登陆ip
-	LastLoginAt        uint32 `db:"last_login_at" json:"last_login_at,omitempty"`               //最后登陆时间
-	SourceId           uint8  `db:"source_id" json:"source_id,omitempty"`                       //注册来源 1 pc 2h5 3 app
-	FirstDepositAt     uint32 `db:"first_deposit_at" json:"first_deposit_at,omitempty"`         //首充时间
-	FirstDepositAmount string `db:"first_deposit_amount" json:"first_deposit_amount,omitempty"` //首充金额
-	FirstBetAt         uint32 `db:"first_bet_at" json:"first_bet_at,omitempty"`                 //首投时间
-	FirstBetAmount     string `db:"first_bet_amount" json:"first_bet_amount,omitempty"`         //首投金额
-	TopUid             string `db:"top_uid" json:"top_uid,omitempty"`                           //总代uid
-	TopName            string `db:"top_name" json:"top_name,omitempty"`                         //总代代理
-	ParentUid          string `db:"parent_uid" json:"parent_uid,omitempty"`                     //上级uid
-	ParentName         string `db:"parent_name" json:"parent_name,omitempty"`                   //上级代理
-	BankcardTotal      uint8  `db:"bankcard_total" json:"bankcard_total,omitempty"`             //用户绑定银行卡的数量
-	LastLoginDevice    string `db:"last_login_device" json:"last_login_device,omitempty"`       //最后登陆设备
-	LastLoginSource    uint8  `db:"last_login_source" json:"last_login_source,omitempty"`       //上次登录设备来源:1=pc,2=h5,3=ios,4=andriod
-	Remarks            string `db:"remarks" json:"remarks,omitempty"`                           //备注
-	State              uint8  `db:"state" json:"state,omitempty"`                               //状态 1正常 2禁用
-	Balance            string `db:"balance" json:"balance,omitempty"`                           //余额
-	LockAmount         string `db:"lock_amount" json:"lock_amount,omitempty"`                   //锁定金额
-	Commission         string `db:"commission" json:"commission,omitempty"`                     //佣金
-	MaintainName       string `db:"maintain_name" json:"maintain_name"`                         //维护人
-	GroupName          string `db:"group_name" json:"group_name"`                               //团队名称
-	AgencyType         int64  `db:"agency_type" json:"agency_type"`                             //391团队代理 393普通代理
+	UID                string `db:"uid" json:"uid"`
+	Username           string `db:"username" json:"username"`                         //会员名
+	Password           string `db:"password" json:"password"`                         //密码
+	RealnameHash       uint64 `db:"realname_hash" json:"realname_hash"`               //真实姓名哈希
+	EmailHash          uint64 `db:"email_hash" json:"email_hash"`                     //邮件地址哈希
+	PhoneHash          uint64 `db:"phone_hash" json:"phone_hash"`                     //电话号码哈希
+	Prefix             string `db:"prefix" json:"prefix"`                             //站点前缀
+	WithdrawPwd        uint64 `db:"withdraw_pwd" json:"withdraw_pwd"`                 //取款密码哈希
+	Regip              string `db:"regip" json:"regip"`                               //注册IP
+	RegUrl             string `db:"reg_url" json:"reg_url"`                           //注册域名
+	RegDevice          string `db:"reg_device" json:"reg_device"`                     //注册设备号
+	CreatedAt          uint32 `db:"created_at" json:"created_at"`                     //注册时间
+	LastLoginIp        string `db:"last_login_ip" json:"last_login_ip"`               //最后登陆ip
+	LastLoginAt        uint32 `db:"last_login_at" json:"last_login_at"`               //最后登陆时间
+	SourceId           uint8  `db:"source_id" json:"source_id"`                       //注册来源 1 pc 2h5 3 app
+	FirstDepositAt     uint32 `db:"first_deposit_at" json:"first_deposit_at"`         //首充时间
+	FirstDepositAmount string `db:"first_deposit_amount" json:"first_deposit_amount"` //首充金额
+	FirstBetAt         uint32 `db:"first_bet_at" json:"first_bet_at"`                 //首投时间
+	FirstBetAmount     string `db:"first_bet_amount" json:"first_bet_amount"`         //首投金额
+	TopUid             string `db:"top_uid" json:"top_uid"`                           //总代uid
+	TopName            string `db:"top_name" json:"top_name"`                         //总代代理
+	ParentUid          string `db:"parent_uid" json:"parent_uid"`                     //上级uid
+	ParentName         string `db:"parent_name" json:"parent_name"`                   //上级代理
+	BankcardTotal      uint8  `db:"bankcard_total" json:"bankcard_total"`             //用户绑定银行卡的数量
+	LastLoginDevice    string `db:"last_login_device" json:"last_login_device"`       //最后登陆设备
+	LastLoginSource    uint8  `db:"last_login_source" json:"last_login_source"`       //上次登录设备来源:1=pc,2=h5,3=ios,4=andriod
+	Remarks            string `db:"remarks" json:"remarks"`                           //备注
+	State              uint8  `db:"state" json:"state"`                               //状态 1正常 2禁用
+	Balance            string `db:"balance" json:"balance"`                           //余额
+	LockAmount         string `db:"lock_amount" json:"lock_amount"`                   //锁定金额
+	Commission         string `db:"commission" json:"commission"`                     //佣金
+	MaintainName       string `db:"maintain_name" json:"maintain_name"`               //维护人
+	GroupName          string `db:"group_name" json:"group_name"`                     //团队名称
+	AgencyType         int64  `db:"agency_type" json:"agency_type"`                   //391团队代理 393普通代理
 }
 
 // MemberPlatform 会员场馆表
@@ -179,28 +179,28 @@ type MemberAdjust struct {
 	ID            string  `db:"id" json:"id"`
 	UID           string  `db:"uid" json:"uid"` // 会员id
 	Prefix        string  `db:"prefix" json:"prefix"`
-	Ty            int     `db:"ty" json:"ty"`                             //来源
-	Username      string  `db:"username" json:"username"`                 // 会员username
-	TopUid        string  `db:"top_uid" json:"top_uid,omitempty"`         //总代uid
-	TopName       string  `db:"top_name" json:"top_name,omitempty"`       //总代代理
-	ParentUid     string  `db:"parent_uid" json:"parent_uid,omitempty"`   //上级uid
-	ParentName    string  `db:"parent_name" json:"parent_name,omitempty"` //上级代理
-	Amount        float64 `db:"amount" json:"amount"`                     // 调整金额
-	AdjustType    int     `db:"adjust_type" json:"adjust_type"`           // 调整类型:1=系统调整,2=输赢调整,3=线下转卡充值
-	AdjustMode    int     `db:"adjust_mode" json:"adjust_mode"`           // 调整方式:1=上分,2=下分
-	IsTurnover    int     `db:"is_turnover" json:"is_turnover"`           // 是否需要流水限制:1=需要,0=不需要
-	TurnoverMulti int     `db:"turnover_multi" json:"turnover_multi"`     // 流水倍数
-	ApplyRemark   string  `db:"apply_remark" json:"apply_remark"`         // 申请备注
-	ReviewRemark  string  `db:"review_remark" json:"review_remark"`       // 审核备注
-	State         int     `db:"state" json:"state"`                       // 状态:1=审核中,2=审核通过,3=审核未通过
-	HandOutState  int     `db:"hand_out_state" json:"hand_out_state"`     // 上下分状态 1 失败 2成功 3场馆上分处理中
-	Images        string  `db:"images" json:"images"`                     // 图片地址
-	ApplyAt       int64   `db:"apply_at" json:"apply_at"`                 // 申请时间
-	ApplyUid      string  `db:"apply_uid" json:"apply_uid"`               // 申请人uid
-	ApplyName     string  `db:"apply_name" json:"apply_name"`             // 申请人
-	ReviewAt      int64   `db:"review_at" json:"review_at"`               // 审核时间
-	ReviewUid     string  `db:"review_uid" json:"review_uid"`             // 审核人uid
-	ReviewName    string  `db:"review_name" json:"review_name"`           // 审核人
+	Ty            int     `db:"ty" json:"ty"`                         //来源
+	Username      string  `db:"username" json:"username"`             // 会员username
+	TopUid        string  `db:"top_uid" json:"top_uid"`               //总代uid
+	TopName       string  `db:"top_name" json:"top_name"`             //总代代理
+	ParentUid     string  `db:"parent_uid" json:"parent_uid"`         //上级uid
+	ParentName    string  `db:"parent_name" json:"parent_name"`       //上级代理
+	Amount        float64 `db:"amount" json:"amount"`                 // 调整金额
+	AdjustType    int     `db:"adjust_type" json:"adjust_type"`       // 调整类型:1=系统调整,2=输赢调整,3=线下转卡充值
+	AdjustMode    int     `db:"adjust_mode" json:"adjust_mode"`       // 调整方式:1=上分,2=下分
+	IsTurnover    int     `db:"is_turnover" json:"is_turnover"`       // 是否需要流水限制:1=需要,0=不需要
+	TurnoverMulti int     `db:"turnover_multi" json:"turnover_multi"` // 流水倍数
+	ApplyRemark   string  `db:"apply_remark" json:"apply_remark"`     // 申请备注
+	ReviewRemark  string  `db:"review_remark" json:"review_remark"`   // 审核备注
+	State         int     `db:"state" json:"state"`                   // 状态:1=审核中,2=审核通过,3=审核未通过
+	HandOutState  int     `db:"hand_out_state" json:"hand_out_state"` // 上下分状态 1 失败 2成功 3场馆上分处理中
+	Images        string  `db:"images" json:"images"`                 // 图片地址
+	ApplyAt       int64   `db:"apply_at" json:"apply_at"`             // 申请时间
+	ApplyUid      string  `db:"apply_uid" json:"apply_uid"`           // 申请人uid
+	ApplyName     string  `db:"apply_name" json:"apply_name"`         // 申请人
+	ReviewAt      int64   `db:"review_at" json:"review_at"`           // 审核时间
+	ReviewUid     string  `db:"review_uid" json:"review_uid"`         // 审核人uid
+	ReviewName    string  `db:"review_name" json:"review_name"`       // 审核人
 	IsRisk        int     `db:"-" json:"is_risk"`
 }
 
@@ -238,10 +238,10 @@ type MemberDividend struct {
 	WaterLimit    uint8   `db:"water_limit" json:"water_limit"`
 	PlatformID    string  `db:"platform_id" json:"platform_id"`
 	Username      string  `db:"username" json:"username"`
-	TopUid        string  `db:"top_uid" json:"top_uid,omitempty"`         //总代uid
-	TopName       string  `db:"top_name" json:"top_name,omitempty"`       //总代代理
-	ParentUid     string  `db:"parent_uid" json:"parent_uid,omitempty"`   //上级uid
-	ParentName    string  `db:"parent_name" json:"parent_name,omitempty"` //上级代理
+	TopUid        string  `db:"top_uid" json:"top_uid"`         //总代uid
+	TopName       string  `db:"top_name" json:"top_name"`       //总代代理
+	ParentUid     string  `db:"parent_uid" json:"parent_uid"`   //上级uid
+	ParentName    string  `db:"parent_name" json:"parent_name"` //上级代理
 	Amount        float64 `db:"amount" json:"amount"`
 	HandOutAmount float64 `db:"hand_out_amount" json:"hand_out_amount"`
 	WaterFlow     float64 `db:"water_flow" json:"water_flow"`
@@ -560,10 +560,10 @@ type GameRecord struct {
 	ApiBetTime     uint64  `db:"api_bet_time" json:"api_bet_time" form:"api_bet_time"`
 	ApiSettleTime  uint64  `db:"api_settle_time" json:"api_settle_time" form:"api_settle_time"`
 	IsRisk         int     `db:"-" json:"is_risk"`
-	TopUid         string  `db:"top_uid" json:"top_uid,omitempty"`         //总代uid
-	TopName        string  `db:"top_name" json:"top_name,omitempty"`       //总代代理
-	ParentUid      string  `db:"parent_uid" json:"parent_uid,omitempty"`   //上级uid
-	ParentName     string  `db:"parent_name" json:"parent_name,omitempty"` //上级代理
+	TopUid         string  `db:"top_uid" json:"top_uid"`         //总代uid
+	TopName        string  `db:"top_name" json:"top_name"`       //总代代理
+	ParentUid      string  `db:"parent_uid" json:"parent_uid"`   //上级uid
+	ParentName     string  `db:"parent_name" json:"parent_name"` //上级代理
 }
 
 type Commissions struct {
@@ -880,4 +880,28 @@ type RebateData struct {
 	T   int64                `json:"t"`
 	D   []CommissionTransfer `json:"d"`
 	Agg map[string]string    `json:"agg"`
+}
+
+// 代理团队转代
+type AgencyTransfer struct {
+	ID           string `json:"id" db:"id"`
+	Prefix       string `json:"prefix" db:"prefix"`
+	UID          string `json:"uid" db:"uid"`
+	Username     string `json:"username" db:"username"`
+	AfterUid     string `json:"after_uid" db:"after_uid"`
+	AfterName    string `json:"after_name" db:"after_name"`
+	Status       int    `json:"status" db:"status"`
+	ApplyAt      uint32 `json:"apply_at" db:"apply_at"`
+	ApplyUid     string `json:"apply_uid" db:"apply_uid"`
+	ApplyName    string `json:"apply_name" db:"apply_name"`
+	ReviewAt     uint32 `json:"review_at" db:"review_at"`
+	ReviewUid    string `json:"review_uid" db:"review_uid"`
+	ReviewName   string `json:"review_name" db:"review_name"`
+	Remark       string `json:"remark" db:"remark"`
+	ReviewRemark string `json:"review_remark" db:"review_remark"`
+}
+
+type AgencyTransferData struct {
+	T int64            `json:"t"`
+	D []AgencyTransfer `json:"d"`
 }

@@ -198,7 +198,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 代理管理-团队转代-审核
 	post("/merchant/agency/transfer/review", memberTransferCtl.Review)
 	// 代理管理-团队转代-删除
-	get("/merchant/agency/transfer/review", memberTransferCtl.Delete)
+	get("/merchant/agency/transfer/delete", memberTransferCtl.Delete)
 
 	//代理管理-记录管理-游戏
 	post("/merchant/agency/record/game", recordCtl.Game)
