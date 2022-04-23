@@ -71,6 +71,9 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	slotsCtl := new(controller.SlotsController)
 	//会员
 	memberCtl := new(controller.MemberController)
+	//会员转代
+	memberTransferCtl := new(controller.MemberTransferController)
+
 	//会员等级设置
 	levelCtl := new(controller.MemberLevelController)
 	// 账户调整
@@ -177,7 +180,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
 	post("/merchant/member/full", memberCtl.Full)
 	// 跳线转代
-	post("/merchant/member/transfer", memberCtl.Transfer)
+	post("/merchant/member/transfer", memberTransferCtl.Transfer)
 
 	// 代理管理-代理列表
 	post("/merchant/agency/list", memberCtl.Agency)
@@ -187,8 +190,16 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
 	// 代理管理-下级成员
 	post("/merchant/agency/memberlist", memberCtl.MemberList)
-	// 代理管理-团队转代
-	post("/merchant/agency/transfer", memberCtl.TransferGroup)
+
+	// 代理管理-团队转代-列表
+	get("/merchant/agency/transfer/list", memberTransferCtl.List)
+	// 代理管理-团队转代-新增
+	post("/merchant/agency/transfer/insert", memberTransferCtl.Insert)
+	// 代理管理-团队转代-审核
+	post("/merchant/agency/transfer/review", memberTransferCtl.Review)
+	// 代理管理-团队转代-删除
+	get("/merchant/agency/transfer/review", memberTransferCtl.Delete)
+
 	//代理管理-记录管理-游戏
 	post("/merchant/agency/record/game", recordCtl.Game)
 	//代理管理-记录管理-登录
