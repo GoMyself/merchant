@@ -152,6 +152,7 @@ func MemberTransferList(page, pageSize int, startTime, endTime, reviewStartTime,
 	t := dialect.From("tbl_agency_transfer_apply")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
@@ -165,6 +166,7 @@ func MemberTransferList(page, pageSize int, startTime, endTime, reviewStartTime,
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(colsAgencyTransfer...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("apply_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
