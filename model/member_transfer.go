@@ -186,12 +186,12 @@ func MemberTransferInsert(mb, destMb Member, admin map[string]string, remark str
 		"after_uid":     destMb.UID,        //转代后上级代理uid
 		"after_name":    destMb.Username,   //转代后上级代理名
 		"status":        1,                 //状态 1审核中 2审核通过 3审核拒绝 4删除
-		"created_at":    time.Now().Unix(), //添加时间
-		"created_uid":   admin["id"],       //添加人uid
-		"created_name":  admin["name"],     //添加人名
-		"updated_at":    0,                 //修改时间
-		"updated_uid":   0,                 //修改人uid
-		"updated_name":  "",                //修改人名
+		"apply_at":      time.Now().Unix(), //添加时间
+		"apply_uid":     admin["id"],       //添加人uid
+		"apply_name":    admin["name"],     //添加人名
+		"review_at":     0,                 //修改时间
+		"review_uid":    0,                 //修改人uid
+		"review_name":   "",                //修改人名
 		"remark":        remark,            //备注
 		"review_remark": "",                //审核备注
 	}
