@@ -93,8 +93,8 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
 	username := string(ctx.QueryArgs().Peek("username"))                 //会员名
 	afterName := string(ctx.QueryArgs().Peek("after_name"))              //转以后代理名
-	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //提交人
-	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //提交人
+	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名
+	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名
 	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
 	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
 	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
