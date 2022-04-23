@@ -905,3 +905,28 @@ type AgencyTransferData struct {
 	T int64            `json:"t"`
 	D []AgencyTransfer `json:"d"`
 }
+
+type AgencyTransferRecord struct {
+	Id            int    `json:"id" db:"id"`
+	Flag          int    `json:"flag" db:"flag"`
+	Uid           int    `json:"uid" db:"uid"`
+	Username      string `json:"username" db:"username"`
+	Type          int    `json:"type" db:"type"`
+	BeforeUid     int    `json:"before_uid" db:"beforeUid"`
+	BeforeName    string `json:"before_name" db:"beforeName"`
+	AfterUid      int    `json:"after_uid" db:"afterUid"`
+	AfterName     string `json:"after_name" db:"afterName"`
+	Remark        string `json:"remark" db:"remark"`
+	UpdatedAt     int    `json:"updated_at" db:"updatedAt"`
+	UpdatedUid    int    `json:"updated_uid" db:"updatedUid"`
+	UpdatedName   string `json:"updated_name" db:"updatedName"`
+	BeforeTopUid  int    `json:"before_top_uid" db:"beforeTopUid"`
+	BeforeTopName string `json:"before_top_name" db:"beforeTopName"`
+	AfterTopUid   int    `json:"after_top_uid" db:"afterTopUid"`
+	AfterTopName  string `json:"after_top_name" db:"afterTopName"`
+}
+
+type AgencyTransferRecordData struct {
+	T int64                  `json:"t"`
+	D []AgencyTransferRecord `json:"d"`
+}

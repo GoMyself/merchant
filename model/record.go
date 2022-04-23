@@ -961,3 +961,50 @@ func BankcardsList(ex g.Ex) ([]BankCard, string, error) {
 
 	return data, "", nil
 }
+
+func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex) (AgencyTransferRecordData, error) {
+
+	data := AgencyTransferRecordData{}
+	if startTime != "" && endTime != "" {
+
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		ex["updated_at"] = g.Op{"between": g.Range(startAt, endAt)}
+	}
+
+	ex["prefix"] = meta.Prefix
+	t := dialect.From("tbl_agency_transfer_record")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT(1)).Where(ex).ToSQL()
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := (page - 1) * pageSize
+	query, _, _ := t.Select(colsAgencyTransferRecord...).Where(ex).
+		Order(g.C("updated_at").Desc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil && err != sql.ErrNoRows {
+		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	return data, nil
+}

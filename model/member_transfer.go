@@ -163,7 +163,7 @@ func MemberTransferList(page, pageSize int, startTime, endTime, reviewStartTime,
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(colsDividend...).Where(ex).
+	query, _, _ := t.Select(colsAgencyTransfer...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("apply_at").Desc()).ToSQL()
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
