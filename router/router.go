@@ -156,29 +156,6 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/update", memberCtl.Update)
 	// 会员管理-会员列表
 	post("/merchant/member/list", memberCtl.List)
-	// 代理管理-代理列表
-	post("/merchant/agency/list", memberCtl.Agency)
-	// 代理管理-代理编辑 总代
-	post("/merchant/agency/update", memberCtl.UpdateTopMember)
-	// 代理管理-代理编辑维护人
-	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
-	// 代理管理下级成员
-	post("/merchant/agency/memberlist", memberCtl.MemberList)
-
-	//代理管理-记录管理-游戏
-	post("/merchant/agency/record/game", recordCtl.Game)
-	//代理管理-记录管理-登录
-	post("/merchant/agency/record/loginlog", recordCtl.LoginLog)
-	//代理管理-记录管理-会员存款
-	post("/merchant/agency/record/deposit", recordCtl.Deposit)
-	//代理管理-记录管理-红利
-	post("/merchant/agency/record/dividend", recordCtl.Dividend)
-	//代理管理-记录管理-返水
-	post("/merchant/agency/record/rebate", recordCtl.Rebate)
-	//代理管理-记录管理-账户调整
-	post("/merchant/agency/record/adjust", recordCtl.Adjust)
-	//代理管理-记录管理-提款
-	post("/merchant/agency/record/withdraw", recordCtl.Withdraw)
 	// 会员管理-会员列表-用户标签
 	get("/merchant/member/tags", memberCtl.Tags)
 	// 会员管理-会员列表-批量添加标签/编辑标签
@@ -201,8 +178,31 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/full", memberCtl.Full)
 	// 跳线转代
 	post("/merchant/member/transfer", memberCtl.Transfer)
-	// 团队转代
-	post("/merchant/member/transfergroup", memberCtl.TransferGroup)
+
+	// 代理管理-代理列表
+	post("/merchant/agency/list", memberCtl.Agency)
+	// 代理管理-代理编辑 总代
+	post("/merchant/agency/update", memberCtl.UpdateTopMember)
+	// 代理管理-代理编辑维护人
+	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
+	// 代理管理-下级成员
+	post("/merchant/agency/memberlist", memberCtl.MemberList)
+	// 代理管理-团队转代
+	post("/merchant/agency/transfer", memberCtl.TransferGroup)
+	//代理管理-记录管理-游戏
+	post("/merchant/agency/record/game", recordCtl.Game)
+	//代理管理-记录管理-登录
+	post("/merchant/agency/record/loginlog", recordCtl.LoginLog)
+	//代理管理-记录管理-会员存款
+	post("/merchant/agency/record/deposit", recordCtl.Deposit)
+	//代理管理-记录管理-红利
+	post("/merchant/agency/record/dividend", recordCtl.Dividend)
+	//代理管理-记录管理-返水
+	post("/merchant/agency/record/rebate", recordCtl.Rebate)
+	//代理管理-记录管理-账户调整
+	post("/merchant/agency/record/adjust", recordCtl.Adjust)
+	//代理管理-记录管理-提款
+	post("/merchant/agency/record/withdraw", recordCtl.Withdraw)
 
 	//用户VIP配置
 	get("/merchant/vip/list", levelCtl.List)
