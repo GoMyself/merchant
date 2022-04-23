@@ -113,12 +113,12 @@ func MemberTransferList(page, pageSize int, startTime, endTime, reviewStartTime,
 
 	if startTime != "" && endTime != "" {
 
-		startAt, err := helper.TimeToLocMs(startTime, loc)
+		startAt, err := helper.TimeToLoc(startTime, loc)
 		if err != nil {
 			return data, errors.New(helper.DateTimeErr)
 		}
 
-		endAt, err := helper.TimeToLocMs(endTime, loc)
+		endAt, err := helper.TimeToLoc(endTime, loc)
 		if err != nil {
 			return data, errors.New(helper.TimeTypeErr)
 		}
