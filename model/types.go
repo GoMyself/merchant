@@ -883,9 +883,8 @@ type RebateData struct {
 }
 
 type AgencyTransferData struct {
-	T   int64                  `json:"t"`
-	D   []AgencyTransferRecord `json:"d"`
-	Agg map[string]string      `json:"agg"`
+	T int64                  `json:"t"`
+	D []AgencyTransferRecord `json:"d"`
 }
 
 type AgencyTransferRecord struct {

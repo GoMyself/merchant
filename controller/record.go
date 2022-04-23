@@ -90,13 +90,13 @@ type withdrawParam struct {
 }
 
 type groupParam struct {
-	Username  string `rule:"none" name:"username"`                                                         // 下级账号
-	Uid       string `rule:"none" name:"uid"`                                                              //
-	GroupName string `rule:"none" name:"group_name"`                                                       //
-	StartTime string `rule:"none" name:"start_time"`                                                       // 查询开始时间
-	EndTime   string `rule:"none" name:"end_time"`                                                         // 查询结束时间
-	Page      int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
-	PageSize  int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+	Username   string `rule:"none" name:"username"`                                                         // 下级账号
+	Uid        string `rule:"none" name:"uid"`                                                              //
+	ParentName string `rule:"none" name:"parent_name"`                                                      //
+	StartTime  string `rule:"none" name:"start_time"`                                                       // 查询开始时间
+	EndTime    string `rule:"none" name:"end_time"`                                                         // 查询结束时间
+	Page       int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
 }
 
 type RecordController struct{}
@@ -813,11 +813,11 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		ex["uid"] = param.Uid
 	}
 
-	if param.GroupName != "" {
+	if param.ParentName != "" {
 
 		orEx := g.Or(
-			g.Ex{"after_name": param.GroupName},
-			g.Ex{"before_name": param.GroupName},
+			g.Ex{"after_name": param.ParentName},
+			g.Ex{"before_name": param.ParentName},
 		)
 
 		g.And(ex, orEx)
