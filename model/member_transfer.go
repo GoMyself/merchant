@@ -183,6 +183,8 @@ func MemberTransferInsert(mb, destMb Member, admin map[string]string, remark str
 		"prefix":        meta.Prefix,
 		"uid":           mb.UID,            //转代会员uid
 		"username":      mb.Username,       //转代人名
+		"before_uid":    mb.ParentUid,      //转代前上级代理uid
+		"before_name":   mb.ParentName,     //转代前上级代理名
 		"after_uid":     destMb.UID,        //转代后上级代理uid
 		"after_name":    destMb.Username,   //转代后上级代理名
 		"status":        1,                 //状态 1审核中 2审核通过 3审核拒绝 4删除

@@ -888,6 +888,8 @@ type AgencyTransfer struct {
 	Prefix       string `json:"prefix" db:"prefix"`
 	UID          string `json:"uid" db:"uid"`
 	Username     string `json:"username" db:"username"`
+	BeforeUid    string `json:"before_uid" db:"before_uid"`
+	BeforeName   string `json:"before_name" db:"before_name"`
 	AfterUid     string `json:"after_uid" db:"after_uid"`
 	AfterName    string `json:"after_name" db:"after_name"`
 	Status       int    `json:"status" db:"status"`
