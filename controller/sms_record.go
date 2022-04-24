@@ -58,37 +58,5 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, data)
-	//if username == "" || !validator.CheckUName(username, 5, 14) {
-	//	helper.Print(ctx, false, helper.UsernameErr)
-	//	return
-	//}
-	//
-	//ex := g.Ex{
-	//	"username": username,
-	//}
-	//
-	//if phone != "" {
-	//	if !validator.CheckStringDigit(phone) {
-	//		helper.Print(ctx, false, helper.PhoneFMTErr)
-	//		return
-	//	}
-	//
-	//	ex["phone_hash"] = fmt.Sprintf("%d", model.MurmurHash(phone, 0))
-	//}
-	//
-	//if page == 0 {
-	//	page = 1
-	//}
-	//
-	//if pageSize == 0 {
-	//	pageSize = 15
-	//}
-	//
-	//data, err := model.SmsRecordList(page, pageSize, startTime, endTime, ex)
-	//if err != nil {
-	//	helper.Print(ctx, false, err.Error())
-	//	return
-	//}
-	//
-	//helper.Print(ctx, true, data)
+
 }
