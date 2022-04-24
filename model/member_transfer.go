@@ -91,6 +91,7 @@ func MemberTransferExist(username string) bool {
 	ex := g.Ex{
 		"username": username,
 		"prefix":   meta.Prefix,
+		"status":   []int{1, 2},
 	}
 	query, _, _ := dialect.From("tbl_agency_transfer_apply").Select(g.COUNT("uid").As("num")).Where(ex).ToSQL()
 	fmt.Println(query)
