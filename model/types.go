@@ -940,6 +940,7 @@ type SmsRecord struct {
 	PhoneHash  string `json:"phone_hash"`
 	VerifyCode string `json:"verify_code"`
 	CreatedAt  int    `json:"created_at"`
+	Remark     string `json:"remark"`
 }
 
 type SmsRecordData struct {
