@@ -161,7 +161,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if !validator.CheckUPassword(password, 8, 15) {
+	if !validator.CheckUPassword(password, 8, 20) {
 		helper.Print(ctx, false, helper.PasswordFMTErr)
 		return
 	}
@@ -853,7 +853,7 @@ func (that *MemberController) UpdatePwd(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 会员密码校验
-	if !validator.CheckUPassword(pwd, 8, 15) {
+	if !validator.CheckUPassword(pwd, 8, 20) {
 		helper.Print(ctx, false, helper.PasswordFMTErr)
 		return
 	}
@@ -1020,7 +1020,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 
 	recd := g.Record{}
 	if password != "" {
-		if !validator.CheckUPassword(password, 8, 15) {
+		if !validator.CheckUPassword(password, 8, 20) {
 			helper.Print(ctx, false, helper.PasswordFMTErr)
 			return
 		}
