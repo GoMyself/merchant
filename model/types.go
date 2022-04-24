@@ -934,14 +934,11 @@ type AgencyTransferRecordData struct {
 }
 
 type SmsRecord struct {
-	Id         int64  `json:"id" db:"id"`
-	Username   string `json:"username" db:"username"`
-	Uid        int64  `json:"uid" db:"uid"`
-	PhoneHash  string `json:"phone_hash" db:"phoneHash"`
-	VerifyCode string `json:"verify_code" db:"verifyCode"`
-	CreatedAt  int64  `json:"created_at" db:"createdAt"`
-	Remark     string `json:"remark" db:"remark"`
-	Prefix     string `json:"prefix" db:"prefix"`
+	Username  string `json:"username" db:"username"`
+	PhoneHash string `json:"phone_hash" db:"phoneHash"`
+	Code      string `json:"code" db:"code"`
+	Ip        string `json:"ip" db:"ip"`
+	CreateAt  int64  `json:"create_at" db:"create_at"`
 }
 
 type SmsRecordData struct {
