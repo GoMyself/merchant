@@ -1,9 +1,9 @@
 #! /bin/bash
 
-#git checkout main
-#git pull origin main
-#git submodule init
-#git submodule update --remote
+git checkout main
+git pull origin main
+git submodule init
+git submodule update 
 
 PROJECT="merchant"
 GitReversion=`git rev-parse HEAD`
