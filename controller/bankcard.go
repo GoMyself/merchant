@@ -82,7 +82,7 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
-		if !validator.CheckUName(param.Username, 4, 9) {
+		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}

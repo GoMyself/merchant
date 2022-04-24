@@ -125,7 +125,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 		}
 
 		if username != "" {
-			if !validator.CheckUName(username, 4, 9) {
+			if !validator.CheckUName(username, 5, 14) {
 				helper.Print(ctx, false, helper.UsernameErr)
 				return
 			}
@@ -134,7 +134,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 		}
 
 		if afterName != "" {
-			if !validator.CheckUName(afterName, 4, 9) {
+			if !validator.CheckUName(afterName, 5, 14) {
 				helper.Print(ctx, false, helper.AgentNameErr)
 				return
 			}

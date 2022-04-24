@@ -25,7 +25,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
-		if !validator.CheckUName(username, 4, 9) {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -35,7 +35,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 
 	agency := string(ctx.QueryArgs().Peek("agency"))
 	if len(agency) > 0 {
-		if !validator.CheckUName(agency, 4, 9) {
+		if !validator.CheckUName(agency, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}

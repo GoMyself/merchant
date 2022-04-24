@@ -160,7 +160,7 @@ func (that *AdjustController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if username != "" {
-		if !validator.CheckUName(username, 4, 9) {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}

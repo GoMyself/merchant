@@ -117,7 +117,7 @@ func (that *MemberLevelController) Record(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 	if param.UserName != "" {
 		//字母数字组合，4-9，前2个字符必须为字母
-		if !validator.CheckUName(param.UserName, 4, 9) {
+		if !validator.CheckUName(param.UserName, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}

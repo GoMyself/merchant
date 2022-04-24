@@ -50,7 +50,7 @@ type remarkLogParams struct {
 func (that *MemberController) AccountInfo(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -151,7 +151,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	if !validator.CheckUName(name, 4, 9) {
+	if !validator.CheckUName(name, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -212,7 +212,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *MemberController) Balance(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -251,7 +251,7 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 	// 验证用户名
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
-		if !validator.CheckUName(v, 4, 9) {
+		if !validator.CheckUName(v, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -342,7 +342,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 		sName := strings.Split(username, ",")
 		var usernames []string
 		for _, name := range sName {
-			if !validator.CheckUName(name, 4, 9) {
+			if !validator.CheckUName(name, 5, 14) {
 				helper.Print(ctx, false, helper.UsernameErr)
 				return
 			}
@@ -367,7 +367,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if agent != "" {
-		if !validator.CheckUName(agent, 4, 9) && len(username) > 50 {
+		if !validator.CheckUName(agent, 5, 14) && len(username) > 50 {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
@@ -463,7 +463,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 	}
 
 	if username != "" {
-		if !validator.CheckUName(username, 4, 9) {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -519,7 +519,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	realname := string(ctx.PostArgs().Peek("real_name"))
 	username := string(ctx.PostArgs().Peek("username"))
 
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -723,7 +723,7 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 
 	if params.Username == "" {
 		// 会员名校验
-		if !validator.CheckUName(params.Username, 4, 9) {
+		if !validator.CheckUName(params.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -731,7 +731,7 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 	// 验证用户名
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
-		if !validator.CheckUName(v, 4, 9) {
+		if !validator.CheckUName(v, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -753,7 +753,7 @@ func (that MemberController) Overview(ctx *fasthttp.RequestCtx) {
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -847,7 +847,7 @@ func (that *MemberController) UpdatePwd(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 会员名校验
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -931,7 +931,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -1063,7 +1063,7 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	maintainName := string(ctx.PostArgs().Peek("maintain_name"))
 
-	if !validator.CheckUName(username, 4, 9) {
+	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
@@ -1098,14 +1098,14 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
-		if !validator.CheckUName(param.Username, 4, 9) {
+		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
 	}
 
 	if param.ParentName != "" {
-		if !validator.CheckUName(param.ParentName, 4, 9) {
+		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}

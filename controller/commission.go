@@ -156,7 +156,7 @@ func (that *CommissionController) RecordList(ctx *fasthttp.RequestCtx) {
 
 	// 接收会员
 	if receiveName != "" {
-		if !validator.CheckUName(receiveName, 4, 9) {
+		if !validator.CheckUName(receiveName, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
