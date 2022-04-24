@@ -102,6 +102,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	commissionCtl := new(controller.CommissionController)
 	//内容管理
 	msgCtl := new(controller.MessageController)
+	//验证码管理
+	smsCtl := new(controller.SmsRecordController)
 
 	get("/merchant/version", Version)
 
@@ -316,6 +318,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	get("/merchant/record/transaction", recordCtl.Transaction)
 	// 记录管理-平台转帐
 	post("/merchant/record/transfer", recordCtl.Transfer)
+
+	post("/merchant/member/verify", smsCtl.List)
 	// 会员管理-会员列表-有效投注查询
 	// 会员管理-投注管理
 	// 会员管理-投注管理-会员游戏记录详情列表

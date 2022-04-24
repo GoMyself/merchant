@@ -932,3 +932,18 @@ type AgencyTransferRecordData struct {
 	T int64                  `json:"t"`
 	D []AgencyTransferRecord `json:"d"`
 }
+
+type SmsRecord struct {
+	Id         int    `json:"id"`
+	Username   string `json:"username"`
+	Uid        int    `json:"uid"`
+	PhoneHash  string `json:"phone_hash"`
+	VerifyCode string `json:"verify_code"`
+	CreatedAt  int    `json:"created_at"`
+}
+
+type SmsRecordData struct {
+	T   int64             `json:"t"`
+	D   []SmsRecord       `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
