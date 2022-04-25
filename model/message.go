@@ -132,11 +132,6 @@ func MessageReview() error {
 	return nil
 }
 
-//MessageSend  站内信发送
-func MessageSend() error {
-	return nil
-}
-
 //MessageDelete  站内信删除
 func MessageDelete() error {
 	return nil

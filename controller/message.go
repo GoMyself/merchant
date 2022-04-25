@@ -177,18 +177,6 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, helper.Success)
 }
 
-// 站内信编辑
-func (that *MessageController) Send(ctx *fasthttp.RequestCtx) {
-
-	err := model.MessageSend()
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.Print(ctx, true, helper.Success)
-}
-
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
