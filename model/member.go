@@ -1256,17 +1256,19 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	}
 
 	// 总返水
-	//rex := g.Ex{"uid": mb.UID,
-	//	"prefix":    meta.Prefix,
-	//	"state":     helper.RebateReviewPass,
-	//	"ration_at": g.Op{"between": exp.NewRangeVal(ss, se)},
-	//}
-	//query, _, _ = dialect.From("tbl_member_rebate_info").
-	//	Select(g.COALESCE(g.SUM("rebate_amount"), 0).As("rebate")).Where(rex).ToSQL()
-	//err = meta.MerchantDB.Get(&data.Rebate, query)
-	//if err != nil {
-	//	return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query),helper.DBErr)
-	//}
+	rex := g.Ex{
+		"uid":        mb.UID,
+		"prefix":     meta.Prefix,
+		"cash_type":  TransactionRebate,
+		"created_at": g.Op{"between": exp.NewRangeVal(ss*1000, se*1000)},
+	}
+	query, _, _ = dialect.From("tbl_commission_transaction").
+		Select(g.COALESCE(g.SUM("amount"), 0).As("rebate")).Where(rex).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Get(&data.Rebate, query)
+	if err != nil {
+		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
 
 	return data, nil
 }

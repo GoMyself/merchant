@@ -373,10 +373,10 @@ func bannerRefreshToCache(id string) error {
 
 	single := map[string]bool{
 		"1": true,
-		"5": true,
 	}
 	array := map[string]bool{
 		"2": true,
+		"5": true,
 	}
 	record := Banner{}
 	ex := g.Ex{
