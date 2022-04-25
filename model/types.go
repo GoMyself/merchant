@@ -913,23 +913,24 @@ type AgencyTransferData struct {
 }
 
 type AgencyTransferRecord struct {
-	Id            int    `json:"id" db:"id"`
+	Id            string `json:"id" db:"id"`
 	Flag          int    `json:"flag" db:"flag"`
-	Uid           int    `json:"uid" db:"uid"`
+	Uid           string `json:"uid" db:"uid"`
 	Username      string `json:"username" db:"username"`
-	Type          int    `json:"type" db:"type"`
-	BeforeUid     int    `json:"before_uid" db:"beforeUid"`
-	BeforeName    string `json:"before_name" db:"beforeName"`
-	AfterUid      int    `json:"after_uid" db:"afterUid"`
-	AfterName     string `json:"after_name" db:"afterName"`
+	Type          int64  `json:"type" db:"type"`
+	BeforeUid     string `json:"before_uid" db:"before_uid"`
+	BeforeName    string `json:"before_name" db:"before_name"`
+	AfterUid      string `json:"after_uid" db:"after_uid"`
+	AfterName     string `json:"after_name" db:"after_name"`
 	Remark        string `json:"remark" db:"remark"`
-	UpdatedAt     int    `json:"updated_at" db:"updatedAt"`
-	UpdatedUid    int    `json:"updated_uid" db:"updatedUid"`
-	UpdatedName   string `json:"updated_name" db:"updatedName"`
-	BeforeTopUid  int    `json:"before_top_uid" db:"beforeTopUid"`
-	BeforeTopName string `json:"before_top_name" db:"beforeTopName"`
-	AfterTopUid   int    `json:"after_top_uid" db:"afterTopUid"`
-	AfterTopName  string `json:"after_top_name" db:"afterTopName"`
+	UpdatedAt     int64  `json:"updated_at" db:"updated_at"`
+	UpdatedUid    string `json:"updated_uid" db:"updated_uid"`
+	UpdatedName   string `json:"updated_name" db:"updated_name"`
+	BeforeTopUid  string `json:"before_top_uid" db:"before_top_uid"`
+	BeforeTopName string `json:"before_top_name" db:"before_top_name"`
+	AfterTopUid   string `json:"after_top_uid" db:"after_top_uid"`
+	AfterTopName  string `json:"after_top_name" db:"after_top_name"`
+	Prefix        string `json:"prefix" db:"prefix"`
 }
 
 type AgencyTransferRecordData struct {

@@ -79,8 +79,32 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 	}
 	_, _ = BeanBetPut("transfer_ag", param, 0)
 
-	// todo 记录转代日志
-
+	// 记录转代日志
+	transRecord := AgencyTransferRecord{
+		Id:            helper.GenLongId(),
+		Flag:          551,
+		Uid:           mb.UID,
+		Username:      mb.Username,
+		Type:          mb.AgencyType,
+		BeforeUid:     mb.ParentUid,
+		BeforeName:    mb.ParentName,
+		AfterUid:      destMb.UID,
+		AfterName:     destMb.Username,
+		Remark:        "会员转代",
+		UpdatedAt:     time.Now().Unix(),
+		UpdatedUid:    admin["id"],
+		UpdatedName:   admin["name"],
+		BeforeTopUid:  mb.TopUid,
+		BeforeTopName: mb.TopName,
+		AfterTopUid:   destMb.TopUid,
+		AfterTopName:  destMb.TopName,
+		Prefix:        meta.Prefix,
+	}
+	query, _, _ = dialect.Insert("tbl_agency_transfer_record").Rows(transRecord).ToSQL()
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
 	return nil
 }
 
