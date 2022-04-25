@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fluent/fluent-logger-golang/fluent"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/nats-io/nats.go"
 	"github.com/shopspring/decimal"
 	cpool "github.com/silenceper/pool"
@@ -71,10 +72,10 @@ type MetaTable struct {
 }
 
 var (
-	meta *MetaTable
-	loc  *time.Location
-	ctx  = context.Background()
-
+	meta                     *MetaTable
+	loc                      *time.Location
+	ctx                      = context.Background()
+	cjson                    = jsoniter.ConfigCompatibleWithStandardLibrary
 	zero                     = decimal.NewFromInt(0)
 	dialect                  = g.Dialect("mysql")
 	colsGroup                = helper.EnumFields(Group{})
@@ -115,6 +116,7 @@ var (
 	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
 	withdrawFields           = []string{"id", "parent_name", "prefix", "bid", "flag", "finance_type", "oid", "uid", "level", "parent_uid", "agency_type", "username", "pid", "amount", "state", "automatic", "created_at", "confirm_at", "confirm_uid", "review_remark", "withdraw_at", "confirm_name", "withdraw_uid", "withdraw_name", "withdraw_remark", "bank_name", "card_name", "card_no"}
 	loginLogFields           = []string{"username", "ip", "ips", "device", "device_no", "date", "serial", "agency", "parents"}
+	smsLogFields             = []string{"username", "ip", "create_at", "code", "phone", "phone_hash"}
 )
 
 func Constructor(mt *MetaTable, c *gorpc.Client) {

@@ -939,11 +939,12 @@ type AgencyTransferRecordData struct {
 }
 
 type SmsRecord struct {
-	Username  string `json:"username" db:"username"`
-	PhoneHash string `json:"phone_hash" db:"phoneHash"`
-	Code      string `json:"code" db:"code"`
-	Ip        string `json:"ip" db:"ip"`
-	CreateAt  int64  `json:"create_at" db:"create_at"`
+	Username  string `json:"username"`
+	IP        string `json:"ip"`
+	CreateAt  uint64 `json:"create_at"`
+	Code      string `json:"code"`
+	Phone     string `json:"phone"`
+	PhoneHash string `json:"phone_hash"`
 }
 
 type SmsRecordData struct {
@@ -1057,4 +1058,16 @@ type MessageData struct {
 	T int64     `json:"t"`
 	S uint      `json:"s"`
 	D []Message `json:"d"`
+}
+type smsData struct {
+	T int64    `json:"t"`
+	D []smsLog `json:"d"`
+}
+type smsLog struct {
+	Username  string `json:"username"`
+	IP        string `json:"ip"`
+	CreateAt  uint64 `json:"create_at"`
+	Code      string `json:"code"`
+	Phone     string `json:"phone"`
+	PhoneHash string `json:"phone_hash"`
 }
