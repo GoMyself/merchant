@@ -21,7 +21,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
 	sendAt := string(ctx.PostArgs().Peek("send_at"))     //发送时间
 	isVip := ctx.PostArgs().GetUintOrZero("is_vip")      //是否vip站内信 1 vip站内信
-	level := ctx.PostArgs().GetUintOrZero("level")       //vip等级 0-10
+	level := string(ctx.PostArgs().Peek("level"))        //vip等级 0-10,多个逗号分割
 	names := string(ctx.PostArgs().Peek("names"))        //会员名，多个用逗号分割
 
 	if len(title) == 0 ||
@@ -33,9 +33,29 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	if isVip == 1 {
-		if level > 10 {
+		if level == "" {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
+		}
+
+		lv := map[string]bool{
+			"0":  true,
+			"1":  true,
+			"2":  true,
+			"3":  true,
+			"4":  true,
+			"5":  true,
+			"6":  true,
+			"7":  true,
+			"8":  true,
+			"9":  true,
+			"10": true,
+		}
+		for _, v := range strings.Split(level, ",") {
+			if _, ok := lv[v]; !ok {
+				helper.Print(ctx, false, helper.ParamErr)
+				return
+			}
 		}
 	} else {
 		if names != "" {
@@ -87,13 +107,50 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 // 站内信列表
 func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 
-	err := model.MessageList()
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	title := string(ctx.PostArgs().Peek("title"))                        //标题
+	sendName := string(ctx.PostArgs().Peek("send_name"))                 //发送人名
+	isVip := string(ctx.PostArgs().Peek("is_vip"))                       //是否vip站内信 1 vip站内信
+	sendStartTime := string(ctx.PostArgs().Peek("send_start_time"))      //发送开始时间
+	sendEndTime := string(ctx.PostArgs().Peek("send_end_time"))          //发送结束时间
+	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+
+	ex := g.Ex{}
+	if page == 0 {
+		page = 1
+	}
+	if pageSize < 10 {
+		page = 10
+	}
+
+	if title != "" {
+		ex["title"] = title
+	}
+
+	if sendName != "" {
+		ex["send_name"] = sendName
+	}
+
+	if isVip != "" {
+		if isVip != "0" && isVip != "1" {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		ex["is_vip"] = isVip
+	}
+
+	data, err := model.MessageList(page, pageSize, sendStartTime, sendEndTime, startTime, endTime, reviewStartTime, reviewEndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.Print(ctx, true, "data")
+	helper.Print(ctx, true, data)
 }
 
 // 站内信编辑

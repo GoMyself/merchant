@@ -1037,6 +1037,8 @@ type Message struct {
 	SubTitle   string `db:"sub_title" json:"sub_title"`     //标题
 	Content    string `db:"content" json:"content"`         //内容
 	IsTop      int    `db:"is_top" json:"is_top"`           //0不置顶 1置顶
+	IsVip      int    `db:"is_vip" json:"is_vip"`           //0非vip站内信 1vip站内信
+	Level      string `db:"level" json:"level"`             //会员等级
 	State      int    `db:"state" json:"state"`             //1审核中 2审核通过 3审核拒绝 4已删除
 	SendState  int    `db:"send_state" json:"send_state"`   //1未发送 2已发送
 	SendName   string `db:"send_name" json:"send_name"`     //发送人名
