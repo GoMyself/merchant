@@ -1029,3 +1029,29 @@ type TgIpData struct {
 	D   []TgIp            `json:"d"`
 	Agg map[string]string `json:"agg"`
 }
+
+// 站内信
+type Message struct {
+	ID         string ` db:"id" json:"id"`
+	Title      string `db:"title" json:"title"`             //标题
+	SubTitle   string `db:"sub_title" json:"sub_title"`     //标题
+	Content    string `db:"content" json:"content"`         //内容
+	IsTop      int    `db:"is_top" json:"is_top"`           //0不置顶 1置顶
+	State      int    `db:"state" json:"state"`             //1审核中 2审核通过 3审核拒绝 4已删除
+	SendState  int    `db:"send_state" json:"send_state"`   //1未发送 2已发送
+	SendName   string `db:"send_name" json:"send_name"`     //发送人名
+	SendAt     uint32 `db:"send_at" json:"send_at"`         //发送时间
+	ApplyAt    uint32 `db:"apply_at" json:"apply_at"`       //创建时间
+	ApplyUid   string `db:"apply_uid" json:"apply_uid"`     //创建人uid
+	ApplyName  string `db:"apply_name" json:"apply_name"`   //创建人名
+	ReviewAt   uint32 `db:"review_at" json:"review_at"`     //创建时间
+	ReviewUid  string `db:"review_uid" json:"review_uid"`   //创建人uid
+	ReviewName string `db:"review_name" json:"review_name"` //创建人名
+	Prefix     string `db:"prefix" json:"prefix"`           //商户前缀
+}
+
+type MessageData struct {
+	T int64     `json:"t"`
+	S uint      `json:"s"`
+	D []Message `json:"d"`
+}
