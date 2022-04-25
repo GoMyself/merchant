@@ -37,6 +37,7 @@ func main() {
 	mt := new(model.MetaTable)
 	apollo.New(endpoints)
 	apollo.Parse(os.Args[2], &cfg)
+	mt.PromoteConfig, _ = apollo.ParseToml("/promote.toml", true)
 	apollo.Close()
 
 	mt.Lang = cfg.Lang
@@ -56,6 +57,7 @@ func main() {
 	mt.BeanPool = conn.InitBeanstalk(cfg.Beanstalkd.Addr, 15, cfg.Beanstalkd.MaxIdle, cfg.Beanstalkd.MaxCap)
 	mt.BeanBetPool = conn.InitBeanstalk(cfg.BeanBet.Addr, 15, cfg.BeanBet.MaxIdle, cfg.BeanBet.MaxCap)
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
+	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
 	//mt.NatsConn = conn.InitNatsIO(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	rpc := conn.InitRpc(cfg.RPC)

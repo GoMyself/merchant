@@ -72,6 +72,11 @@ type conf struct {
 		Username string   `json:"username"`
 		Password string   `json:"password"`
 	} `json:"es"`
+	AccessEs struct {
+		Host     []string `json:"host"`
+		Username string   `json:"username"`
+		Password string   `json:"password"`
+	} `json:"access_es"`
 	Port struct {
 		Game     string `json:"game"`
 		Member   string `json:"member"`

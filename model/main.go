@@ -54,9 +54,11 @@ type MetaTable struct {
 	BetDB             *sqlx.DB
 	MinioClient       *minio.Client
 	Grpc              *gorpc.DispatcherClient
+	PromoteConfig     map[string]map[string]interface{}
 	BeanPool          cpool.Pool
 	BeanBetPool       cpool.Pool
 	ES                *elastic.Client
+	AccessEs          *elastic.Client
 	NatsConn          *nats.Conn
 	AutoCommission    bool
 	Prefix            string

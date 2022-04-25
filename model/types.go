@@ -2,6 +2,10 @@ package model
 
 import "database/sql"
 
+const (
+	TGDateFormat = "2006-01-02T15:04:05+07:00"
+)
+
 type MemberData struct {
 	Member
 	RealName string `json:"real_name"`
@@ -944,5 +948,84 @@ type SmsRecord struct {
 type SmsRecordData struct {
 	T   int64             `json:"t"`
 	D   []SmsRecord       `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type Promote struct {
+	UID                string  `json:"uid"`                  //代理id
+	Username           string  `json:"username"`             //代理名
+	URL                string  `json:"url"`                  //域名
+	CallNum            int64   `json:"call_num"`             //访问数
+	IpNum              int64   `json:"ip_num"`               //独立ip数
+	RegNum             int64   `json:"reg_num"`              //注册数
+	RegRatio           float64 `json:"reg_ratio"`            //注册/访问百分比（独立ip）
+	FirstDepositNum    int64   `json:"first_deposit_num"`    //首存人数
+	FirstDepositRatio  float64 `json:"first_deposit_ratio"`  //首存人数/注册人数百分比
+	FirstDepositAmount float64 `json:"first_deposit_amount"` //首存金额
+	DepositNum         int64   `json:"deposit_num"`          //存款人数
+	DepositAmount      float64 `json:"deposit_amount"`       //存款金额
+}
+
+type PromoteData struct {
+	T   int64             `json:"t"`
+	D   []Promote         `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type LinkAgency struct {
+	UID  string `json:"uid" redis:"uid"`
+	Name string `json:"name" redis:"name"`
+}
+
+type depositData struct {
+	ParentUID string          `json:"parent_uid" db:"parent_uid"`
+	Num       sql.NullInt64   `json:"num" db:"num"`
+	Amount    sql.NullFloat64 `json:"amount" db:"amount"`
+}
+
+type UrlAgencyCount struct {
+	ParentUID          string          `json:"parent_uid" db:"parent_uid"`
+	Num                sql.NullInt64   `json:"num" db:"num"`
+	FirstDepositAmount sql.NullFloat64 `json:"first_deposit_amount" db:"first_deposit_amount"`
+	FirstDepositNum    sql.NullInt64   `json:"first_deposit_num" db:"first_deposit_num"`
+}
+
+type TgIp struct {
+	Id         string `json:"id"`
+	UID        string `json:"uid"`
+	Username   string `json:"username"`
+	RemoteAddr string `json:"remote_addr"`
+	HttpHost   string `json:"hostdomain"`
+	TimeIso    string `json:"time_iso8601"`
+	RequestUri string `json:"request_uri"`
+}
+
+type TgMember struct {
+	Uid        string `json:"uid" db:"uid"`
+	UserName   string `json:"username" db:"username"`
+	ParentUID  string `json:"parent_uid" db:"parent_uid"`
+	ParentName string `json:"parent_name" db:"parent_name"`
+	RegIP      string `json:"regip" db:"regip"`
+	CreatedAt  string `json:"created_at" db:"created_at"`
+}
+
+type TgMemberData struct {
+	T   int64             `json:"t"`
+	S   uint              `json:"s"`
+	D   []TgMember        `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+const (
+	UrlTyOfficial = 1
+	UrlTyAgency   = 2
+	UrlTyGeneral  = 3
+	UrlTyTg       = 4
+)
+
+type TgIpData struct {
+	T   int64             `json:"t"`
+	S   uint              `json:"s"`
+	D   []TgIp            `json:"d"`
 	Agg map[string]string `json:"agg"`
 }

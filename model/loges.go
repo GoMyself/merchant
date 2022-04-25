@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"merchant2/contrib/helper"
 
 	"github.com/olivere/elastic/v7"
@@ -243,4 +244,21 @@ func esSearch(index, sortField string, page, pageSize int, fields []string,
 	}
 
 	return resOrder.Hits.TotalHits.Value, resOrder.Hits.Hits, resOrder.Aggregations, nil
+}
+
+func EsQueryAggTerms(esCli *elastic.Client, index string, boolQuery *elastic.BoolQuery, agg map[string]*elastic.TermsAggregation) (*elastic.SearchResult, string, error) {
+
+	fsc := elastic.NewFetchSourceContext(true)
+
+	//打印es查询json
+	esService := esCli.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
+	for k, v := range agg {
+		esService = esService.Aggregation(k, v)
+	}
+	resOrder, err := esService.Index(index).Do(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return nil, "es", err
+	}
+	return resOrder, "", nil
 }
