@@ -26,7 +26,7 @@ func SmsRecordList(page, pageSize int, startTime, endTime string, query *elastic
 	}
 
 	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("sms_log"), "create_at", page, pageSize, loginLogFields, query, nil)
+		esPrefixIndex("smslog"), "create_at", page, pageSize, loginLogFields, query, nil)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
