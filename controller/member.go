@@ -156,7 +156,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if !validator.CtypeAlnum(maintainName) {
+	if maintainName != "" && !validator.CtypeAlnum(maintainName) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
