@@ -12,8 +12,8 @@ type SmsRecordController struct{}
 // List 验证码列表
 func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.QueryArgs().Peek("username"))
-	phone := string(ctx.QueryArgs().Peek("phone"))
+	username := string(ctx.PostArgs().Peek("username"))
+	phone := string(ctx.PostArgs().Peek("phone"))
 	if username == "" && phone == "" {
 		helper.Print(ctx, false, helper.ParamNull)
 		return
@@ -21,7 +21,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
 	// 会员名校验
 	if username != "" {
-		if !validator.CheckUName(username, 4, 9) {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
