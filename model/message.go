@@ -143,6 +143,10 @@ func MessageUpdate(id, sendAt string, record g.Record) error {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
+	if data.State != 1 {
+		return errors.New(helper.NoDataUpdate)
+	}
+
 	stAt, err := helper.TimeToLoc(sendAt, loc)
 	if err != nil {
 		return errors.New(helper.DateTimeErr)
