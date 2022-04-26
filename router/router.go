@@ -355,7 +355,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	//运营管理-站内消息-审核
 	post("/merchant/message/review", msgCtl.Review)
 	//运营管理-站内消息-删除
-	get("/merchant/message/delete", msgCtl.Delete)
+	post("/merchant/message/delete", msgCtl.Delete)
 
 	return router
 }
