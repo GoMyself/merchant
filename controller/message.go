@@ -210,7 +210,6 @@ func (that *MessageController) Update(ctx *fasthttp.RequestCtx) {
 	if sendName != "" {
 		record["send_name"] = sendName
 	}
-
 	err := model.MessageUpdate(id, sendAt, record)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
