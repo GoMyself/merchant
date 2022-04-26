@@ -47,6 +47,7 @@ type Member struct {
 	LastLoginSource    uint8  `db:"last_login_source" json:"last_login_source"`       //上次登录设备来源:1=pc,2=h5,3=ios,4=andriod
 	Remarks            string `db:"remarks" json:"remarks"`                           //备注
 	State              uint8  `db:"state" json:"state"`                               //状态 1正常 2禁用
+	Level              int    `db:"level" json:"level" redis:"level"`                 //等级
 	Balance            string `db:"balance" json:"balance"`                           //余额
 	LockAmount         string `db:"lock_amount" json:"lock_amount"`                   //锁定金额
 	Commission         string `db:"commission" json:"commission"`                     //佣金
