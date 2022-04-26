@@ -7,6 +7,7 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
+	"time"
 )
 
 //MessageInsert  站内信新增
@@ -164,7 +165,7 @@ func MessageUpdate(id, sendAt string, record g.Record) error {
 }
 
 //MessageReview  站内信审核
-func MessageReview(id string, state int) error {
+func MessageReview(id string, state int, admin map[string]string) error {
 
 	ex := g.Ex{
 		"id":     id,
@@ -188,7 +189,10 @@ func MessageReview(id string, state int) error {
 	}
 
 	record := g.Record{
-		"state": state,
+		"state":       state,
+		"review_at":   time.Now().Unix(),
+		"review_uid":  admin["id"],
+		"review_name": admin["name"],
 	}
 	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
 	fmt.Println(query)

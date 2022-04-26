@@ -99,9 +99,9 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		"apply_at":    ctx.Time().Unix(), //创建时间
 		"apply_uid":   admin["id"],       //创建人uid
 		"apply_name":  admin["name"],     //创建人名
-		"review_at":   0,                 //创建时间
-		"review_uid":  0,                 //创建人uid
-		"review_name": "",                //创建人名
+		"review_at":   0,                 //审核时间
+		"review_uid":  0,                 //审核人uid
+		"review_name": "",                //审核人名
 	}
 	err = model.MessageInsert(record, sendAt)
 	if err != nil {
@@ -262,7 +262,13 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err := model.MessageReview(id, state)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MessageReview(id, state, admin)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
