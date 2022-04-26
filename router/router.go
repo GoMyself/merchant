@@ -300,15 +300,15 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 系统管理-日志管理-系统日志
 	post("/merchant/sys/log/system/list", logCtl.SystemLog)
 
-	//运营管理-内容管理-系统公告-增加
+	//运营管理-系统公告-增加
 	post("/merchant/notice/insert", noticeCtl.Insert)
-	//运营管理-内容管理-系统公告-列表
+	//运营管理-系统公告-列表
 	post("/merchant/notice/list", noticeCtl.List)
-	//运营管理-内容管理-系统公告-编辑
+	//运营管理-系统公告-编辑
 	post("/merchant/notice/update", noticeCtl.Update)
-	//运营管理-内容管理-系统公告-停用/启用
+	//运营管理-系统公告-停用/启用
 	post("/merchant/notice/updatestate", noticeCtl.UpdateState)
-	//运营管理-内容管理-系统公告-删除
+	//运营管理-系统公告-删除
 	get("/merchant/notice/delete", noticeCtl.Delete)
 
 	// 获取返水上限
@@ -346,15 +346,15 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 佣金方案详情
 	get("/merchant/commission/plan/detail", commissionCtl.PlanDetail)
 
-	//运营管理-内容管理-站内消息-添加
+	//运营管理-站内消息-添加
 	post("/merchant/message/insert", msgCtl.Insert)
-	//运营管理-内容管理-站内消息-列表
+	//运营管理-站内消息-列表
 	get("/merchant/message/list", msgCtl.List)
-	//运营管理-内容管理-站内消息-编辑
+	//运营管理-站内消息-编辑
 	post("/merchant/message/update", msgCtl.Update)
-	//运营管理-内容管理-站内消息-审核
+	//运营管理-站内消息-审核
 	post("/merchant/message/review", msgCtl.Review)
-	//运营管理-内容管理-站内消息-删除
+	//运营管理-站内消息-删除
 	get("/merchant/message/delete", msgCtl.Delete)
 
 	return router
