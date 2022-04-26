@@ -19,6 +19,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	content := string(ctx.PostArgs().Peek("content"))    //内容
 	ty := ctx.PostArgs().GetUintOrZero("ty")             //1站内消息 2活动消息
 	isTop := ctx.PostArgs().GetUintOrZero("is_top")      //0不置顶 1置顶
+	isPush := ctx.PostArgs().GetUintOrZero("is_push")    //0不推送 1推送
 	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
 	sendAt := string(ctx.PostArgs().Peek("send_at"))     //发送时间
 	isVip := ctx.PostArgs().GetUintOrZero("is_vip")      //是否vip站内信 1 vip站内信
@@ -87,6 +88,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		"sub_title":   subTitle,          //副标题
 		"content":     content,           //内容
 		"is_top":      isTop,             //0不置顶 1置顶
+		"is_push":     isPush,            //0不推送 1推送
 		"is_vip":      isVip,             //是否是vip
 		"level":       level,             //会员等级
 		"ty":          ty,                //站内信类型
@@ -118,6 +120,7 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 	title := string(ctx.QueryArgs().Peek("title"))                       //标题
 	sendName := string(ctx.QueryArgs().Peek("send_name"))                //发送人名
 	isVip := string(ctx.QueryArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
+	isPush := string(ctx.QueryArgs().Peek("is_push"))                    //0不推送 1推送
 	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //1站内消息 2活动消息
 	sendStartTime := string(ctx.QueryArgs().Peek("send_start_time"))     //发送开始时间
 	sendEndTime := string(ctx.QueryArgs().Peek("send_end_time"))         //发送结束时间
@@ -158,6 +161,15 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 		}
 
 		ex["is_vip"] = isVip
+	}
+
+	if isPush != "" {
+		if isPush != "0" && isPush != "1" {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		ex["is_push"] = isPush
 	}
 
 	data, err := model.MessageList(page, pageSize, sendStartTime, sendEndTime, startTime, endTime, reviewStartTime, reviewEndTime, ex)
