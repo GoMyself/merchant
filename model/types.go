@@ -1040,6 +1040,7 @@ type Message struct {
 	SubTitle   string `db:"sub_title" json:"sub_title"`     //标题
 	Content    string `db:"content" json:"content"`         //内容
 	IsTop      int    `db:"is_top" json:"is_top"`           //0不置顶 1置顶
+	IsPush     int    `db:"is_push" json:"is_push"`         //0不推送 1推送
 	IsVip      int    `db:"is_vip" json:"is_vip"`           //0非vip站内信 1vip站内信
 	Ty         int    `db:"ty" json:"ty"`                   //1站内消息 2活动消息
 	Level      string `db:"level" json:"level"`             //会员等级
