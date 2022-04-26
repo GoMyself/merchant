@@ -17,6 +17,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	title := string(ctx.PostArgs().Peek("title"))        //标题
 	subTitle := string(ctx.PostArgs().Peek("sub_title")) //副标题
 	content := string(ctx.PostArgs().Peek("content"))    //内容
+	ty := ctx.PostArgs().GetUintOrZero("ty")             //1站内消息 2活动消息
 	isTop := ctx.PostArgs().GetUintOrZero("is_top")      //0不置顶 1置顶
 	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
 	sendAt := string(ctx.PostArgs().Peek("send_at"))     //发送时间
@@ -28,6 +29,11 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		len(subTitle) == 0 ||
 		len(content) == 0 ||
 		len(sendName) == 0 {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if ty != 1 && ty != 2 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -83,6 +89,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		"is_top":      isTop,             //0不置顶 1置顶
 		"is_vip":      isVip,             //是否是vip
 		"level":       level,             //会员等级
+		"ty":          ty,                //站内信类型
 		"usernames":   names,             //会员名
 		"state":       1,                 //1审核中 2审核通过 3审核拒绝 4已删除
 		"send_state":  1,                 //1未发送 2已发送
@@ -94,7 +101,6 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		"review_uid":  0,                 //创建人uid
 		"review_name": "",                //创建人名
 	}
-
 	err = model.MessageInsert(record, sendAt)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -109,11 +115,12 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 
 	page := ctx.QueryArgs().GetUintOrZero("page")
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
-	title := string(ctx.PostArgs().Peek("title"))                        //标题
-	sendName := string(ctx.PostArgs().Peek("send_name"))                 //发送人名
-	isVip := string(ctx.PostArgs().Peek("is_vip"))                       //是否vip站内信 1 vip站内信
-	sendStartTime := string(ctx.PostArgs().Peek("send_start_time"))      //发送开始时间
-	sendEndTime := string(ctx.PostArgs().Peek("send_end_time"))          //发送结束时间
+	title := string(ctx.QueryArgs().Peek("title"))                       //标题
+	sendName := string(ctx.QueryArgs().Peek("send_name"))                //发送人名
+	isVip := string(ctx.QueryArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
+	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //1站内消息 2活动消息
+	sendStartTime := string(ctx.QueryArgs().Peek("send_start_time"))     //发送开始时间
+	sendEndTime := string(ctx.QueryArgs().Peek("send_end_time"))         //发送结束时间
 	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
 	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
 	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
@@ -133,6 +140,15 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 
 	if sendName != "" {
 		ex["send_name"] = sendName
+	}
+
+	if ty > 0 {
+		if ty != 1 && ty != 2 {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		ex["ty"] = ty
 	}
 
 	if isVip != "" {
@@ -156,7 +172,46 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 // 站内信编辑
 func (that *MessageController) Update(ctx *fasthttp.RequestCtx) {
 
-	err := model.MessageUpdate()
+	id := string(ctx.PostArgs().Peek("id"))
+	title := string(ctx.PostArgs().Peek("title"))        //标题
+	subTitle := string(ctx.PostArgs().Peek("sub_title")) //副标题
+	content := string(ctx.PostArgs().Peek("content"))    //内容
+	isTop := string(ctx.PostArgs().Peek("is_top"))       //0不置顶 1置顶
+	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
+	sendAt := string(ctx.PostArgs().Peek("send_at"))     //发送时间
+
+	record := g.Record{}
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	if title != "" {
+		record["title"] = title
+	}
+
+	if subTitle != "" {
+		record["sub_title"] = subTitle
+	}
+
+	if content != "" {
+		record["content"] = content
+	}
+
+	if isTop != "" {
+		if isTop != "0" && isTop != "1" {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		record["is_top"] = isTop
+	}
+
+	if sendName != "" {
+		record["send_name"] = sendName
+	}
+
+	err := model.MessageUpdate(id, sendAt, record)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -168,7 +223,23 @@ func (that *MessageController) Update(ctx *fasthttp.RequestCtx) {
 // 站内信编辑
 func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 
-	err := model.MessageReview()
+	id := string(ctx.PostArgs().Peek("id"))
+	state := ctx.PostArgs().GetUintOrZero("state")
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	states := map[int]bool{
+		2: true,
+		3: true,
+	}
+	if _, ok := states[state]; !ok {
+		helper.Print(ctx, false, helper.StateParamErr)
+		return
+	}
+
+	err := model.MessageReview(id, state)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -180,7 +251,8 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
-	err := model.MessageDelete()
+	id := string(ctx.QueryArgs().Peek("id"))
+	err := model.MessageDelete(id)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

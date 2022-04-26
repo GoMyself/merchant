@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
@@ -96,7 +97,7 @@ func MessageList(page, pageSize int, sendStartTime, sendEndTime,
 		ex["review_at"] = g.Op{"between": exp.NewRangeVal(rStart, rEnd)}
 	}
 
-	t := dialect.From("tbl_agency_transfer_apply")
+	t := dialect.From("tbl_messages")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
 		fmt.Println(query)
@@ -111,7 +112,7 @@ func MessageList(page, pageSize int, sendStartTime, sendEndTime,
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(colsAgencyTransfer...).Where(ex).
+	query, _, _ := t.Select(colsMessage...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("apply_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
@@ -123,16 +124,94 @@ func MessageList(page, pageSize int, sendStartTime, sendEndTime,
 }
 
 //MessageUpdate  站内信更新
-func MessageUpdate() error {
+func MessageUpdate(id, sendAt string, record g.Record) error {
+
+	ex := g.Ex{
+		"id":     id,
+		"prefix": meta.Prefix,
+	}
+	data := Message{}
+	t := dialect.From("tbl_messages")
+	query, _, _ := t.Select(colsMessage...).Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return errors.New(helper.RecordNotExistErr)
+	}
+
+	stAt, err := helper.TimeToLoc(sendAt, loc)
+	if err != nil {
+		return errors.New(helper.DateTimeErr)
+	}
+
+	record["send_at"] = stAt
+	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
 	return nil
 }
 
 //MessageReview  站内信审核
-func MessageReview() error {
+func MessageReview(id string, state int) error {
+
+	ex := g.Ex{
+		"id":     id,
+		"prefix": meta.Prefix,
+	}
+	data := Message{}
+	t := dialect.From("tbl_messages")
+	query, _, _ := t.Select(colsMessage...).Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return errors.New(helper.RecordNotExistErr)
+	}
+
+	if state != 1 {
+		return errors.New(helper.NoDataUpdate)
+	}
+
+	record := g.Record{
+		"state": state,
+	}
+	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
 	return nil
 }
 
 //MessageDelete  站内信删除
-func MessageDelete() error {
+func MessageDelete(id string) error {
+
+	ex := g.Ex{
+		"id":     id,
+		"prefix": meta.Prefix,
+	}
+	record := g.Record{
+		"state": 4,
+	}
+	query, _, _ := dialect.From("tbl_messages").Update().Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
 	return nil
 }
