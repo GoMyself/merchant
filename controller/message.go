@@ -117,6 +117,7 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 
 	page := ctx.QueryArgs().GetUintOrZero("page")
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1审核列表 2历史记录
 	title := string(ctx.QueryArgs().Peek("title"))                       //标题
 	sendName := string(ctx.QueryArgs().Peek("send_name"))                //发送人名
 	isVip := string(ctx.QueryArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
@@ -135,6 +136,17 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 	}
 	if pageSize < 10 {
 		page = 10
+	}
+
+	if flag != 1 && flag != 2 {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if flag == 1 {
+		ex["state"] = 1
+	} else {
+		ex["state"] = []int{2, 3, 4}
 	}
 
 	if title != "" {
