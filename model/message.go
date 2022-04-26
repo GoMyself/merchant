@@ -234,7 +234,6 @@ func MessageReview(id string, state int, admin map[string]string) error {
 			"is_push":   fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
 			"is_vip":    fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
 			"ty":        fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
-			"level":     data.Level,                     //会员等级
 			"send_name": data.SendName,                  //发送人名
 			"prefix":    meta.Prefix,                    //商户前缀
 		}
