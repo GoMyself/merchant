@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/olivere/elastic/v7"
 	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
@@ -15,48 +13,35 @@ type SmsRecordController struct{}
 func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
-	phone := string(ctx.PostArgs().Peek("phone")) //手机号
-	startTime := string(ctx.PostArgs().Peek("start_time"))
-	endTime := string(ctx.PostArgs().Peek("end_time"))
-	page := ctx.PostArgs().GetUintOrZero("page")
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
-	ip := string(ctx.PostArgs().Peek("ip"))
-	query := elastic.NewBoolQuery()
-	if username != "" {
+	phone := string(ctx.PostArgs().Peek("phone"))
+	if username == "" && phone == "" {
+		helper.Print(ctx, false, helper.ParamNull)
+		return
+	}
 
+	// 会员名校验
+	if username != "" {
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		query.Filter(elastic.NewTermQuery("username", username))
 	}
+
+	// 手机号校验
 	if phone != "" {
-		if !validator.CheckStringDigit(phone) {
+		if !validator.IsVietnamesePhone(phone) {
 			helper.Print(ctx, false, helper.PhoneFMTErr)
 			return
 		}
-
-		query.Filter(elastic.NewTermQuery("phone_hash", fmt.Sprintf("%d", model.MurmurHash(phone, 0))))
 	}
 
-	if ip != "" {
-
-		ip, err := helper.Ip2long(ip)
-		if err != nil {
-			helper.Print(ctx, false, helper.IPErr)
-			return
-		}
-
-		query.Filter(elastic.NewTermQuery("ip", ip))
-	}
-
-	data, err := model.SmsRecordList(page, pageSize, startTime, endTime, query)
+	startAt := ctx.Time().Unix()
+	data, err := model.VerifyCodeList(username, phone, startAt)
 	if err != nil {
-		helper.Print(ctx, false, err.Error())
+		helper.Print(ctx, false, err)
 		return
 	}
 
-	helper.Print(ctx, true, data)
+	helper.PrintJson(ctx, true, data)
 
 }
