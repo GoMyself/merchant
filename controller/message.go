@@ -115,20 +115,20 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 // 站内信列表
 func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 
-	page := ctx.QueryArgs().GetUintOrZero("page")
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
-	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1审核列表 2历史记录
-	title := string(ctx.QueryArgs().Peek("title"))                       //标题
-	sendName := string(ctx.QueryArgs().Peek("send_name"))                //发送人名
-	isVip := string(ctx.QueryArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
-	isPush := string(ctx.QueryArgs().Peek("is_push"))                    //0不推送 1推送
-	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //1站内消息 2活动消息
-	sendStartTime := string(ctx.QueryArgs().Peek("send_start_time"))     //发送开始时间
-	sendEndTime := string(ctx.QueryArgs().Peek("send_end_time"))         //发送结束时间
-	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
-	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
-	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	flag := ctx.PostArgs().GetUintOrZero("flag")                        //1审核列表 2历史记录
+	title := string(ctx.PostArgs().Peek("title"))                       //标题
+	sendName := string(ctx.PostArgs().Peek("send_name"))                //发送人名
+	isVip := string(ctx.PostArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
+	isPush := string(ctx.PostArgs().Peek("is_push"))                    //0不推送 1推送
+	ty := ctx.PostArgs().GetUintOrZero("ty")                            //1站内消息 2活动消息
+	sendStartTime := string(ctx.PostArgs().Peek("send_start_time"))     //发送开始时间
+	sendEndTime := string(ctx.PostArgs().Peek("send_end_time"))         //发送结束时间
+	startTime := string(ctx.PostArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.PostArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.PostArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.PostArgs().Peek("review_end_time"))     //审核结束时间
 
 	ex := g.Ex{}
 	if page == 0 {

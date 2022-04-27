@@ -349,7 +349,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	//运营管理-站内消息-添加
 	post("/merchant/message/insert", msgCtl.Insert)
 	//运营管理-站内消息-列表
-	get("/merchant/message/list", msgCtl.List)
+	post("/merchant/message/list", msgCtl.List)
 	//运营管理-站内消息-编辑
 	post("/merchant/message/update", msgCtl.Update)
 	//运营管理-站内消息-审核
