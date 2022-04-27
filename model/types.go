@@ -1044,10 +1044,11 @@ type Message struct {
 	IsVip      int    `db:"is_vip" json:"is_vip"`           //0非vip站内信 1vip站内信
 	Ty         int    `db:"ty" json:"ty"`                   //1站内消息 2活动消息
 	Level      string `db:"level" json:"level"`             //会员等级
+	Usernames  string `db:"usernames" json:"usernames"`     //会员账号，多个用逗号分隔
 	State      int    `db:"state" json:"state"`             //1审核中 2审核通过 3审核拒绝 4已删除
 	SendState  int    `db:"send_state" json:"send_state"`   //1未发送 2已发送
 	SendName   string `db:"send_name" json:"send_name"`     //发送人名
-	SendAt     uint32 `db:"send_at" json:"send_at"`         //发送时间
+	SendAt     int64  `db:"send_at" json:"send_at"`         //发送时间
 	ApplyAt    uint32 `db:"apply_at" json:"apply_at"`       //创建时间
 	ApplyUid   string `db:"apply_uid" json:"apply_uid"`     //创建人uid
 	ApplyName  string `db:"apply_name" json:"apply_name"`   //创建人名

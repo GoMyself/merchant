@@ -154,7 +154,7 @@ func MessageUpdate(id, sendAt string, record g.Record) error {
 	}
 
 	record["send_at"] = stAt
-	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -172,8 +172,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		"prefix": meta.Prefix,
 	}
 	data := Message{}
-	t := dialect.From("tbl_messages")
-	query, _, _ := t.Select(colsMessage...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_messages").Select(colsMessage...).Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil && err != sql.ErrNoRows {
@@ -188,17 +187,61 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		return errors.New(helper.NoDataUpdate)
 	}
 
+	ns := time.Now().Unix()
+	// 审核通过时已经超过了发送时间，记录作废
+	if ns > data.SendAt && state == 2 {
+
+		record := g.Record{
+			"state":       4,
+			"review_at":   time.Now().Unix(),
+			"review_uid":  admin["id"],
+			"review_name": admin["name"],
+		}
+		query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
+		_, err = meta.MerchantDB.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
+
+		return errors.New(helper.RecordExpired)
+	}
+
 	record := g.Record{
 		"state":       state,
 		"review_at":   time.Now().Unix(),
 		"review_uid":  admin["id"],
 		"review_name": admin["name"],
 	}
-	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
+	}
+
+	// 审核通过
+	if state == 2 {
+		sDelay := data.SendAt - ns
+		param := map[string]interface{}{
+			"flag":      1,                              //发送站内信
+			"id":        data.ID,                        //id
+			"title":     data.Title,                     //标题
+			"sub_title": data.SubTitle,                  //副标题
+			"content":   data.Content,                   //内容
+			"is_top":    fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
+			"is_push":   fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
+			"is_vip":    fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
+			"ty":        fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
+			"send_name": data.SendName,                  //发送人名
+			"prefix":    meta.Prefix,                    //商户前缀
+		}
+		if data.IsVip == 0 {
+			param["usernames"] = data.Usernames
+		} else {
+			param["level"] = data.Level
+		}
+		_, _ = BeanPut("message", param, int(sDelay))
 	}
 
 	return nil
@@ -214,7 +257,7 @@ func MessageDelete(id string) error {
 	record := g.Record{
 		"state": 4,
 	}
-	query, _, _ := dialect.From("tbl_messages").Update().Set(record).Where(ex).ToSQL()
+	query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
