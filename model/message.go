@@ -264,5 +264,11 @@ func MessageDelete(id string) error {
 		return pushLog(err, helper.DBErr)
 	}
 
+	param := map[string]interface{}{
+		"flag":   1,  //发送站内信
+		"msg_id": id, //站内信id
+	}
+	_, _ = BeanPut("message", param, 0)
+
 	return nil
 }
