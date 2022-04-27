@@ -172,8 +172,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		"prefix": meta.Prefix,
 	}
 	data := Message{}
-	t := dialect.From("tbl_messages")
-	query, _, _ := t.Select(colsMessage...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_messages").Select(colsMessage...).Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil && err != sql.ErrNoRows {
@@ -198,7 +197,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 			"review_uid":  admin["id"],
 			"review_name": admin["name"],
 		}
-		query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+		query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 		fmt.Println(query)
 		_, err = meta.MerchantDB.Exec(query)
 		if err != nil {
@@ -214,7 +213,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		"review_uid":  admin["id"],
 		"review_name": admin["name"],
 	}
-	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
