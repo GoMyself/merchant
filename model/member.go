@@ -166,6 +166,10 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		MaintainName:       maintainName,
 		GroupName:          groupName,
 		AgencyType:         agtype,
+		PhoneHash:          "0",
+		EmailHash:          "0",
+		RealnameHash:       "0",
+		Level:              1,
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
@@ -931,7 +935,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 			return errors.New(helper.RealNameFMTErr)
 		}
 
-		realNameHash := MurmurHash(param["realname"], 0)
+		realNameHash := fmt.Sprintf("%d", MurmurHash(param["realname"], 0))
 		if realNameHash != mb.RealnameHash {
 
 			param["realname_hash"] = fmt.Sprintf("%d", realNameHash)
@@ -942,7 +946,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 				ID:    mb.UID,
 			}
 
-			if mb.RealnameHash == 0 {
+			if mb.RealnameHash == "0" {
 				insertRes = append(insertRes, recs)
 			} else {
 				updateRes = append(updateRes, recs)
@@ -952,8 +956,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 	if _, ok := param["phone"]; ok {
 
-		phoneHash := MurmurHash(param["phone"], 0)
-		if memberBindCheck(g.Ex{"phone_hash": fmt.Sprintf("%d", phoneHash)}) {
+		phoneHash := fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
+		if memberBindCheck(g.Ex{"phone_hash": phoneHash}) {
 			return errors.New(helper.PhoneExist)
 		}
 
@@ -967,7 +971,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 				ID:    mb.UID,
 			}
 
-			if mb.PhoneHash == 0 {
+			if mb.PhoneHash == "0" {
 				insertRes = append(insertRes, recs)
 			} else {
 				updateRes = append(updateRes, recs)
@@ -977,8 +981,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 	if _, ok := param["email"]; ok {
 
-		emailHash := MurmurHash(param["email"], 0)
-		if memberBindCheck(g.Ex{"email_hash": fmt.Sprintf("%d", emailHash)}) {
+		emailHash := fmt.Sprintf("%d", MurmurHash(param["email"], 0))
+		if memberBindCheck(g.Ex{"email_hash": emailHash}) {
 			return errors.New(helper.EmailExist)
 		}
 
@@ -992,7 +996,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 				ID:    mb.UID,
 			}
 
-			if mb.EmailHash == 0 {
+			if mb.EmailHash == "0" {
 				insertRes = append(insertRes, recs)
 			} else {
 				updateRes = append(updateRes, recs)

@@ -73,7 +73,7 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 		"bankcard_total": g.L("bankcard_total+1"),
 	}
 	// 会员未绑定真实姓名，更新第一次绑定银行卡的真实姓名到会员信息
-	if mb.RealnameHash == 0 {
+	if mb.RealnameHash == "0" {
 		// 第一次新增银行卡判断真实姓名是否为越南语
 		if meta.Lang == "vn" && !validator.CheckStringVName(realName) {
 			return errors.New(helper.RealNameFMTErr)
