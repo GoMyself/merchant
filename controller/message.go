@@ -277,6 +277,11 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, helper.Success)
 }
 
+// 已发站内信详情
+func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
+
+}
+
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
