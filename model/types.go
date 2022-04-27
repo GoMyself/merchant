@@ -1033,6 +1033,28 @@ type TgIpData struct {
 	Agg map[string]string `json:"agg"`
 }
 
+type MessageEs struct {
+	ID       string `json:"id"`        //会员站内信id
+	MsgID    string `json:"msg_id"`    //站内信id
+	Username string `json:"username"`  //会员名
+	Title    string `json:"title"`     //标题
+	SubTitle string `json:"sub_title"` //标题
+	Content  string `json:"content"`   //内容
+	IsTop    int    `json:"is_top"`    //0不置顶 1置顶
+	IsVip    int    `json:"is_vip"`    //0非vip站内信 1vip站内信
+	Ty       int    `json:"ty"`        //1站内消息 2活动消息
+	IsRead   int    `json:"is_read"`   //是否已读 0未读 1已读
+	SendName string `json:"send_name"` //发送人名
+	SendAt   int64  `json:"send_at"`   //发送时间
+	Prefix   string `json:"prefix"`    //商户前缀
+}
+
+type MessageEsData struct {
+	T int64       `json:"t"`
+	S int         `json:"s"`
+	D []MessageEs `json:"d"`
+}
+
 // 站内信
 type Message struct {
 	ID         string ` db:"id" json:"id"`
@@ -1063,10 +1085,7 @@ type MessageData struct {
 	S uint      `json:"s"`
 	D []Message `json:"d"`
 }
-type smsData struct {
-	T int64    `json:"t"`
-	D []smsLog `json:"d"`
-}
+
 type smsLog struct {
 	Username  string `json:"username"`
 	IP        string `json:"ip"`
@@ -1074,4 +1093,9 @@ type smsLog struct {
 	Code      string `json:"code"`
 	Phone     string `json:"phone"`
 	PhoneHash string `json:"phone_hash"`
+}
+
+type smsData struct {
+	T int64    `json:"t"`
+	D []smsLog `json:"d"`
 }

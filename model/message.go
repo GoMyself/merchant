@@ -6,6 +6,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/wI2L/jettison"
 	"merchant2/contrib/helper"
 	"time"
 )
@@ -183,7 +184,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
-	if state != 1 {
+	if data.State != 1 {
 		return errors.New(helper.NoDataUpdate)
 	}
 
@@ -247,6 +248,53 @@ func MessageReview(id string, state int, admin map[string]string) error {
 	return nil
 }
 
+//MessageDetail  已发站内信详情
+func MessageDetail(id string, page, pageSize int) (string, error) {
+
+	ex := g.Ex{
+		"id":     id,
+		"prefix": meta.Prefix,
+	}
+	var sendState int
+	query, _, _ := dialect.From("tbl_messages").Select(colsMessage...).Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&sendState, query)
+	if err != nil && err != sql.ErrNoRows {
+		return `{"t":0,"d":[]}`, pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows || sendState != 2 {
+		return `{"t":0,"d":[]}`, errors.New(helper.RecordNotExistErr)
+	}
+
+	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "is_read", "send_name", "send_at", "prefix"}
+	param := map[string]interface{}{
+		"prefix": meta.Prefix,
+		"msg_id": id,
+	}
+	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", page, pageSize, fields, param, map[string][]interface{}{}, map[string]string{})
+	if err != nil {
+		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
+	}
+
+	data := MessageEsData{}
+	data.S = pageSize
+	data.T = total
+	for _, v := range esData {
+		msg := MessageEs{}
+		msg.ID = v.Id
+		_ = helper.JsonUnmarshal(v.Source, &msg)
+		data.D = append(data.D, msg)
+	}
+
+	b, err := jettison.Marshal(data)
+	if err != nil {
+		return "", errors.New(helper.FormatErr)
+	}
+
+	return string(b), nil
+}
+
 //MessageDelete  站内信删除
 func MessageDelete(id string) error {
 
@@ -263,6 +311,12 @@ func MessageDelete(id string) error {
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
+
+	param := map[string]interface{}{
+		"flag":   1,  //发送站内信
+		"msg_id": id, //站内信id
+	}
+	_, _ = BeanPut("message", param, 0)
 
 	return nil
 }
