@@ -1043,6 +1043,7 @@ type MessageEs struct {
 	IsTop    int    `json:"is_top"`    //0不置顶 1置顶
 	IsVip    int    `json:"is_vip"`    //0非vip站内信 1vip站内信
 	Ty       int    `json:"ty"`        //1站内消息 2活动消息
+	IsRead   int    `json:"is_read"`   //是否已读 0未读 1已读
 	SendName string `json:"send_name"` //发送人名
 	SendAt   int64  `json:"send_at"`   //发送时间
 	Prefix   string `json:"prefix"`    //商户前缀

@@ -267,7 +267,7 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 		return `{"t":0,"d":[]}`, errors.New(helper.RecordNotExistErr)
 	}
 
-	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "send_name", "send_at", "prefix"}
+	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "is_read", "send_name", "send_at", "prefix"}
 	param := map[string]interface{}{
 		"prefix": meta.Prefix,
 		"msg_id": id,
