@@ -154,7 +154,7 @@ func MessageUpdate(id, sendAt string, record g.Record) error {
 	}
 
 	record["send_at"] = stAt
-	query, _, _ = t.Update().Set(record).Where(ex).ToSQL()
+	query, _, _ = dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -257,7 +257,7 @@ func MessageDelete(id string) error {
 	record := g.Record{
 		"state": 4,
 	}
-	query, _, _ := dialect.From("tbl_messages").Update().Set(record).Where(ex).ToSQL()
+	query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
