@@ -256,7 +256,7 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 		"prefix": meta.Prefix,
 	}
 	var sendState int
-	query, _, _ := dialect.From("tbl_messages").Select(colsMessage...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_messages").Select("send_state").Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&sendState, query)
 	if err != nil && err != sql.ErrNoRows {
