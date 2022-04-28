@@ -307,9 +307,8 @@ func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	msgID := string(ctx.PostArgs().Peek("msg_id"))
-	ids := strings.Split(msgID, ",")
-	if len(ids) > 0 {
-		for _, v := range ids {
+	if msgID != "" {
+		for _, v := range strings.Split(msgID, ",") {
 			if !validator.CtypeDigit(v) {
 				helper.Print(ctx, false, helper.ParamErr)
 				return
