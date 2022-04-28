@@ -308,12 +308,15 @@ func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 	id := string(ctx.QueryArgs().Peek("id"))
 	msgID := string(ctx.QueryArgs().Peek("msg_id"))
 	ids := strings.Split(msgID, ",")
-	for _, v := range ids {
-		if !validator.CtypeDigit(v) {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
+	if len(ids) > 0 {
+		for _, v := range ids {
+			if !validator.CtypeDigit(v) {
+				helper.Print(ctx, false, helper.ParamErr)
+				return
+			}
 		}
 	}
+
 	err := model.MessageDelete(id, msgID)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
