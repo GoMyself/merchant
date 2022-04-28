@@ -315,7 +315,7 @@ func MessageDelete(id, msgID string) error {
 	}
 
 	param := map[string]interface{}{
-		"flag":   "2", //发送站内信
+		"flag":   "2", //删除站内信
 		"msg_id": id,  //站内信id
 	}
 	if msgID != "" {
