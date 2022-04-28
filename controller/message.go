@@ -305,8 +305,8 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.QueryArgs().Peek("id"))
-	msgID := string(ctx.QueryArgs().Peek("msg_id"))
+	id := string(ctx.PostArgs().Peek("id"))
+	msgID := string(ctx.PostArgs().Peek("msg_id"))
 	ids := strings.Split(msgID, ",")
 	if len(ids) > 0 {
 		for _, v := range ids {
