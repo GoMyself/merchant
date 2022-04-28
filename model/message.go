@@ -296,25 +296,30 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 }
 
 //MessageDelete  站内信删除
-func MessageDelete(id string) error {
+func MessageDelete(id, msgID string) error {
 
-	ex := g.Ex{
-		"id":     id,
-		"prefix": meta.Prefix,
-	}
-	record := g.Record{
-		"state": 4,
-	}
-	query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
-	fmt.Println(query)
-	_, err := meta.MerchantDB.Exec(query)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
+	if msgID == "" {
+		ex := g.Ex{
+			"id":     id,
+			"prefix": meta.Prefix,
+		}
+		record := g.Record{
+			"state": 4,
+		}
+		query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
 	}
 
 	param := map[string]interface{}{
 		"flag":   1,  //发送站内信
 		"msg_id": id, //站内信id
+	}
+	if msgID != "" {
+		param["id"] = msgID
 	}
 	_, _ = BeanPut("message", param, 0)
 
