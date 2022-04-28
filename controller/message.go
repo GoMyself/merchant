@@ -46,7 +46,6 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		}
 
 		lv := map[string]bool{
-			"0":  true,
 			"1":  true,
 			"2":  true,
 			"3":  true,
@@ -57,6 +56,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			"8":  true,
 			"9":  true,
 			"10": true,
+			"11": true,
 		}
 		for _, v := range strings.Split(level, ",") {
 			if _, ok := lv[v]; !ok {
