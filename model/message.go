@@ -226,7 +226,7 @@ func MessageReview(id string, state int, admin map[string]string) error {
 		sDelay := data.SendAt - ns
 		param := map[string]interface{}{
 			"flag":      "1",                            //发送站内信
-			"id":        data.ID,                        //id
+			"msg_id":    data.ID,                        //id
 			"title":     data.Title,                     //标题
 			"sub_title": data.SubTitle,                  //副标题
 			"content":   data.Content,                   //内容
