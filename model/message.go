@@ -225,8 +225,8 @@ func MessageReview(id string, state int, admin map[string]string) error {
 	if state == 2 {
 		sDelay := data.SendAt - ns
 		param := map[string]interface{}{
-			"flag":      1,                              //发送站内信
-			"id":        data.ID,                        //id
+			"flag":      "1",                            //发送站内信
+			"msg_id":    data.ID,                        //id
 			"title":     data.Title,                     //标题
 			"sub_title": data.SubTitle,                  //副标题
 			"content":   data.Content,                   //内容
@@ -256,7 +256,7 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 		"prefix": meta.Prefix,
 	}
 	var sendState int
-	query, _, _ := dialect.From("tbl_messages").Select(colsMessage...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_messages").Select("send_state").Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&sendState, query)
 	if err != nil && err != sql.ErrNoRows {
@@ -296,25 +296,30 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 }
 
 //MessageDelete  站内信删除
-func MessageDelete(id string) error {
+func MessageDelete(id, msgID string) error {
 
-	ex := g.Ex{
-		"id":     id,
-		"prefix": meta.Prefix,
-	}
-	record := g.Record{
-		"state": 4,
-	}
-	query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
-	fmt.Println(query)
-	_, err := meta.MerchantDB.Exec(query)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
+	if msgID == "" {
+		ex := g.Ex{
+			"id":     id,
+			"prefix": meta.Prefix,
+		}
+		record := g.Record{
+			"state": 4,
+		}
+		query, _, _ := dialect.Update("tbl_messages").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
 	}
 
 	param := map[string]interface{}{
-		"flag":   1,  //发送站内信
-		"msg_id": id, //站内信id
+		"flag":   "2", //删除站内信
+		"msg_id": id,  //站内信id
+	}
+	if msgID != "" {
+		param["id"] = msgID
 	}
 	_, _ = BeanPut("message", param, 0)
 

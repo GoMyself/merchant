@@ -65,13 +65,16 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else {
-		if names != "" {
-			usernames := strings.Split(names, ",")
-			for _, v := range usernames {
-				if !validator.CheckUName(v, 5, 14) {
-					helper.Print(ctx, false, helper.UsernameErr)
-					return
-				}
+		if names == "" {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		usernames := strings.Split(names, ",")
+		for _, v := range usernames {
+			if !validator.CheckUName(v, 5, 14) {
+				helper.Print(ctx, false, helper.UsernameErr)
+				return
 			}
 		}
 	}
@@ -284,6 +287,11 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	id := string(ctx.QueryArgs().Peek("id"))
 
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
 	if page == 0 {
 		page = 1
 	}
@@ -302,8 +310,23 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.QueryArgs().Peek("id"))
-	err := model.MessageDelete(id)
+	id := string(ctx.PostArgs().Peek("id"))
+	msgID := string(ctx.PostArgs().Peek("msg_id"))
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	if msgID != "" {
+		for _, v := range strings.Split(msgID, ",") {
+			if !validator.CtypeDigit(v) {
+				helper.Print(ctx, false, helper.ParamErr)
+				return
+			}
+		}
+	}
+
+	err := model.MessageDelete(id, msgID)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
