@@ -287,6 +287,11 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	id := string(ctx.QueryArgs().Peek("id"))
 
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
 	if page == 0 {
 		page = 1
 	}
@@ -307,6 +312,11 @@ func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	msgID := string(ctx.PostArgs().Peek("msg_id"))
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
 	if msgID != "" {
 		for _, v := range strings.Split(msgID, ",") {
 			if !validator.CtypeDigit(v) {
