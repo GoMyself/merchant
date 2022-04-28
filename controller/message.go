@@ -65,13 +65,16 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else {
-		if names != "" {
-			usernames := strings.Split(names, ",")
-			for _, v := range usernames {
-				if !validator.CheckUName(v, 5, 14) {
-					helper.Print(ctx, false, helper.UsernameErr)
-					return
-				}
+		if names == "" {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		usernames := strings.Split(names, ",")
+		for _, v := range usernames {
+			if !validator.CheckUName(v, 5, 14) {
+				helper.Print(ctx, false, helper.UsernameErr)
+				return
 			}
 		}
 	}
