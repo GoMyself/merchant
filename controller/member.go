@@ -515,6 +515,8 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	phone := string(ctx.PostArgs().Peek("phone"))
 	email := string(ctx.PostArgs().Peek("email"))
+	zalo := string(ctx.PostArgs().Peek("zalo"))
+	address := string(ctx.PostArgs().Peek("address")) //收货地址
 	tagsID := string(ctx.PostArgs().Peek("tags_id"))
 	realname := string(ctx.PostArgs().Peek("real_name"))
 	username := string(ctx.PostArgs().Peek("username"))
@@ -526,6 +528,11 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	param := map[string]string{}
 	if realname != "" {
+		if !validator.CheckStringVName(param["realname"]) {
+			helper.Print(ctx, false, helper.RealNameFMTErr)
+			return
+		}
+
 		param["realname"] = realname
 	}
 
@@ -545,6 +552,14 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 		}
 
 		param["email"] = email
+	}
+
+	if zalo != "" {
+		param["zalo"] = zalo
+	}
+
+	if address != "" {
+		param["address"] = address
 	}
 
 	var userTagsId []string
