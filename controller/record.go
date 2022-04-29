@@ -471,13 +471,13 @@ func (that *RecordController) LoginLog(ctx *fasthttp.RequestCtx) {
 
 	if param.Ip != "" {
 
-		ip, err := helper.Ip2long(param.Ip)
+		_, err := helper.Ip2long(param.Ip)
 		if err != nil {
 			helper.Print(ctx, false, helper.IPErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("ip", ip))
+		query.Filter(elastic.NewTermQuery("ips", param.Ip))
 	}
 
 	data, err := model.RecordLoginLog(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
@@ -510,7 +510,7 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parentname", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
 	}
 
 	if param.State > 0 {
