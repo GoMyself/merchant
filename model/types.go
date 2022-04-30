@@ -11,6 +11,7 @@ type MemberData struct {
 	RealName string `json:"real_name"`
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`
+	Zalo     string `json:"zalo"`
 }
 type MemberPageData struct {
 	T int64        `json:"t"`

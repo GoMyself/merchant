@@ -391,19 +391,25 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 			Hide:  true,
 			ID:    v.UID,
 		}
-		res = append(res[0:], nameRecs)
+		res = append(res, nameRecs)
 		emailRecs := schema.Dec_t{
 			Field: "email",
 			Hide:  true,
 			ID:    v.UID,
 		}
-		res = append(res[0:], emailRecs)
+		res = append(res, emailRecs)
 		phoneRecs := schema.Dec_t{
 			Field: "phone",
 			Hide:  true,
 			ID:    v.UID,
 		}
-		res = append(res[0:], phoneRecs)
+		res = append(res, phoneRecs)
+		zaloRecs := schema.Dec_t{
+			Field: "zalo",
+			Hide:  true,
+			ID:    v.UID,
+		}
+		res = append(res, zaloRecs)
 	}
 
 	record, err := rpcGet(res)
@@ -429,6 +435,11 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 		data.D[k].Phone = ""
 		if rpcLen > k*3+2 && record[k*3+2].Err == "" {
 			data.D[k].Phone = record[k*3+2].Res
+		}
+
+		data.D[k].Zalo = ""
+		if rpcLen > k*3+3 && record[k*3+3].Err == "" {
+			data.D[k].Zalo = record[k*3+3].Res
 		}
 	}
 
