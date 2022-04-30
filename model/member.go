@@ -165,6 +165,10 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		MaintainName:       maintainName,
 		GroupName:          groupName,
 		AgencyType:         agtype,
+		EmailHash:          "0",
+		RealnameHash:       "0",
+		PhoneHash:          "0",
+		ZaloHash:           "0",
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
