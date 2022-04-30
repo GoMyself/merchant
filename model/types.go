@@ -620,9 +620,10 @@ type CommissionTransaction struct {
 }
 
 type MembersTree struct {
-	Ancestor   string `db:"ancestor"`
-	Descendant string `db:"descendant"`
-	Lvl        int    `db:"lvl"`
+	Ancestor   string `db:"ancestor" json:"ancestor,omitempty"`
+	Descendant string `db:"descendant" json:"descendant,omitempty"`
+	Lvl        int    `db:"lvl" json:"lvl,omitempty"`
+	Prefix     string `db:"prefix" json:"prefix,omitempty"`
 }
 
 type CommssionConf struct {

@@ -478,9 +478,6 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 		press = press.Append(g.C("group_name").Eq(groupName))
 	}
 
-	fmt.Println(agencyType)
-	fmt.Println(groupName)
-
 	if sortField != "" {
 		sortFields := map[string]bool{
 			"deposit":      true,
