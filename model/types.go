@@ -25,6 +25,7 @@ type Member struct {
 	RealnameHash       string `db:"realname_hash" json:"realname_hash"`               //真实姓名哈希
 	EmailHash          string `db:"email_hash" json:"email_hash"`                     //邮件地址哈希
 	PhoneHash          string `db:"phone_hash" json:"phone_hash"`                     //电话号码哈希
+	ZaloHash           string `db:"zalo_hash" json:"zalo_hash"`                       //zalo哈希
 	Prefix             string `db:"prefix" json:"prefix"`                             //站点前缀
 	WithdrawPwd        uint64 `db:"withdraw_pwd" json:"withdraw_pwd"`                 //取款密码哈希
 	Regip              string `db:"regip" json:"regip"`                               //注册IP
@@ -54,6 +55,7 @@ type Member struct {
 	MaintainName       string `db:"maintain_name" json:"maintain_name"`               //维护人
 	GroupName          string `db:"group_name" json:"group_name"`                     //团队名称
 	AgencyType         int64  `db:"agency_type" json:"agency_type"`                   //391团队代理 393普通代理
+	Address            string `db:"address" json:"address"`                           //收货地址
 }
 
 // MemberPlatform 会员场馆表

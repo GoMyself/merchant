@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/session"
-	"merchant2/contrib/validator"
 	"strconv"
 	"strings"
 	"time"
@@ -166,10 +165,6 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		MaintainName:       maintainName,
 		GroupName:          groupName,
 		AgencyType:         agtype,
-		PhoneHash:          "0",
-		EmailHash:          "0",
-		RealnameHash:       "0",
-		Level:              1,
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
@@ -903,11 +898,6 @@ func MemberRebateSelect(ids []string) (map[string]MemberRebate, error) {
 // 更新用户信息
 func MemberUpdate(username, adminID string, param map[string]string, tagsId []string) error {
 
-	if len(param["phone"]) > 0 &&
-		(meta.Lang == "vn" && !validator.IsVietnamesePhone(param["phone"])) { //越南手机号
-		return errors.New(helper.PhoneFMTErr)
-	}
-
 	mb, err := MemberFindOne(username)
 	if err != nil {
 		return err
@@ -931,15 +921,10 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	)
 	if _, ok := param["realname"]; ok {
 
-		if meta.Lang == "vn" && !validator.CheckStringVName(param["realname"]) {
-			return errors.New(helper.RealNameFMTErr)
-		}
-
 		realNameHash := fmt.Sprintf("%d", MurmurHash(param["realname"], 0))
 		if realNameHash != mb.RealnameHash {
 
-			param["realname_hash"] = fmt.Sprintf("%d", realNameHash)
-			record["realname_hash"] = param["realname_hash"]
+			record["realname_hash"] = realNameHash
 			recs := schema.Enc_t{
 				Field: "realname",
 				Value: param["realname"],
@@ -963,8 +948,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		if phoneHash != mb.PhoneHash {
 
-			param["phone_hash"] = fmt.Sprintf("%d", phoneHash)
-			record["phone_hash"] = param["phone_hash"]
+			record["phone_hash"] = phoneHash
 			recs := schema.Enc_t{
 				Field: "phone",
 				Value: param["phone"],
@@ -988,8 +972,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		if emailHash != mb.EmailHash {
 
-			param["email_hash"] = fmt.Sprintf("%d", emailHash)
-			record["email_hash"] = param["email_hash"]
+			record["email_hash"] = emailHash
 			recs := schema.Enc_t{
 				Field: "email",
 				Value: param["email"],
@@ -1002,6 +985,34 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 				updateRes = append(updateRes, recs)
 			}
 		}
+	}
+
+	if _, ok := param["zalo"]; ok {
+
+		zaloHash := fmt.Sprintf("%d", MurmurHash(param["zalo"], 0))
+		if memberBindCheck(g.Ex{"zalo_hash": zaloHash}) {
+			return errors.New(helper.ZaloExist)
+		}
+
+		if zaloHash != mb.PhoneHash {
+
+			record["zalo_hash"] = zaloHash
+			recs := schema.Enc_t{
+				Field: "zalo",
+				Value: param["zalo"],
+				ID:    mb.UID,
+			}
+
+			if mb.PhoneHash == "0" {
+				insertRes = append(insertRes, recs)
+			} else {
+				updateRes = append(updateRes, recs)
+			}
+		}
+	}
+
+	if _, ok := param["address"]; ok {
+		record["address"] = param["address"]
 	}
 
 	tags := map[string]string{}
