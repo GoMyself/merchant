@@ -552,10 +552,20 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if zalo != "" {
+		if !validator.IsVietnameseZalo(zalo) {
+			helper.Print(ctx, false, helper.ZaloFMTErr)
+			return
+		}
+
 		param["zalo"] = zalo
 	}
 
 	if address != "" {
+		if len(strings.Split(address, "|")) != 4 {
+			helper.Print(ctx, false, helper.AddressFMTErr)
+			return
+		}
+
 		param["address"] = address
 	}
 
