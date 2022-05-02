@@ -353,7 +353,8 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 		fsc := elastic.NewFetchSourceContext(true).Include("uid")
 		boolQuery := elastic.NewBoolQuery()
 		boolQuery.Must(elastic.NewTermQuery("prefix", meta.Prefix))
-		boolQuery.Filter(elastic.NewWildcardQuery("tag_name", fmt.Sprintf("*%s*", tag)))
+		//boolQuery.Filter(elastic.NewWildcardQuery("tag_name", fmt.Sprintf("*%s*", tag)))
+		boolQuery.Filter(elastic.NewWildcardQuery("tag_name", tag))
 		distinct := elastic.NewCollapseBuilder("uid")
 
 		resTag, err := meta.ES.Search(esPrefixIndex("tbl_member_tags")).FetchSourceContext(fsc).Query(boolQuery).Collapse(distinct).Size(10000).Do(ctx)
