@@ -871,50 +871,39 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		return result, nil
 	}
 
-	// 组装获取rpc数据参数
-	rpcParam := make(map[string][]string)
-	namesMap := make(map[string]string)
-	var agencyNames []string
+	var (
+		bids []string
+		uids []string
+	)
 	for _, v := range data.D {
-		rpcParam["bankcard"] = append(rpcParam["bankcard"], v.BID)
-		rpcParam["realname"] = append(rpcParam["realname"], v.UID)
-		namesMap[v.Username] = v.UID
-		agencyNames = append(agencyNames, v.ParentName)
+		bids = append(bids, v.BID)
+		uids = append(uids, v.UID)
 	}
 
-	// 遍历用户map 读取标签数据
-	var names []string
-	for name, _ := range namesMap {
-		// 组装需要通过name获取的 redis参数
-		names = append(names, name)
-	}
-
-	bankcards, err := bankcardListDBByIDs(rpcParam["bankcard"])
+	bankcards, err := bankcardListDBByIDs(bids)
 	if err != nil {
 		return result, pushLog(err, helper.DBErr)
 	}
 
-	//bankcardNos, err := RpcGetDecode("bankcard", true, rpcParam["bankcard"])
-	//if err != nil {
-	//	return result, pushLog(err, helper.DBErr)
-	//}
+	d1, err := grpc_t.DecryptAll(uids, true, []string{"realname"})
+	if err != nil {
+		fmt.Println("grpc_t.Decrypt err = ", err)
+		return result, errors.New(helper.GetRPCErr)
+	}
 
-	//realNames, err := RpcGetDecode("realname", true, rpcParam["realname"])
-	//if err != nil {
-	//	return result, pushLog(err, helper.DBErr)
-	//}
+	d2, err := grpc_t.DecryptAll(bids, true, []string{"bankcard"})
+	if err != nil {
+		fmt.Println("grpc_t.Decrypt err = ", err)
+		return result, errors.New(helper.GetRPCErr)
+	}
 
 	// 处理返回前端的数据
 	for _, v := range data.D {
-
-		//cardNo := bankcardNos[k].Res
-		//realName := realNames[k].Res
-
 		w := withdrawCols{
-			Withdraw: v,
-			//MemberBankNo:       cardNo,
-			//MemberBankRealName: realName,
-			//MemberRealName:     realName,
+			Withdraw:           v,
+			MemberBankNo:       d2[v.BID]["bankcard"],
+			MemberBankRealName: d1[v.UID]["realname"],
+			MemberRealName:     d1[v.UID]["realname"],
 		}
 
 		card, ok := bankcards[v.BID]
