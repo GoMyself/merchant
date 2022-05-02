@@ -431,7 +431,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 
 func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.PostArgs().Peek("username"))          //会员帐号
+	username := string(ctx.PostArgs().Peek("agency_name"))       //会员帐号
 	maintainName := string(ctx.PostArgs().Peek("maintain_name")) //维护人
 	groupName := string(ctx.PostArgs().Peek("group_name"))       //团队名称
 	state := ctx.PostArgs().GetUintOrZero("state")               //状态 0:全部,1:启用,2:禁用
