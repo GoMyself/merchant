@@ -60,9 +60,7 @@ func main() {
 	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
 	//mt.NatsConn = conn.InitNatsIO(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
-	rpc := conn.InitRpc(cfg.RPC)
-
-	model.Constructor(mt, rpc)
+	model.Constructor(mt, cfg.RPC)
 	session.New(mt.MerchantRedis, cfg.Prefix)
 	tdlog.New(cfg.Td.Servers, cfg.Td.Username, cfg.Td.Password)
 

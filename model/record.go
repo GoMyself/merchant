@@ -894,27 +894,27 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		return result, pushLog(err, helper.DBErr)
 	}
 
-	bankcardNos, err := RpcGetDecode("bankcard", true, rpcParam["bankcard"])
-	if err != nil {
-		return result, pushLog(err, helper.DBErr)
-	}
+	//bankcardNos, err := RpcGetDecode("bankcard", true, rpcParam["bankcard"])
+	//if err != nil {
+	//	return result, pushLog(err, helper.DBErr)
+	//}
 
-	realNames, err := RpcGetDecode("realname", true, rpcParam["realname"])
-	if err != nil {
-		return result, pushLog(err, helper.DBErr)
-	}
+	//realNames, err := RpcGetDecode("realname", true, rpcParam["realname"])
+	//if err != nil {
+	//	return result, pushLog(err, helper.DBErr)
+	//}
 
 	// 处理返回前端的数据
-	for k, v := range data.D {
+	for _, v := range data.D {
 
-		cardNo := bankcardNos[k].Res
-		realName := realNames[k].Res
+		//cardNo := bankcardNos[k].Res
+		//realName := realNames[k].Res
 
 		w := withdrawCols{
-			Withdraw:           v,
-			MemberBankNo:       cardNo,
-			MemberBankRealName: realName,
-			MemberRealName:     realName,
+			Withdraw: v,
+			//MemberBankNo:       cardNo,
+			//MemberBankRealName: realName,
+			//MemberRealName:     realName,
 		}
 
 		card, ok := bankcards[v.BID]

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/nwf2013/schema"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/olivere/elastic/v7"
@@ -65,25 +64,21 @@ func BlacklistList(page, pageSize uint, startTime, endTime string, ty int, ex g.
 
 	if ty == TyBankcard {
 
-		var res []schema.Dec_t
+		var (
+			ids []string
+		)
 		for _, v := range data.D {
-
-			recs := schema.Dec_t{
-				Field: "bankcard",
-				Hide:  true,
-				ID:    v.ID,
-			}
-			res = append(res, recs)
+			ids = append(ids, v.ID)
 		}
-		record, err := rpcGet(res)
+
+		d, err := proxy.DecryptAll(ids, true, []string{"bankcard"})
 		if err != nil {
+			fmt.Println("proxy.DecryptAll err = ", err)
 			return data, errors.New(helper.GetRPCErr)
 		}
 
-		for k := range data.D {
-			if record[k].Err == "" {
-				data.D[k].Value = record[k].Res
-			}
+		for k, v := range data.D {
+			data.D[k].Value = d[v.ID]["bankcard"]
 		}
 	}
 

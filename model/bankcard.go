@@ -103,17 +103,25 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 		"created_at":       fmt.Sprintf("%d", data.CreatedAt),
 	}
 
-	recs := schema.Enc_t{
-		Field: "bankcard",
-		Value: bankcard,
-		ID:    data.ID,
-	}
-
-	res = append(res, recs)
-	_, err = rpcInsert(res)
+	src := [][]string{}
+	src = append(src, []string{"bankcard", bankcard})
+	err = proxy.Encrypt(data.ID, src)
 	if err != nil {
+		fmt.Println("proxy.Encrypt = ", err)
 		return errors.New(helper.UpdateRPCErr)
 	}
+
+	//recs := schema.Enc_t{
+	//	Field: "bankcard",
+	//	Value: bankcard,
+	//	ID:    data.ID,
+	//}
+	//
+	//res = append(res, recs)
+	//_, err = rpcInsert(res)
+	//if err != nil {
+	//	return errors.New(helper.UpdateRPCErr)
+	//}
 
 	// 会员银行卡插入加锁
 	key = fmt.Sprintf("bc:%s", data.Username)
@@ -180,7 +188,8 @@ func BankCardFindOne(ex g.Ex) (BankCard, error) {
 func BankcardList(username, bankcard string) ([]BankcardData, error) {
 
 	var (
-		res  []schema.Dec_t
+		uid  string
+		ids  []string
 		data []BankcardData
 	)
 
@@ -190,11 +199,17 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		"prefix": meta.Prefix,
 	}
 	if username != "" {
+		mb, err := MemberFindOne(username)
+		if err != nil && err != sql.ErrNoRows {
+			return data, pushLog(err, helper.DBErr)
+		}
+
 		// 判断会员是否存在
-		if !MemberExist(username) {
+		if err == sql.ErrNoRows {
 			return data, errors.New(helper.UsernameErr)
 		}
 
+		uid = mb.UID
 		ex["username"] = username
 	}
 	// 银行卡号参数可选
@@ -214,44 +229,30 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		return data, nil
 	}
 
-	for _, v := range cardList {
-		recs := schema.Dec_t{
-			Field: "bankcard",
-			Hide:  true,
-			ID:    v.ID,
-		}
-		res = append(res, recs)
-	}
-
-	recs := schema.Dec_t{
-		Field: "realname",
-		Hide:  true,
-		ID:    cardList[0].UID,
-	}
-	res = append(res, recs)
-	record, err := rpcGet(res)
+	d1, err := proxy.Decrypt(uid, true, []string{"realname"})
 	if err != nil {
+		fmt.Println("proxy.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
-	rpcLen := len(record)
-	for k, v := range cardList {
+	for _, v := range cardList {
+		ids = append(ids, v.ID)
+	}
 
-		card := ""
-		if rpcLen > k && record[k].Err == "" {
-			card = record[k].Res
-		}
+	d2, err := proxy.DecryptAll(ids, true, []string{"bankcard"})
+	if err != nil {
+		fmt.Println("proxy.Decrypt err = ", err)
+		return data, errors.New(helper.GetRPCErr)
+	}
 
-		realName := ""
-		if rpcLen > length && record[length].Err == "" {
-			realName = record[length].Res
-		}
+	for _, v := range cardList {
 
 		val := BankcardData{
 			BankCard: v,
-			RealName: realName,
-			Bankcard: card,
+			RealName: d1["realname"],
+			Bankcard: d2[v.ID]["bankcard"],
 		}
+
 		data = append(data, val)
 	}
 
@@ -306,16 +307,12 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
 			return errors.New(helper.BankCardExistErr)
 		}
 
-		record["bank_card_hash"] = bankcardHash
-		var res []schema.Enc_t
-		recs := schema.Enc_t{
-			Field: "bankcard",
-			Value: bankcard,
-			ID:    bid,
+		src := [][]string{
+			{"bankcard", bankcard},
 		}
-		res = append(res, recs)
-		_, err = rpcUpdate(res)
+		err := proxy.Encrypt(bid, src)
 		if err != nil {
+			fmt.Println("proxy.Encrypt = ", err)
 			return errors.New(helper.UpdateRPCErr)
 		}
 	}

@@ -912,7 +912,7 @@ func (that *MemberController) History(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	helper.PrintJson(ctx, true, data)
+	helper.Print(ctx, true, data)
 }
 
 // Full 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
@@ -930,7 +930,7 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data, err := model.MemberFull(id, field)
+	data, err := model.MemberFull(id, []string{field})
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

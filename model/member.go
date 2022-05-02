@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/nwf2013/schema"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/olivere/elastic/v7"
@@ -34,6 +33,7 @@ var (
 		"phone":    true, // 会员手机号
 		"email":    true, // 会员邮箱
 		"bankcard": true, // 会员银行卡查询
+		"zalo":     true, //zalo
 	}
 )
 
@@ -388,63 +388,25 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 		return data, nil
 	}
 
-	var res []schema.Dec_t
+	var (
+		uids []string
+	)
 	for _, v := range data.D {
-		nameRecs := schema.Dec_t{
-			Field: "realname",
-			Hide:  true,
-			ID:    v.UID,
-		}
-		res = append(res, nameRecs)
-		emailRecs := schema.Dec_t{
-			Field: "email",
-			Hide:  true,
-			ID:    v.UID,
-		}
-		res = append(res, emailRecs)
-		phoneRecs := schema.Dec_t{
-			Field: "phone",
-			Hide:  true,
-			ID:    v.UID,
-		}
-		res = append(res, phoneRecs)
-		zaloRecs := schema.Dec_t{
-			Field: "zalo",
-			Hide:  true,
-			ID:    v.UID,
-		}
-		res = append(res, zaloRecs)
+		uids = append(uids, v.UID)
 	}
 
-	record, err := rpcGet(res)
+	d, err := proxy.DecryptAll(uids, true, []string{"realname", "email", "phone", "zalo"})
 	if err != nil {
+		fmt.Println("proxy.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
-	rpcLen := len(record)
-
-	for k := range data.D {
-
+	for k, v := range data.D {
 		data.D[k].Password = ""
-		data.D[k].RealName = ""
-		if rpcLen > k*3+0 && record[k*3].Err == "" {
-			data.D[k].RealName = record[k*3].Res
-		}
-
-		data.D[k].Email = ""
-		if rpcLen > k*3+1 && record[k*3+1].Err == "" {
-			data.D[k].Email = record[k*3+1].Res
-		}
-
-		data.D[k].Phone = ""
-		if rpcLen > k*3+2 && record[k*3+2].Err == "" {
-			data.D[k].Phone = record[k*3+2].Res
-		}
-
-		data.D[k].Zalo = ""
-		if rpcLen > k*3+3 && record[k*3+3].Err == "" {
-			data.D[k].Zalo = record[k*3+3].Res
-		}
+		data.D[k].RealName = d[v.UID]["realname"]
+		data.D[k].Email = d[v.UID]["email"]
+		data.D[k].Phone = d[v.UID]["phone"]
+		data.D[k].Zalo = d[v.UID]["zalo"]
 	}
 
 	return data, nil
@@ -931,26 +893,14 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	}
 
 	var (
-		insertRes []schema.Enc_t
-		updateRes []schema.Enc_t
+		src [][]string
 	)
 	if _, ok := param["realname"]; ok {
 
 		realNameHash := fmt.Sprintf("%d", MurmurHash(param["realname"], 0))
 		if realNameHash != mb.RealnameHash {
-
 			record["realname_hash"] = realNameHash
-			recs := schema.Enc_t{
-				Field: "realname",
-				Value: param["realname"],
-				ID:    mb.UID,
-			}
-
-			if mb.RealnameHash == "0" {
-				insertRes = append(insertRes, recs)
-			} else {
-				updateRes = append(updateRes, recs)
-			}
+			src = append(src, []string{"realname", param["realname"]})
 		}
 	}
 
@@ -962,19 +912,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		}
 
 		if phoneHash != mb.PhoneHash {
-
 			record["phone_hash"] = phoneHash
-			recs := schema.Enc_t{
-				Field: "phone",
-				Value: param["phone"],
-				ID:    mb.UID,
-			}
-
-			if mb.PhoneHash == "0" {
-				insertRes = append(insertRes, recs)
-			} else {
-				updateRes = append(updateRes, recs)
-			}
+			src = append(src, []string{"phone", param["phone"]})
 		}
 	}
 
@@ -986,19 +925,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		}
 
 		if emailHash != mb.EmailHash {
-
 			record["email_hash"] = emailHash
-			recs := schema.Enc_t{
-				Field: "email",
-				Value: param["email"],
-				ID:    mb.UID,
-			}
-
-			if mb.EmailHash == "0" {
-				insertRes = append(insertRes, recs)
-			} else {
-				updateRes = append(updateRes, recs)
-			}
+			src = append(src, []string{"email", param["email"]})
 		}
 	}
 
@@ -1012,17 +940,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		if zaloHash != mb.PhoneHash {
 
 			record["zalo_hash"] = zaloHash
-			recs := schema.Enc_t{
-				Field: "zalo",
-				Value: param["zalo"],
-				ID:    mb.UID,
-			}
-
-			if mb.PhoneHash == "0" {
-				insertRes = append(insertRes, recs)
-			} else {
-				updateRes = append(updateRes, recs)
-			}
+			src = append(src, []string{"zalo", param["zalo"]})
 		}
 	}
 
@@ -1043,20 +961,6 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		for _, v := range tagls {
 			tags[fmt.Sprintf("%d", v.ID)] = v.Name
-		}
-	}
-
-	if len(updateRes) > 0 {
-		_, err = rpcUpdate(updateRes)
-		if err != nil {
-			return errors.New(helper.UpdateRPCErr)
-		}
-	}
-
-	if len(insertRes) > 0 {
-		_, err = rpcInsert(insertRes)
-		if err != nil {
-			return errors.New(helper.UpdateRPCErr)
 		}
 	}
 
@@ -1107,6 +1011,13 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 			_ = tx.Rollback()
 			return pushLog(err, helper.DBErr)
 		}
+	}
+
+	err = proxy.Encrypt(mb.UID, src)
+	if err != nil {
+		_ = tx.Rollback()
+		fmt.Println("proxy.Encrypt = ", err)
+		return errors.New(helper.UpdateRPCErr)
 	}
 
 	err = tx.Commit()
@@ -1330,43 +1241,32 @@ func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) err
 	return nil
 }
 
-func MemberHistory(id, field string, encrypt bool) (string, error) {
+func MemberHistory(id, field string, encrypt bool) ([]string, error) {
 
-	recs := schema.Res_t{
-		Field: field,
-		Hide:  encrypt,
-		ID:    id,
-	}
-
-	resp, err := meta.Grpc.Call("History", recs)
+	history, err := proxy.View(id, field)
 	if err != nil {
-		return "", errors.New(helper.GetRPCErr)
+		fmt.Println("proxy.View err = ", err)
+		return nil, err
 	}
 
-	res, ok := resp.(string)
-	if !ok {
-		return "", fmt.Errorf("type assertion error")
-	}
-
-	return res, nil
+	fmt.Println("proxy.View history = ", history)
+	return history, nil
 }
 
-func MemberFull(id, field string) (string, error) {
+func MemberFull(id string, field []string) (map[string]string, error) {
 
-	arg := []schema.Dec_t{
-		{Field: field, Hide: false, ID: id},
-	}
-	resp, err := rpcGet(arg)
-	fmt.Println(resp, err)
+	var (
+		err  error
+		recs = map[string]string{}
+	)
+	recs, err = proxy.Decrypt(id, false, field)
 	if err != nil {
-		return "", fmt.Errorf("%s,%s", helper.ServerErr, err.Error())
+		fmt.Println("proxy.Decrypt err = ", err)
+		return nil, err
 	}
 
-	if resp[0].Err != "" {
-		return "", fmt.Errorf("%s,%s", helper.ServerErr, resp[0].Err)
-	}
-
-	return resp[0].Res, nil
+	fmt.Println("proxy.Decrypt recs = ", recs)
+	return recs, nil
 }
 
 //根据 uid数组，redis批量获取用户余额

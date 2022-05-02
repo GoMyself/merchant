@@ -17,15 +17,16 @@ import (
 
 	"errors"
 
-	"bitbucket.org/nwf2013/schema"
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
+	"github.com/hprose/hprose-golang/v3/rpc/core"
+	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
+	_ "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/olivere/elastic/v7"
 	"github.com/spaolacci/murmur3"
-	"github.com/valyala/gorpc"
 )
 
 type log_t struct {
@@ -46,6 +47,13 @@ type VenueRebateScale struct {
 	CP decimal.Decimal
 }
 
+var proxy struct {
+	View       func(uid, field string) ([]string, error)
+	Encrypt    func(uid string, data [][]string) error
+	Decrypt    func(uid string, hide bool, field []string) (map[string]string, error)
+	DecryptAll func(uids []string, hide bool, field []string) (map[string]map[string]string, error)
+}
+
 type MetaTable struct {
 	Zlog              *fluent.Fluent
 	VenueRebate       VenueRebateScale
@@ -54,7 +62,7 @@ type MetaTable struct {
 	ReportDB          *sqlx.DB
 	BetDB             *sqlx.DB
 	MinioClient       *minio.Client
-	Grpc              *gorpc.DispatcherClient
+	Grpc              *core.Client
 	PromoteConfig     map[string]map[string]interface{}
 	BeanPool          cpool.Pool
 	BeanBetPool       cpool.Pool
@@ -119,7 +127,7 @@ var (
 	smsLogFields             = []string{"username", "ip", "create_at", "code", "phone", "phone_hash"}
 )
 
-func Constructor(mt *MetaTable, c *gorpc.Client) {
+func Constructor(mt *MetaTable, rpc string) {
 
 	meta = mt
 	if meta.Lang == "cn" {
@@ -128,16 +136,11 @@ func Constructor(mt *MetaTable, c *gorpc.Client) {
 		loc, _ = time.LoadLocation("Asia/Bangkok")
 	}
 
-	d := gorpc.NewDispatcher()
-	d.AddFunc("Encrypt", func(data []schema.Enc_t) []byte { return nil })
-	d.AddFunc("Decrypt", func(data []schema.Dec_t) []byte { return nil })
-	d.AddFunc("History", func(data *schema.Res_t) string { return "" })
+	rpchttp.RegisterHandler()
+	rpchttp.RegisterTransport()
 
-	gorpc.RegisterType([]schema.Enc_t{})
-	gorpc.RegisterType([]schema.Dec_t{})
-	gorpc.RegisterType(&schema.Res_t{})
-
-	meta.Grpc = d.NewFuncClient(c)
+	meta.Grpc = core.NewClient(rpc)
+	meta.Grpc.UseService(&proxy)
 
 	meta.VenueRebate = VenueRebateScale{
 		ZR: decimal.NewFromFloat(1.0).Truncate(1),
