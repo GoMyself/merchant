@@ -235,6 +235,22 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 				_ = tx.Rollback()
 				return pushLog(err, helper.DBErr)
 			}
+
+			// 存款成功发送到队列
+
+			param := map[string]interface{}{
+				"bean_ty":            "4",
+				"username":           username,
+				"amount":             money.String(),
+				"deposit_created_at": now,
+				"deposit_success_at": now,
+			}
+
+			_, err = BeanPut("promo", param, 0)
+			if err != nil {
+				fmt.Println("user invite BeanPut err:", err.Error())
+			}
+
 		}
 
 		// 中心钱包上分
