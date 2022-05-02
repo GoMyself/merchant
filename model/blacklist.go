@@ -71,9 +71,9 @@ func BlacklistList(page, pageSize uint, startTime, endTime string, ty int, ex g.
 			ids = append(ids, v.ID)
 		}
 
-		d, err := proxy.DecryptAll(ids, true, []string{"bankcard"})
+		d, err := grpc_t.DecryptAll(ids, true, []string{"bankcard"})
 		if err != nil {
-			fmt.Println("proxy.DecryptAll err = ", err)
+			fmt.Println("grpc_t.DecryptAll err = ", err)
 			return data, errors.New(helper.GetRPCErr)
 		}
 

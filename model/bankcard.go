@@ -105,9 +105,9 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 
 	src := [][]string{}
 	src = append(src, []string{"bankcard", bankcard})
-	err = proxy.Encrypt(data.ID, src)
+	err = grpc_t.Encrypt(data.ID, src)
 	if err != nil {
-		fmt.Println("proxy.Encrypt = ", err)
+		fmt.Println("grpc_t.Encrypt = ", err)
 		return errors.New(helper.UpdateRPCErr)
 	}
 
@@ -229,9 +229,9 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		return data, nil
 	}
 
-	d1, err := proxy.Decrypt(uid, true, []string{"realname"})
+	d1, err := grpc_t.Decrypt(uid, true, []string{"realname"})
 	if err != nil {
-		fmt.Println("proxy.Decrypt err = ", err)
+		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
@@ -239,9 +239,9 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		ids = append(ids, v.ID)
 	}
 
-	d2, err := proxy.DecryptAll(ids, true, []string{"bankcard"})
+	d2, err := grpc_t.DecryptAll(ids, true, []string{"bankcard"})
 	if err != nil {
-		fmt.Println("proxy.Decrypt err = ", err)
+		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
@@ -310,9 +310,9 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
 		src := [][]string{
 			{"bankcard", bankcard},
 		}
-		err := proxy.Encrypt(bid, src)
+		err := grpc_t.Encrypt(bid, src)
 		if err != nil {
-			fmt.Println("proxy.Encrypt = ", err)
+			fmt.Println("grpc_t.Encrypt = ", err)
 			return errors.New(helper.UpdateRPCErr)
 		}
 	}

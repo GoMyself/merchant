@@ -47,7 +47,7 @@ type VenueRebateScale struct {
 	CP decimal.Decimal
 }
 
-var proxy struct {
+var grpc_t struct {
 	View       func(uid, field string) ([]string, error)
 	Encrypt    func(uid string, data [][]string) error
 	Decrypt    func(uid string, hide bool, field []string) (map[string]string, error)
@@ -62,7 +62,6 @@ type MetaTable struct {
 	ReportDB          *sqlx.DB
 	BetDB             *sqlx.DB
 	MinioClient       *minio.Client
-	Grpc              *core.Client
 	PromoteConfig     map[string]map[string]interface{}
 	BeanPool          cpool.Pool
 	BeanBetPool       cpool.Pool
@@ -139,8 +138,8 @@ func Constructor(mt *MetaTable, rpc string) {
 	rpchttp.RegisterHandler()
 	rpchttp.RegisterTransport()
 
-	meta.Grpc = core.NewClient(rpc)
-	meta.Grpc.UseService(&proxy)
+	client := core.NewClient(rpc)
+	client.UseService(&grpc_t)
 
 	meta.VenueRebate = VenueRebateScale{
 		ZR: decimal.NewFromFloat(1.0).Truncate(1),

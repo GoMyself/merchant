@@ -396,9 +396,9 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 		uids = append(uids, v.UID)
 	}
 
-	d, err := proxy.DecryptAll(uids, true, []string{"realname", "email", "phone", "zalo"})
+	d, err := grpc_t.DecryptAll(uids, true, []string{"realname", "email", "phone", "zalo"})
 	if err != nil {
-		fmt.Println("proxy.Decrypt err = ", err)
+		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
@@ -1014,10 +1014,10 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		}
 	}
 
-	err = proxy.Encrypt(mb.UID, src)
+	err = grpc_t.Encrypt(mb.UID, src)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("proxy.Encrypt = ", err)
+		fmt.Println("grpc_t.Encrypt = ", err)
 		return errors.New(helper.UpdateRPCErr)
 	}
 
@@ -1244,13 +1244,13 @@ func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) err
 
 func MemberHistory(id, field string, encrypt bool) ([]string, error) {
 
-	history, err := proxy.View(id, field)
+	history, err := grpc_t.View(id, field)
 	if err != nil {
-		fmt.Println("proxy.View err = ", err)
+		fmt.Println("grpc_t.View err = ", err)
 		return nil, err
 	}
 
-	fmt.Println("proxy.View history = ", history)
+	fmt.Println("grpc_t.View history = ", history)
 	return history, nil
 }
 
@@ -1260,13 +1260,13 @@ func MemberFull(id string, field []string) (map[string]string, error) {
 		err  error
 		recs = map[string]string{}
 	)
-	recs, err = proxy.Decrypt(id, false, field)
+	recs, err = grpc_t.Decrypt(id, false, field)
 	if err != nil {
-		fmt.Println("proxy.Decrypt err = ", err)
+		fmt.Println("grpc_t.Decrypt err = ", err)
 		return nil, err
 	}
 
-	fmt.Println("proxy.Decrypt recs = ", recs)
+	fmt.Println("grpc_t.Decrypt recs = ", recs)
 	return recs, nil
 }
 
