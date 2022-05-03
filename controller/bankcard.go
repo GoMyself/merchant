@@ -64,34 +64,30 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
-	param := bankcardListParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	username := string(ctx.PostArgs().Peek("username"))
+	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
 
-	if param.bankcardNo == "" && param.Username == "" {
+	if username == "" && bankcardNo == "" {
 		helper.Print(ctx, false, helper.ParamNull)
 		return
 	}
 
-	if param.bankcardNo != "" {
-		if !validator.CheckStringDigit(param.bankcardNo) {
+	if bankcardNo != "" {
+		if !validator.CheckStringDigit(bankcardNo) {
 			helper.Print(ctx, false, helper.BankcardIDErr)
 			return
 		}
 	}
 
-	if param.Username != "" {
-		if !validator.CheckUName(param.Username, 5, 14) {
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 	}
 
 	// 更新权限信息
-	data, err := model.BankcardList(param.Username, param.bankcardNo)
+	data, err := model.BankcardList(username, bankcardNo)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

@@ -154,6 +154,8 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 	if bankcard != "" {
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
+
+	fmt.Println("ex = ", ex)
 	var cardList []BankCard
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
