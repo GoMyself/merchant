@@ -57,7 +57,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 		"bank_address":     data.BankAddress,
 		"bank_id":          data.BankID,
 		"bank_branch_name": data.BankAddress,
-		"bank_card_hash":   MurmurHash(bankcardNo, 0),
+		"bank_card_hash":   fmt.Sprintf("%d", MurmurHash(bankcardNo, 0)),
 		"created_at":       fmt.Sprintf("%d", data.CreatedAt),
 	}
 
@@ -83,6 +83,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	_, err = tx.Exec(queryInsert)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("queryInsert = ", queryInsert)
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -91,6 +92,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	_, err = tx.Exec(queryUpdate)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("queryUpdate = ", queryUpdate)
 		return pushLog(err, helper.DBErr)
 	}
 

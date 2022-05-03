@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -37,6 +38,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 	param := bankcardInsertParam{}
 	err := validator.Bind(ctx, &param)
 	if err != nil {
+		fmt.Println("bankcardInsertParam = ", err)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
