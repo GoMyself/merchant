@@ -264,8 +264,11 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 			if !validator.CheckUName(confirmName, 5, 14) {
 				helper.Print(ctx, false, errors.New(helper.UsernameErr))
 			}
-
-			ex["confirm_name"] = confirmName
+			if confirmName == "系统处理" {
+				ex["confirm_name"] = ""
+			} else {
+				ex["confirm_name"] = confirmName
+			}
 		}
 	}
 
@@ -791,7 +794,7 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-
+	fmt.Println("ParentName", param.ParentName)
 	ex := g.Ex{}
 	if param.Username != "" {
 
@@ -813,19 +816,7 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		ex["uid"] = param.Uid
 	}
 
-	if param.ParentName != "" {
-
-		//orEx := g.Or(
-		//	g.Ex{"after_name": param.ParentName},
-		//	g.Ex{"before_name": param.ParentName},
-		//)
-		//
-		//g.And(ex, orEx)
-
-		ex["before_name"] = param.ParentName
-	}
-
-	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
+	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex, param.ParentName)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
