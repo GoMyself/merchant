@@ -1267,17 +1267,12 @@ func MemberHistory(id, field string, encrypt bool) ([]string, error) {
 
 func MemberFull(id string, field []string) (map[string]string, error) {
 
-	var (
-		err  error
-		recs = map[string]string{}
-	)
-	recs, err = grpc_t.Decrypt(id, false, field)
+	recs, err := grpc_t.Decrypt(id, false, field)
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return nil, err
 	}
 
-	fmt.Println("grpc_t.Decrypt recs = ", recs)
 	return recs, nil
 }
 

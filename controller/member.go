@@ -2,13 +2,14 @@ package controller
 
 import (
 	"fmt"
-	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/doug-martin/goqu/v9/exp"
 
 	"github.com/shopspring/decimal"
 	"github.com/wI2L/jettison"
@@ -925,18 +926,16 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if _, ok := model.MemberHistoryField[field]; !ok {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
 	data, err := model.MemberFull(id, []string{field})
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.Print(ctx, true, data)
+	fmt.Println("grpc_t.Decrypt data = ", data)
+	fmt.Println("grpc_t.Decrypt field = ", field)
+
+	helper.Print(ctx, true, data[field])
 }
 
 // UpdateTopMember 修改密码以及返水比例
