@@ -3,15 +3,19 @@ package model
 import (
 	"context"
 	"fmt"
-	"github.com/fluent/fluent-logger-golang/fluent"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/nats-io/nats.go"
-	"github.com/shopspring/decimal"
-	cpool "github.com/silenceper/pool"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/tdlog"
 	"merchant2/contrib/tracerr"
 	"strings"
+
+	"github.com/fluent/fluent-logger-golang/fluent"
+	"github.com/hprose/hprose-golang/v3/rpc/core"
+	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
+	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/nats-io/nats.go"
+	"github.com/shopspring/decimal"
+	cpool "github.com/silenceper/pool"
 
 	"time"
 
@@ -20,9 +24,6 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
-	"github.com/hprose/hprose-golang/v3/rpc/core"
-	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
-	_ "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/olivere/elastic/v7"
@@ -136,9 +137,11 @@ func Constructor(mt *MetaTable, rpc string) {
 	}
 
 	rpchttp.RegisterHandler()
-	rpchttp.RegisterTransport()
+	RegisterTransport()
 
 	client := core.NewClient(rpc)
+	//client.Use(log.Plugin)
+
 	client.UseService(&grpc_t)
 
 	meta.VenueRebate = VenueRebateScale{
