@@ -90,9 +90,6 @@ func PlatformList(ex g.Ex, page, pageSize int) (PlatformData, error) {
 			return data, nil
 		}
 
-		fmt.Println("[Mig Test]====>")
-		fmt.Println(query)
-		fmt.Println(data)
 	}
 
 	query, _, _ := t.Select(colsPlatform...).Where(ex).Order(g.C("created_at").Asc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
@@ -100,10 +97,6 @@ func PlatformList(ex g.Ex, page, pageSize int) (PlatformData, error) {
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
-	fmt.Println("[Mig Test]====>")
-	fmt.Println(query)
-	fmt.Println(data)
 
 	return data, nil
 }
