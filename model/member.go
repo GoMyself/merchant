@@ -272,6 +272,10 @@ func MemberBatchTag(uids []string) (string, error) {
 		return "", pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
+	fmt.Println("[Mig Test]====>")
+	fmt.Println(query)
+	fmt.Println(tags)
+
 	var result []memberTag
 	for _, id := range uids {
 		item := memberTag{Uid: id, Tags: []tag{}}
@@ -284,10 +288,16 @@ func MemberBatchTag(uids []string) (string, error) {
 		result = append(result, item)
 	}
 
+	fmt.Println("[Mig Test]====>")
+	fmt.Println(result)
+
 	data, err := jettison.Marshal(result)
 	if err != nil {
 		return "", errors.New(helper.FormatErr)
 	}
+
+	fmt.Println("[Mig Test]====>")
+	fmt.Println(data)
 
 	return string(data), nil
 }

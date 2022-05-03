@@ -194,7 +194,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/agency/memberlist", memberCtl.MemberList)
 
 	// 代理管理-团队转代-列表
-	get("/merchant/agency/transfer/list", memberTransferCtl.List)
+	post("/merchant/agency/transfer/list", memberTransferCtl.List)
 	// 代理管理-团队转代-新增
 	post("/merchant/agency/transfer/insert", memberTransferCtl.Insert)
 	// 代理管理-团队转代-审核
