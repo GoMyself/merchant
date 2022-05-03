@@ -815,12 +815,14 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 
 	if param.ParentName != "" {
 
-		orEx := g.Or(
-			g.Ex{"after_name": param.ParentName},
-			g.Ex{"before_name": param.ParentName},
-		)
+		//orEx := g.Or(
+		//	g.Ex{"after_name": param.ParentName},
+		//	g.Ex{"before_name": param.ParentName},
+		//)
+		//
+		//g.And(ex, orEx)
 
-		g.And(ex, orEx)
+		ex["before_name"] = param.ParentName
 	}
 
 	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
