@@ -35,10 +35,9 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	startAt := ctx.Time().Unix()
-	data, err := model.SmsList(username, phone, startAt)
+	data, err := model.SmsList(username, phone)
 	if err != nil {
-		helper.Print(ctx, false, err)
+		helper.Print(ctx, false, err.Error())
 		return
 	}
 
