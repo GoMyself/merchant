@@ -1,6 +1,6 @@
 module merchant2
 
-go 1.17
+go 1.18
 
 replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.5
 
