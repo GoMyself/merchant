@@ -175,6 +175,9 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/remark/insert", memberCtl.RemarkLogInsert)
 	// 会员管理-会员列表-数据概览
 	get("/merchant/member/overview", memberCtl.Overview)
+
+	get("/merchant/member/detail", memberCtl.Detail)
+
 	// 会员管理-会员列表-基本信息-备注信息
 	get("/merchant/member/remark/list", memberCtl.RemarkLogList)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史

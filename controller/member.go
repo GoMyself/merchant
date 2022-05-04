@@ -47,6 +47,23 @@ type remarkLogParams struct {
 	Msg      string `rule:"none" name:"msg" max:"300"`
 }
 
+func (that *MemberController) Detail(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.QueryArgs().Peek("username"))
+	if !validator.CheckUName(username, 5, 14) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	data, err := model.MemberInfo(username)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
 // GetAccountInfo 会员列表-帐户信息
 func (that *MemberController) AccountInfo(ctx *fasthttp.RequestCtx) {
 
