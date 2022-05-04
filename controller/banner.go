@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
@@ -49,16 +50,20 @@ func (that *BannerController) List(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	exs := exp.NewExpressionList(exp.AndType)
 	ex := g.Ex{"flags": params.Flags}
 	if params.Device != "" {
 		//ex["device"] = params.Device
-		ex["device"] = g.Op{"like": params.Device}
+		exs.Append(g.Or(g.Ex{"device": g.Op{"like": params.Device}}, g.Ex{"device": 0}))
 	}
 
 	if params.State > 0 {
 		ex["state"] = params.State
 	}
-	data, err := model.BannerList(params.StartTime, params.EndTime, params.Page, params.PageSize, ex)
+
+	exs.Append(ex)
+
+	data, err := model.BannerList(params.StartTime, params.EndTime, params.Page, params.PageSize, exs)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

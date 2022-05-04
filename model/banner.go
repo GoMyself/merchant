@@ -101,10 +101,12 @@ func BannerDelete(id string) error {
 	return nil
 }
 
-func BannerList(startTime, endTime string, page, pageSize uint, ex g.Ex) (BannerData, error) {
+func BannerList(startTime, endTime string, page, pageSize uint, exs exp.ExpressionList) (BannerData, error) {
 
 	data := BannerData{}
-	ex["prefix"] = meta.Prefix
+	//ex["prefix"] = meta.Prefix
+	exs.Append(g.Ex{"prefix": meta.Prefix})
+
 	orEx := g.Or()
 	if startTime != "" && endTime != "" {
 		startAt, err := helper.TimeToLoc(startTime, loc)
@@ -131,7 +133,7 @@ func BannerList(startTime, endTime string, page, pageSize uint, ex g.Ex) (Banner
 
 	t := dialect.From("tbl_banner")
 	if page == 1 {
-		query, _, _ := t.Select(g.COUNT(1)).Where(g.And(ex, orEx)).ToSQL()
+		query, _, _ := t.Select(g.COUNT(1)).Where(g.And(exs, orEx)).ToSQL()
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -144,7 +146,7 @@ func BannerList(startTime, endTime string, page, pageSize uint, ex g.Ex) (Banner
 
 	data.S = pageSize
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select(colsBanner...).Where(g.And(ex, orEx)).
+	query, _, _ := t.Select(colsBanner...).Where(g.And(exs, orEx)).
 		Order(g.C("updated_at").Desc()).Offset(offset).Limit(pageSize).ToSQL()
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
