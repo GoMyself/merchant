@@ -40,19 +40,19 @@ func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 	//	return
 	//}
 
-	params.ID = string(ctx.QueryArgs().Peek("id"))
+	params.ID = string(ctx.PostArgs().Peek("id"))
 	fmt.Printf("ID = %s\n", params.ID)
 	if !validator.CheckStringDigit(params.ID) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 
-	fmt.Printf("ID = %s\n", string(ctx.QueryArgs().Peek("online")))
-	if !validator.CheckStringDigit(string(ctx.QueryArgs().Peek("online"))) {
+	fmt.Printf("ID = %s\n", string(ctx.PostArgs().Peek("online")))
+	if !validator.CheckStringDigit(string(ctx.PostArgs().Peek("online"))) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-	params.OnLine = int64(ctx.QueryArgs().GetUintOrZero("online"))
+	params.OnLine = int64(ctx.PostArgs().GetUintOrZero("online"))
 
 	game, err := model.GameFind(params.ID)
 	if err != nil {
