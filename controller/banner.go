@@ -54,14 +54,14 @@ func (that *BannerController) List(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{"flags": params.Flags}
 	if params.Device != "" {
 		//ex["device"] = params.Device
-		exs.Append(g.Or(g.Ex{"device": g.Op{"like": params.Device}}, g.Ex{"device": 0}))
+		exs = exs.Append(g.Or(g.Ex{"device": g.Op{"like": params.Device}}, g.Ex{"device": 0}))
 	}
 
 	if params.State > 0 {
 		ex["state"] = params.State
 	}
 
-	exs.Append(ex)
+	exs = exs.Append(ex)
 
 	data, err := model.BannerList(params.StartTime, params.EndTime, params.Page, params.PageSize, exs)
 	if err != nil {
