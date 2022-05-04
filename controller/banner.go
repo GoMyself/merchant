@@ -71,7 +71,6 @@ func (that *BannerController) Insert(ctx *fasthttp.RequestCtx) {
 	params := model.Banner{}
 	err := validator.Bind(ctx, &params)
 	if err != nil {
-		fmt.Printf("新增广告报错 %s\n", err)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
