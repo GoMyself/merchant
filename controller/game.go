@@ -33,11 +33,23 @@ type GameListOnlineParams struct {
 func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	params := GameListOnlineParams{}
-	err := validator.Bind(ctx, &params)
-	if err != nil {
+	//err := validator.Bind(ctx, &params)
+	//if err != nil {
+	//	helper.Print(ctx, false, helper.ParamErr)
+	//	return
+	//}
+
+	params.ID = string(ctx.QueryArgs().Peek("id"))
+	if !validator.CheckStringDigit(params.ID) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
+
+	if !validator.CheckStringDigit(string(ctx.QueryArgs().Peek("online"))) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+	params.OnLine = int64(ctx.QueryArgs().GetUintOrZero("online"))
 
 	game, err := model.GameFind(params.ID)
 	if err != nil {
