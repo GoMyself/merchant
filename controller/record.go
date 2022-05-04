@@ -798,7 +798,6 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-	fmt.Println("ParentName", param.ParentName)
 	ex := g.Ex{}
 	if param.Username != "" {
 
