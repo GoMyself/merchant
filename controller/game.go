@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -35,27 +34,27 @@ func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	params := GameListOnlineParams{}
 	err := validator.Bind(ctx, &params)
-	//if err != nil {
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	//params.ID = string(ctx.PostArgs().Peek("id"))
+	//fmt.Printf("ID = %s\n", params.ID)
+	//if !validator.CheckStringDigit(params.ID) {
 	//	helper.Print(ctx, false, helper.ParamErr)
 	//	return
 	//}
-
-	params.ID = string(ctx.PostArgs().Peek("id"))
-	fmt.Printf("ID = %s\n", params.ID)
-	if !validator.CheckStringDigit(params.ID) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	s := string(ctx.PostArgs().Peek("online"))
-	fmt.Println(s)
-	if !validator.CheckStringDigit(s) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-	params.OnLine = int64(ctx.PostArgs().GetUintOrZero("online"))
-
-	fmt.Println("DONE")
+	//
+	//s := string(ctx.PostArgs().Peek("online"))
+	//fmt.Println(s)
+	//if !validator.CheckStringDigit(s) {
+	//	helper.Print(ctx, false, helper.ParamErr)
+	//	return
+	//}
+	//params.OnLine = int64(ctx.PostArgs().GetUintOrZero("online"))
+	//
+	//fmt.Println("DONE")
 
 	game, err := model.GameFind(params.ID)
 	if err != nil {
