@@ -228,7 +228,7 @@ func (that *BannerController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	stateVal := string(ctx.PostArgs().Peek("online"))
+	stateVal := string(ctx.PostArgs().Peek("state"))
 	if !validator.CheckStringDigit(stateVal) &&
 		!validator.CheckIntScope(stateVal, model.BannerStateWait, model.BannerStateEnd) {
 		helper.Print(ctx, false, helper.StateParamErr)

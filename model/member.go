@@ -272,10 +272,6 @@ func MemberBatchTag(uids []string) (string, error) {
 		return "", pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	fmt.Println("[Mig Test]====>")
-	fmt.Println(query)
-	fmt.Println(tags)
-
 	var result []memberTag
 	for _, id := range uids {
 		item := memberTag{Uid: id, Tags: []tag{}}
@@ -288,16 +284,10 @@ func MemberBatchTag(uids []string) (string, error) {
 		result = append(result, item)
 	}
 
-	fmt.Println("[Mig Test]====>")
-	fmt.Println(result)
-
 	data, err := jettison.Marshal(result)
 	if err != nil {
 		return "", errors.New(helper.FormatErr)
 	}
-
-	fmt.Println("[Mig Test]====>")
-	fmt.Println(data)
 
 	return string(data), nil
 }
@@ -904,15 +894,13 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		}
 	}
 
-	var (
-		src [][]string
-	)
+	encFields := [][]string{}
 	if _, ok := param["realname"]; ok {
 
 		realNameHash := fmt.Sprintf("%d", MurmurHash(param["realname"], 0))
 		if realNameHash != mb.RealnameHash {
 			record["realname_hash"] = realNameHash
-			src = append(src, []string{"realname", param["realname"]})
+			encFields = append(encFields, []string{"realname", param["realname"]})
 		}
 	}
 
@@ -925,7 +913,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		if phoneHash != mb.PhoneHash {
 			record["phone_hash"] = phoneHash
-			src = append(src, []string{"phone", param["phone"]})
+			encFields = append(encFields, []string{"phone", param["phone"]})
 		}
 	}
 
@@ -938,7 +926,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		if emailHash != mb.EmailHash {
 			record["email_hash"] = emailHash
-			src = append(src, []string{"email", param["email"]})
+			encFields = append(encFields, []string{"email", param["email"]})
 		}
 	}
 
@@ -952,7 +940,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		if zaloHash != mb.PhoneHash {
 
 			record["zalo_hash"] = zaloHash
-			src = append(src, []string{"zalo", param["zalo"]})
+			encFields = append(encFields, []string{"zalo", param["zalo"]})
 		}
 	}
 
@@ -1025,7 +1013,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		}
 	}
 
-	err = grpc_t.Encrypt(mb.UID, src)
+	err = grpc_t.Encrypt(mb.UID, encFields)
 	if err != nil {
 		_ = tx.Rollback()
 		fmt.Println("grpc_t.Encrypt = ", err)
@@ -1255,13 +1243,13 @@ func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) err
 
 func MemberHistory(id, field string, encrypt bool) ([]string, error) {
 
-	history, err := grpc_t.View(id, field)
+	history, err := grpc_t.View(id, field, true)
 	if err != nil {
 		fmt.Println("grpc_t.View err = ", err)
 		return nil, err
 	}
 
-	fmt.Println("grpc_t.View history = ", history)
+	//fmt.Println("grpc_t.View history = ", history)
 	return history, nil
 }
 
