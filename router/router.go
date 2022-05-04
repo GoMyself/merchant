@@ -175,6 +175,9 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/remark/insert", memberCtl.RemarkLogInsert)
 	// 会员管理-会员列表-数据概览
 	get("/merchant/member/overview", memberCtl.Overview)
+
+	get("/merchant/member/detail", memberCtl.Detail)
+
 	// 会员管理-会员列表-基本信息-备注信息
 	get("/merchant/member/remark/list", memberCtl.RemarkLogList)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
@@ -194,7 +197,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/agency/memberlist", memberCtl.MemberList)
 
 	// 代理管理-团队转代-列表
-	get("/merchant/agency/transfer/list", memberTransferCtl.List)
+	post("/merchant/agency/transfer/list", memberTransferCtl.List)
 	// 代理管理-团队转代-新增
 	post("/merchant/agency/transfer/insert", memberTransferCtl.Insert)
 	// 代理管理-团队转代-审核
@@ -319,7 +322,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 记录管理-平台转帐
 	post("/merchant/record/transfer", recordCtl.Transfer)
 
-	post("/merchant/member/verify", smsCtl.List)
+	post("/merchant/member/sms/list", smsCtl.List)
 	// 会员管理-会员列表-有效投注查询
 	// 会员管理-投注管理
 	// 会员管理-投注管理-会员游戏记录详情列表

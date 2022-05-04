@@ -89,6 +89,7 @@ func PlatformList(ex g.Ex, page, pageSize int) (PlatformData, error) {
 		if data.T == 0 {
 			return data, nil
 		}
+
 	}
 
 	query, _, _ := t.Select(colsPlatform...).Where(ex).Order(g.C("created_at").Asc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()

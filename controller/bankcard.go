@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -14,12 +15,6 @@ type bankcardInsertParam struct {
 	bankcardNo  string `rule:"digitString" name:"bankcard_no" min:"6" max:"20" msg:"bankcard no error"`
 	BankAddress string `rule:"none" name:"bank_addr"`
 	Realname    string `rule:"none" name:"realname"`
-}
-
-//查询银行卡列表参数
-type bankcardListParam struct {
-	Username   string `rule:"none" name:"username"`
-	bankcardNo string `rule:"none" name:"bankcard_no"`
 }
 
 //查询银行卡列表参数
@@ -37,6 +32,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 	param := bankcardInsertParam{}
 	err := validator.Bind(ctx, &param)
 	if err != nil {
+		fmt.Println("bankcardInsertParam = ", err)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -62,34 +58,30 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
-	param := bankcardListParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	username := string(ctx.PostArgs().Peek("username"))
+	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
 
-	if param.bankcardNo == "" && param.Username == "" {
+	if username == "" && bankcardNo == "" {
 		helper.Print(ctx, false, helper.ParamNull)
 		return
 	}
 
-	if param.bankcardNo != "" {
-		if !validator.CheckStringDigit(param.bankcardNo) {
+	if bankcardNo != "" {
+		if !validator.CheckStringDigit(bankcardNo) {
 			helper.Print(ctx, false, helper.BankcardIDErr)
 			return
 		}
 	}
 
-	if param.Username != "" {
-		if !validator.CheckUName(param.Username, 5, 14) {
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 	}
 
 	// 更新权限信息
-	data, err := model.BankcardList(param.Username, param.bankcardNo)
+	data, err := model.BankcardList(username, bankcardNo)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -99,6 +91,8 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 }
 
 func (that *BankcardController) Update(ctx *fasthttp.RequestCtx) {
+
+	//fmt.Println("Update = ", string(ctx.PostBody()))
 
 	param := bankcardUpdateParam{}
 	err := validator.Bind(ctx, &param)

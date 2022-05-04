@@ -264,8 +264,11 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 			if !validator.CheckUName(confirmName, 5, 14) {
 				helper.Print(ctx, false, errors.New(helper.UsernameErr))
 			}
-
-			ex["confirm_name"] = confirmName
+			if confirmName == "系统处理" {
+				ex["confirm_name"] = ""
+			} else {
+				ex["confirm_name"] = confirmName
+			}
 		}
 	}
 
@@ -357,7 +360,8 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 			return
 		}
 	}
-
+	bmin, _ := decimal.NewFromString(betMin)
+	bmax, _ := decimal.NewFromString(betMax)
 	param := map[string]string{
 		"uid":         uid,
 		"pid":         pid,
@@ -374,8 +378,11 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 		"game_no":     gameNo,
 		"pre_settle":  presettle,
 		"resettle":    resettle,
-		"bet_min":     betMin,
-		"bet_max":     betMax,
+	}
+
+	if betMax != "" && betMin != "" && betMax != "0" && betMin != "0" {
+		param["bet_min"] = bmin.Div(decimal.NewFromInt(1000)).StringFixed(3)
+		param["bet_max"] = bmax.Div(decimal.NewFromInt(1000)).StringFixed(3)
 	}
 
 	if ty < model.GameMemberTransferGroup {
@@ -791,7 +798,6 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-
 	ex := g.Ex{}
 	if param.Username != "" {
 
@@ -813,17 +819,7 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 		ex["uid"] = param.Uid
 	}
 
-	if param.ParentName != "" {
-
-		orEx := g.Or(
-			g.Ex{"after_name": param.ParentName},
-			g.Ex{"before_name": param.ParentName},
-		)
-
-		g.And(ex, orEx)
-	}
-
-	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
+	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex, param.ParentName)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

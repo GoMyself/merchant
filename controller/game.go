@@ -169,9 +169,9 @@ func (that *SlotsController) List(ctx *fasthttp.RequestCtx) {
 
 	if clientType != 0 {
 		clientTypes := map[int][]int{
-			1: {1, 3, 5},
-			2: {2, 3, 6},
-			4: {4, 6, 5},
+			1: {0, 1, 3, 5},
+			2: {0, 2, 3, 6},
+			4: {0, 4, 6, 5},
 		}
 		if _, ok := clientTypes[clientType]; !ok {
 			helper.Print(ctx, false, helper.DeviceErr)

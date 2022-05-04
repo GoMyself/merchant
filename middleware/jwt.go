@@ -38,7 +38,7 @@ var (
 func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 
 	path := string(ctx.Path())
-	fmt.Println("path = ", path)
+	//fmt.Println("path = ", path)
 	if _, ok := allows[path]; ok {
 		return nil
 	}

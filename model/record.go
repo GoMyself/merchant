@@ -106,6 +106,7 @@ func RecordTransfer(page, pageSize int, startTime, endTime string, ex g.Ex) (Tra
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
 		err := meta.MerchantDB.Get(&data.T, query)
+		fmt.Println(query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
@@ -116,6 +117,7 @@ func RecordTransfer(page, pageSize int, startTime, endTime string, ex g.Ex) (Tra
 
 		query, _, _ = t.Select(g.SUM("amount").As("agg")).Where(ex).ToSQL()
 		err = meta.MerchantDB.Get(&data.Agg, query)
+		fmt.Println(query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
@@ -124,6 +126,7 @@ func RecordTransfer(page, pageSize int, startTime, endTime string, ex g.Ex) (Tra
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(colsTransfer...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
@@ -951,7 +954,7 @@ func BankcardsList(ex g.Ex) ([]BankCard, string, error) {
 	return data, "", nil
 }
 
-func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex) (AgencyTransferRecordData, error) {
+func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex, parentName string) (AgencyTransferRecordData, error) {
 
 	data := AgencyTransferRecordData{}
 	if startTime != "" && endTime != "" {
@@ -972,11 +975,18 @@ func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex) (Agency
 
 		ex["updated_at"] = g.Op{"between": g.Range(startAt, endAt)}
 	}
+	orEx := g.Or()
+	if parentName != "" {
 
+		orEx = g.Or(
+			g.Ex{"after_name": parentName},
+			g.Ex{"before_name": parentName},
+		)
+	}
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_agency_transfer_record")
 	if page == 1 {
-		query, _, _ := t.Select(g.COUNT(1)).Where(ex).ToSQL()
+		query, _, _ := t.Select(g.COUNT(1)).Where(g.And(ex, orEx)).ToSQL()
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -988,7 +998,7 @@ func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex) (Agency
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select(colsAgencyTransferRecord...).Where(ex).
+	query, _, _ := t.Select(colsAgencyTransferRecord...).Where(g.And(ex, orEx)).
 		Order(g.C("updated_at").Desc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {

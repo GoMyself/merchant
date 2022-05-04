@@ -13,7 +13,7 @@ type TagsController struct{}
 
 type tagParam struct {
 	Name        string `rule:"filter" min:"1" max:"20" msg:"name error" name:"name"`
-	Description string `rule:"filter" min:"1" max:"50" msg:"description error" name:"description"`
+	Description string `rule:"filter" min:"1" max:"100" msg:"description error" name:"description"`
 	Sort        string `rule:"digit" min:"0" max:"999" msg:"sort error" name:"sort"`
 	Flags       string `rule:"digit" min:"1" max:"6" msg:"flags error" name:"flags"`
 }

@@ -124,6 +124,7 @@ func BannerList(startTime, endTime string, page, pageSize uint, ex g.Ex) (Banner
 		orEx = g.Or(
 			g.Ex{"show_at": g.Op{"between": exp.NewRangeVal(startAt, endAt)}},
 			g.Ex{"hide_at": g.Op{"between": exp.NewRangeVal(startAt, endAt)}},
+			g.And(g.Ex{"show_at": g.Op{"lt": startAt}}, g.Ex{"hide_at": g.Op{"gt": endAt}}),
 			g.Ex{"show_type": 1},
 		)
 	}
@@ -150,6 +151,7 @@ func BannerList(startTime, endTime string, page, pageSize uint, ex g.Ex) (Banner
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
+	fmt.Printf("banner 按时间查询 query = %s \n", query)
 	return data, nil
 }
 

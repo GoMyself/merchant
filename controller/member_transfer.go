@@ -87,18 +87,31 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 // List  团队转代申请列表
 func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.QueryArgs().Peek("id"))
-	page := ctx.QueryArgs().GetUintOrZero("page")
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
-	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
-	username := string(ctx.QueryArgs().Peek("username"))                 //会员名
-	afterName := string(ctx.QueryArgs().Peek("after_name"))              //转以后代理名
-	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名
-	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名
-	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
-	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
-	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+	//id := string(ctx.QueryArgs().Peek("id"))
+	//page := ctx.QueryArgs().GetUintOrZero("page")
+	//pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	//flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
+	//username := string(ctx.QueryArgs().Peek("username"))                 //会员名
+	//afterName := string(ctx.QueryArgs().Peek("after_name"))              //转以后代理名
+	//applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名
+	//reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名
+	//startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
+	//endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
+	//reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
+	//reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
+
+	id := string(ctx.PostArgs().Peek("id"))
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	flag := ctx.PostArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
+	username := string(ctx.PostArgs().Peek("username"))                 //会员名
+	afterName := string(ctx.PostArgs().Peek("after_name"))              //转以后代理名
+	applyName := string(ctx.PostArgs().Peek("apply_name"))              //申请人名
+	reviewName := string(ctx.PostArgs().Peek("review_name"))            //审核人名
+	startTime := string(ctx.PostArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.PostArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.PostArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.PostArgs().Peek("review_end_time"))     //审核结束时间
 
 	ex := g.Ex{}
 	if page == 0 {

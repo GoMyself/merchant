@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
-	"strconv"
 	"time"
 
-	"bitbucket.org/nwf2013/schema"
 	g "github.com/doug-martin/goqu/v9"
 )
 
-func BankcardInsert(realName, bankcard string, data BankCard) error {
+func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 
-	var res []schema.Enc_t
+	encRes := [][]string{}
+
 	// 获取会员真实姓名
 	mb, err := MemberFindOne(data.Username)
 	if err != nil {
@@ -28,48 +27,14 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 	}
 
 	//判断卡号是否存在
-	bankcardHash := MurmurHash(bankcard, 0)
-	idx := bankcardHash % 10
-	key := fmt.Sprintf("bl:bc%d", idx)
-	ok, err := meta.MerchantRedis.SIsMember(ctx, key, bankcardHash).Result()
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
-	}
-
-	if ok {
-		return errors.New(helper.BankcardBan)
-	}
-
-	//判断卡号是否存在
-	cardNoHash := fmt.Sprintf("%d", bankcardHash)
-	ex := g.Ex{
-		"bank_card_hash": cardNoHash,
-		"prefix":         meta.Prefix,
-	}
-	bcd, err := BankCardFindOne(ex)
+	err = BankCardExistRedis(bankcardNo)
 	if err != nil {
 		return err
 	}
-
-	var isDelete bool
-	// 存在记录
-	if bcd.UID != "" {
-
-		// 已存在正常银行卡/冻结银行卡
-		if bcd.State == 1 || bcd.State == 3 {
-			return errors.New(helper.BankCardExistErr)
-		}
-
-		// 已删除的银行卡
-		if bcd.State == 2 {
-			isDelete = true
-		}
-	}
-
-	ex = g.Ex{
+	member_ex := g.Ex{
 		"uid": mb.UID,
 	}
-	record := g.Record{
+	member_record := g.Record{
 		"bankcard_total": g.L("bankcard_total+1"),
 	}
 	// 会员未绑定真实姓名，更新第一次绑定银行卡的真实姓名到会员信息
@@ -79,19 +44,12 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 			return errors.New(helper.RealNameFMTErr)
 		}
 
-		recs := schema.Enc_t{
-			Field: "realname",
-			Value: realName,
-			ID:    mb.UID,
-		}
-
-		res = append(res, recs)
-		realNameHash := fmt.Sprintf("%d", MurmurHash(realName, 0))
+		encRes = append(encRes, []string{"realname", realName})
 		// 会员信息更新真实姓名和真实姓名hash
-		record["realname_hash"] = realNameHash
+		member_record["realname_hash"] = fmt.Sprintf("%d", MurmurHash(realName, 0))
 	}
 
-	bc := g.Record{
+	bankcard_record := g.Record{
 		"id":               data.ID,
 		"uid":              mb.UID,
 		"prefix":           meta.Prefix,
@@ -99,38 +57,20 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 		"bank_address":     data.BankAddress,
 		"bank_id":          data.BankID,
 		"bank_branch_name": data.BankAddress,
-		"bank_card_hash":   cardNoHash,
+		"bank_card_hash":   fmt.Sprintf("%d", MurmurHash(bankcardNo, 0)),
 		"created_at":       fmt.Sprintf("%d", data.CreatedAt),
 	}
 
-	src := [][]string{}
-	src = append(src, []string{"bankcard", bankcard})
-	err = grpc_t.Encrypt(data.ID, src)
-	if err != nil {
-		fmt.Println("grpc_t.Encrypt = ", err)
-		return errors.New(helper.UpdateRPCErr)
-	}
-
-	//recs := schema.Enc_t{
-	//	Field: "bankcard",
-	//	Value: bankcard,
-	//	ID:    data.ID,
-	//}
-	//
-	//res = append(res, recs)
-	//_, err = rpcInsert(res)
-	//if err != nil {
-	//	return errors.New(helper.UpdateRPCErr)
-	//}
+	encRes = append(encRes, []string{"bankcard" + data.ID, bankcardNo})
 
 	// 会员银行卡插入加锁
-	key = fmt.Sprintf("bc:%s", data.Username)
-	err = Lock(key)
+	lkey := fmt.Sprintf("bc:%s", data.Username)
+	err = Lock(lkey)
 	if err != nil {
 		return err
 	}
 
-	defer Unlock(key)
+	defer Unlock(lkey)
 
 	//开启事务
 	tx, err := meta.MerchantDB.Begin()
@@ -138,28 +78,21 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	if isDelete {
-		query := fmt.Sprintf("delete from tbl_member_bankcard where bank_card_hash = %s and state = 2", cardNoHash)
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(err, helper.DBErr)
-		}
-	}
-
 	// 更新会员银行卡信息
-	queryInsert, _, _ := dialect.Insert("tbl_member_bankcard").Rows(bc).ToSQL()
+	queryInsert, _, _ := dialect.Insert("tbl_member_bankcard").Rows(bankcard_record).ToSQL()
 	_, err = tx.Exec(queryInsert)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("queryInsert = ", queryInsert)
 		return pushLog(err, helper.DBErr)
 	}
 
 	// 更新会员信息
-	queryUpdate, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+	queryUpdate, _, _ := dialect.Update("tbl_members").Set(member_record).Where(member_ex).ToSQL()
 	_, err = tx.Exec(queryUpdate)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("queryUpdate = ", queryUpdate)
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -167,6 +100,14 @@ func BankcardInsert(realName, bankcard string, data BankCard) error {
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
+
+	err = grpc_t.Encrypt(mb.UID, encRes)
+	if err != nil {
+		fmt.Println("grpc_t.Encrypt = ", err)
+		return errors.New(helper.UpdateRPCErr)
+	}
+
+	meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
 
 	return nil
 }
@@ -195,7 +136,6 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 
 	// h后台查询查询，必须带username或bankcard参数
 	ex := g.Ex{
-		"state":  []int{1, 3},
 		"prefix": meta.Prefix,
 	}
 	if username != "" {
@@ -216,6 +156,7 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 	if bankcard != "" {
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
+
 	var cardList []BankCard
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
@@ -229,17 +170,15 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		return data, nil
 	}
 
-	d1, err := grpc_t.Decrypt(uid, true, []string{"realname"})
-	if err != nil {
-		fmt.Println("grpc_t.Decrypt err = ", err)
-		return data, errors.New(helper.GetRPCErr)
-	}
+	encFields := []string{"realname"}
 
 	for _, v := range cardList {
+		uid = v.UID
 		ids = append(ids, v.ID)
+		encFields = append(encFields, "bankcard"+v.ID)
 	}
 
-	d2, err := grpc_t.DecryptAll(ids, true, []string{"bankcard"})
+	encRes, err := grpc_t.Decrypt(uid, true, encFields)
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
@@ -247,16 +186,39 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 
 	for _, v := range cardList {
 
+		key := "bankcard" + v.ID
 		val := BankcardData{
 			BankCard: v,
-			RealName: d1["realname"],
-			Bankcard: d2[v.ID]["bankcard"],
+			RealName: encRes["realname"],
+			Bankcard: encRes[key],
 		}
 
 		data = append(data, val)
 	}
 
 	return data, nil
+}
+
+func BankCardExistRedis(bankcardNo string) error {
+
+	pipe := meta.MerchantRedis.Pipeline()
+	ex1_temp := pipe.Do(ctx, "CF.EXISTS", "bankcard_exist", bankcardNo)
+	ex2_temp := pipe.Do(ctx, "CF.EXISTS", "bankcard_blacklist", bankcardNo)
+	_, err := pipe.Exec(ctx)
+	pipe.Close()
+	if err != nil {
+		return errors.New(helper.RedisErr)
+	}
+
+	if val, ok := ex1_temp.Val().(string); ok && val == "1" {
+		return errors.New(helper.BankCardExistErr)
+	}
+
+	if val, ok := ex2_temp.Val().(string); ok && val == "1" {
+		return errors.New(helper.BankcardBan)
+	}
+
+	return nil
 }
 
 // 满足条件的银行卡数量
@@ -270,7 +232,7 @@ func BankCardExist(ex g.Ex) bool {
 	return err != sql.ErrNoRows
 }
 
-func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
+func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 
 	data, err := BankCardFindOne(g.Ex{"id": bid})
 	if err != nil {
@@ -281,14 +243,8 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
 		return errors.New(helper.BankCardNotExist)
 	}
 
-	// 冻结删除的银行卡不允许编辑
-	if data.State == 2 || data.State == 3 {
-		return errors.New(helper.OperateFailed)
-	}
-
 	ex := g.Ex{
-		"id":     bid,
-		"prefix": meta.Prefix,
+		"id": bid,
 	}
 	record := g.Record{}
 	if bankID != "" {
@@ -300,27 +256,30 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
 		record["bank_address"] = bankAddr
 	}
 
-	if bankcard != "" {
+	if bankcardNo != "" {
 
-		bankcardHash := fmt.Sprintf("%d", MurmurHash(bankcard, 0))
-		if BankCardExist(g.Ex{"bank_card_hash": bankcardHash}) {
-			return errors.New(helper.BankCardExistErr)
+		//判断卡号是否存在
+		err = BankCardExistRedis(bankcardNo)
+		if err != nil {
+			return err
 		}
 
 		src := [][]string{
-			{"bankcard", bankcard},
+			{"bankcard" + bid, bankcardNo},
 		}
-		err := grpc_t.Encrypt(bid, src)
+		err := grpc_t.Encrypt(data.UID, src)
 		if err != nil {
 			fmt.Println("grpc_t.Encrypt = ", err)
 			return errors.New(helper.UpdateRPCErr)
 		}
+
+		record["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcardNo, 0))
 	}
 
 	query, _, _ := dialect.Update("tbl_member_bankcard").Set(record).Where(ex).ToSQL()
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.DBErr)
 	}
 
 	return nil
@@ -329,8 +288,7 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcard string) error {
 func BankcardDelete(bid string, adminUID, adminName string) error {
 
 	ex := g.Ex{
-		"id":    bid,
-		"state": []int{1, 3},
+		"id": bid,
 	}
 	data, err := BankCardFindOne(ex)
 	if err != nil {
@@ -351,92 +309,63 @@ func BankcardDelete(bid string, adminUID, adminName string) error {
 		return errors.New(helper.UsernameErr)
 	}
 
-	// 删除冻结的银行卡，直接删除
-	if data.State == 3 {
-
-		tx, err := meta.MerchantDB.Begin()
-		if err != nil {
-			return pushLog(err, helper.DBErr)
-		}
-
-		query, _, _ := dialect.Update("tbl_member_bankcard").Set(g.Record{"state": 2}).Where(g.Ex{"id": bid, "prefix": meta.Prefix}).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-		}
-
-		record := g.Record{
-			"bankcard_total": g.L("bankcard_total-1"),
-		}
-		query, _, _ = dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return pushLog(err, helper.DBErr)
-		}
-
-		return nil
+	enckey := "bankcard" + bid
+	encRes, err := grpc_t.Decrypt(mb.UID, true, []string{enckey})
+	if err != nil {
+		return errors.New(helper.GetRPCErr)
 	}
 
-	hash, _ := strconv.ParseUint(data.BankcardHash, 10, 64)
-	//开启事务
+	// 删除冻结的银行卡，直接删除
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	t := dialect.Update("tbl_member_bankcard")
-	query, _, _ := t.Set(g.Record{"state": 2}).Where(g.Ex{"id": bid, "prefix": meta.Prefix}).ToSQL()
+	query, _, _ := dialect.Delete("tbl_member_bankcard").Where(g.Ex{"id": bid}).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
-
-	query, _, _ = dialect.Update("tbl_members").
-		Set(g.Record{"bankcard_total": g.L("bankcard_total-1")}).Where(g.Ex{"username": data.Username, "prefix": meta.Prefix}).ToSQL()
-	_, err = tx.Exec(query)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.DBErr)
 	}
 
 	record := g.Record{
-		"id":           bid,
-		"ty":           TyBankcard,
-		"value":        data.BankcardHash,
-		"remark":       "delete",
-		"accounts":     data.Username,
-		"created_at":   time.Now().Unix(),
-		"created_uid":  adminUID,
-		"created_name": adminName,
+		"bankcard_total": g.L("bankcard_total-1"),
 	}
-	query, _, _ = dialect.Insert("tbl_blacklist").Rows(&record).ToSQL()
+	query, _, _ = dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.DBErr)
+	}
+
+	// 会员删除银行卡，加入黑名单
+
+	bankcard_blacklist_record := g.Record{
+		"id":               helper.GenId(),
+		"prefix":           meta.Prefix,
+		"bank_card_no":     encRes[enckey],
+		"bank_branch_name": data.BankBranch,
+		"bank_address":     data.BankAddress,
+		"bank_id":          data.BankID,
+		"created_at":       time.Now().Unix(),
+	}
+	query, _, _ = dialect.Insert("tbl_member_bankcard_blacklist").Rows(bankcard_blacklist_record).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return errors.New(helper.DBErr)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.DBErr)
 	}
 
-	// 会员删除银行卡，加入黑名单
-	idx := hash % 10
-	key := fmt.Sprintf("bl:bc%d", idx)
-	// 加入values set
-	_, err = meta.MerchantRedis.SAdd(ctx, key, data.BankcardHash).Result()
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
-	}
+	pipe := meta.MerchantRedis.Pipeline()
+	pipe.Do(ctx, "CF.DEL", "bankcard_exist", encRes["enckey"])
+	pipe.Do(ctx, "CF.ADD", "bankcard_blacklist", encRes["enckey"])
+	pipe.Exec(ctx)
+	pipe.Close()
 
 	return nil
 }

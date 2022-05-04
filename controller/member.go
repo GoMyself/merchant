@@ -2,13 +2,14 @@ package controller
 
 import (
 	"fmt"
-	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/doug-martin/goqu/v9/exp"
 
 	"github.com/shopspring/decimal"
 	"github.com/wI2L/jettison"
@@ -44,6 +45,23 @@ type remarkLogParams struct {
 	Username string `rule:"none" name:"username" msg:"username error"`
 	File     string `rule:"none" name:"file" msg:"file error" default:""`
 	Msg      string `rule:"none" name:"msg" max:"300"`
+}
+
+func (that *MemberController) Detail(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.QueryArgs().Peek("username"))
+	if !validator.CheckUName(username, 5, 14) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	data, err := model.MemberInfo(username)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
 }
 
 // GetAccountInfo 会员列表-帐户信息
@@ -925,18 +943,16 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if _, ok := model.MemberHistoryField[field]; !ok {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
 	data, err := model.MemberFull(id, []string{field})
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.Print(ctx, true, data)
+	fmt.Println("grpc_t.Decrypt data = ", data)
+	fmt.Println("grpc_t.Decrypt field = ", field)
+
+	helper.Print(ctx, true, data[field])
 }
 
 // UpdateTopMember 修改密码以及返水比例

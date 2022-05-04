@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
 	"merchant2/model"
+
+	"github.com/valyala/fasthttp"
 )
 
 type SmsRecordController struct{}
@@ -21,7 +21,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
 	// 会员名校验
 	if username != "" {
-		if !validator.CheckUName(username, 5, 14) {
+		if !helper.CtypeAlnum(username) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
@@ -29,16 +29,15 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
 	// 手机号校验
 	if phone != "" {
-		if !validator.IsVietnamesePhone(phone) {
+		if !helper.CtypeDigit(phone) {
 			helper.Print(ctx, false, helper.PhoneFMTErr)
 			return
 		}
 	}
 
-	startAt := ctx.Time().Unix()
-	data, err := model.VerifyCodeList(username, phone, startAt)
+	data, err := model.SmsList(username, phone)
 	if err != nil {
-		helper.Print(ctx, false, err)
+		helper.Print(ctx, false, err.Error())
 		return
 	}
 
