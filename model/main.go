@@ -49,7 +49,7 @@ type VenueRebateScale struct {
 }
 
 var grpc_t struct {
-	View       func(uid, field string) ([]string, error)
+	View       func(uid, field string, hide bool) ([]string, error)
 	Encrypt    func(uid string, data [][]string) error
 	Decrypt    func(uid string, hide bool, field []string) (map[string]string, error)
 	DecryptAll func(uids []string, hide bool, field []string) (map[string]map[string]string, error)
