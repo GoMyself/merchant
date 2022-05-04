@@ -107,6 +107,8 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 		return errors.New(helper.UpdateRPCErr)
 	}
 
+	meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
+
 	return nil
 }
 
@@ -155,7 +157,6 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
 
-	fmt.Println("ex = ", ex)
 	var cardList []BankCard
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
@@ -172,6 +173,7 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 	encFields := []string{"realname"}
 
 	for _, v := range cardList {
+		uid = v.UID
 		ids = append(ids, v.ID)
 		encFields = append(encFields, "bankcard"+v.ID)
 	}
@@ -242,8 +244,7 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 	}
 
 	ex := g.Ex{
-		"id":     bid,
-		"prefix": meta.Prefix,
+		"id": bid,
 	}
 	record := g.Record{}
 	if bankID != "" {
@@ -266,17 +267,19 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 		src := [][]string{
 			{"bankcard" + bid, bankcardNo},
 		}
-		err := grpc_t.Encrypt(bid, src)
+		err := grpc_t.Encrypt(data.UID, src)
 		if err != nil {
 			fmt.Println("grpc_t.Encrypt = ", err)
 			return errors.New(helper.UpdateRPCErr)
 		}
+
+		record["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcardNo, 0))
 	}
 
 	query, _, _ := dialect.Update("tbl_member_bankcard").Set(record).Where(ex).ToSQL()
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.DBErr)
 	}
 
 	return nil
@@ -340,7 +343,7 @@ func BankcardDelete(bid string, adminUID, adminName string) error {
 	bankcard_blacklist_record := g.Record{
 		"id":               helper.GenId(),
 		"prefix":           meta.Prefix,
-		"bank_card_no":     encRes["enckey"],
+		"bank_card_no":     encRes[enckey],
 		"bank_branch_name": data.BankBranch,
 		"bank_address":     data.BankAddress,
 		"bank_id":          data.BankID,

@@ -18,12 +18,6 @@ type bankcardInsertParam struct {
 }
 
 //查询银行卡列表参数
-type bankcardListParam struct {
-	Username   string `rule:"none" name:"username"`
-	bankcardNo string `rule:"none" name:"bankcard_no"`
-}
-
-//查询银行卡列表参数
 type bankcardUpdateParam struct {
 	BID        string `rule:"digit" name:"bid" msg:"bid error"`
 	bankcardNo string `rule:"none" name:"bankcard_no"`
@@ -97,6 +91,8 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 }
 
 func (that *BankcardController) Update(ctx *fasthttp.RequestCtx) {
+
+	//fmt.Println("Update = ", string(ctx.PostBody()))
 
 	param := bankcardUpdateParam{}
 	err := validator.Bind(ctx, &param)
