@@ -34,7 +34,7 @@ type GameListOnlineParams struct {
 func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	params := GameListOnlineParams{}
-	//err := validator.Bind(ctx, &params)
+	err := validator.Bind(ctx, &params)
 	//if err != nil {
 	//	helper.Print(ctx, false, helper.ParamErr)
 	//	return
@@ -47,12 +47,15 @@ func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	fmt.Printf("ID = %s\n", string(ctx.PostArgs().Peek("online")))
-	if !validator.CheckStringDigit(string(ctx.PostArgs().Peek("online"))) {
+	s := string(ctx.PostArgs().Peek("online"))
+	fmt.Println(s)
+	if !validator.CheckStringDigit(s) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 	params.OnLine = int64(ctx.PostArgs().GetUintOrZero("online"))
+
+	fmt.Println("DONE")
 
 	game, err := model.GameFind(params.ID)
 	if err != nil {
