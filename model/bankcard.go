@@ -173,6 +173,7 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 	encFields := []string{"realname"}
 
 	for _, v := range cardList {
+		uid = v.UID
 		ids = append(ids, v.ID)
 		encFields = append(encFields, "bankcard"+v.ID)
 	}
