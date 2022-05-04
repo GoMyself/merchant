@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -40,11 +41,13 @@ func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 	//}
 
 	params.ID = string(ctx.QueryArgs().Peek("id"))
+	fmt.Printf("ID = %s\n", params.ID)
 	if !validator.CheckStringDigit(params.ID) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 
+	fmt.Printf("ID = %s\n", string(ctx.QueryArgs().Peek("online")))
 	if !validator.CheckStringDigit(string(ctx.QueryArgs().Peek("online"))) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
