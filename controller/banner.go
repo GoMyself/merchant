@@ -51,7 +51,8 @@ func (that *BannerController) List(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{"flags": params.Flags}
 	if params.Device != "" {
-		ex["device"] = params.Device
+		//ex["device"] = params.Device
+		ex["device"] = g.Op{"like": params.Device}
 	}
 
 	if params.State > 0 {
