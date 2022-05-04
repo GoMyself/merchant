@@ -25,7 +25,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
-	"github.com/minio/minio-go/v7"
 	"github.com/olivere/elastic/v7"
 	"github.com/spaolacci/murmur3"
 )
@@ -62,7 +61,6 @@ type MetaTable struct {
 	MerchantDB        *sqlx.DB
 	ReportDB          *sqlx.DB
 	BetDB             *sqlx.DB
-	MinioClient       *minio.Client
 	PromoteConfig     map[string]map[string]interface{}
 	BeanPool          cpool.Pool
 	BeanBetPool       cpool.Pool
@@ -160,7 +158,6 @@ func Constructor(mt *MetaTable, rpc string) {
 
 func Load() {
 
-	CateInit()
 	AppUpgradeLoadCache()
 	_ = GameToMinio()
 	_ = PlatToMinio()

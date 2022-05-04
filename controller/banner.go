@@ -2,17 +2,17 @@ package controller
 
 import (
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
 	"net/url"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/valyala/fasthttp"
 )
 
 type BannerController struct{}
@@ -249,34 +249,4 @@ func (that *BannerController) UpdateState(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, helper.Success)
-}
-
-// 上传 图片
-func (that *BannerController) UploadFile(ctx *fasthttp.RequestCtx) {
-
-	fileHandler, err := ctx.FormFile("file")
-	if err != nil {
-		helper.Print(ctx, false, helper.FileNotExist)
-		return
-	}
-
-	// 获取文件后缀
-	ext := filepath.Ext(fileHandler.Filename)
-	allowed := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-	}
-	if _, ok := allowed[ext]; !ok {
-		helper.Print(ctx, false, helper.FileTypeErr)
-		return
-	}
-
-	url, err := model.BannerUploadFile(fileHandler)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.Print(ctx, true, url)
 }

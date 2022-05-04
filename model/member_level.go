@@ -1,14 +1,13 @@
 package model
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/minio/minio-go/v7"
 	"merchant2/contrib/helper"
 	"strconv"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 func MemberLevelList() ([]MemberLevel, error) {
@@ -40,18 +39,6 @@ func MemberLevelToMinio() {
 	vip, err := MemberLevelList()
 	if err != nil || len(vip) < 1 {
 		return
-	}
-
-	b, err := helper.JsonMarshal(vip)
-	if err == nil {
-
-		reader := bytes.NewReader(b)
-		userMetaData := map[string]string{"x-amz-acl": "public-read"}
-		name := "VIP.json"
-		_, err := meta.MinioClient.PutObject(ctx, meta.MinioJsonBucket, name, reader, reader.Size(), minio.PutObjectOptions{ContentType: "application/json", UserMetadata: userMetaData})
-		if err != nil {
-			fmt.Println(err)
-		}
 	}
 
 	MemberLevelToCache(vip)

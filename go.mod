@@ -7,7 +7,6 @@ replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.5
 replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
 require (
-	bitbucket.org/nwf2013/schema v0.0.0-20210601104355-f8329e4edddd
 	github.com/beanstalkd/go-beanstalk v0.1.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/buaazp/fasthttprouter v0.1.1
@@ -36,7 +35,6 @@ require (
 	github.com/tinylib/msgp v1.1.6
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fastjson v1.6.3
-	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
 	github.com/wI2L/jettison v0.7.3
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
 	go.uber.org/automaxprocs v1.4.0

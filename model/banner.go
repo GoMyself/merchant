@@ -5,14 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"merchant2/contrib/helper"
-	"mime/multipart"
-	"path/filepath"
 	"strings"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/minio/minio-go/v7"
 	"github.com/valyala/fastjson"
 )
 
@@ -520,26 +517,4 @@ func bannerRefreshToCache(id string) error {
 	}
 
 	return nil
-}
-
-// 上传广告图片
-func BannerUploadFile(file *multipart.FileHeader) (string, error) {
-
-	reader, err := file.Open()
-	if err != nil {
-		return "", errors.New(helper.FileOpenFailed)
-	}
-
-	ext := filepath.Ext(file.Filename)
-	name := fmt.Sprintf("%s%s", helper.GenId(), ext)
-	bucket := meta.MinioImagesBucket
-	userMetaData := map[string]string{"x-amz-acl": "public-read"}
-	_, err = meta.MinioClient.PutObject(ctx, bucket, name, reader, file.Size,
-		minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type"), UserMetadata: userMetaData})
-	if err != nil {
-		fmt.Println("BannerUploadFile", err.Error())
-		return "", errors.New(helper.StaticFileUploadFailed)
-	}
-
-	return fmt.Sprintf("%s/%s/%s", meta.MinioUploadUrl, bucket, name), nil
 }

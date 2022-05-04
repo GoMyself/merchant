@@ -140,13 +140,9 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 	}
 	if username != "" {
 		mb, err := MemberFindOne(username)
-		if err != nil && err != sql.ErrNoRows {
-			return data, pushLog(err, helper.DBErr)
-		}
-
 		// 判断会员是否存在
-		if err == sql.ErrNoRows {
-			return data, errors.New(helper.UsernameErr)
+		if err != nil {
+			return data, errors.New(helper.UserNotExist)
 		}
 
 		uid = mb.UID

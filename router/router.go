@@ -276,8 +276,6 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	get("/merchant/banner/delete", bannerCtl.Delete)
 	// 运营管理-广告管理-状态(启用|停用)
 	post("/merchant/banner/updatestate", bannerCtl.UpdateState)
-	// 运营管理-广告管理-上传图片
-	post("/merchant/banner/upload", bannerCtl.UploadFile)
 
 	// App 升级配置更新
 	post("/merchant/app/update", appUpCtl.Update)
