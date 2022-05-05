@@ -56,6 +56,10 @@ func AdjustInsert(data MemberAdjust) error {
 		"apply_at":       data.ApplyAt,
 		"apply_uid":      data.ApplyUid,  // 申请人
 		"apply_name":     data.ApplyName, // 申请人
+		"top_uid":        data.TopUid,
+		"top_name":       data.TopName,
+		"parent_uid":     data.ParentUid,
+		"parent_name":    data.ParentName,
 	}
 	// 下分
 	err := AdjustUpDownPoint(meta.Prefix, data.UID, data.Username, data.AdjustType, DownPointApply, amount, record)
