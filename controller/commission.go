@@ -186,11 +186,15 @@ func (that *CommissionController) RecordList(ctx *fasthttp.RequestCtx) {
 		}
 
 		ex["transfer_type"] = transferType
+	}
 
-		// 可能为会员账号，也可能是后台账号
-		if username != "" {
-			ex["username"] = username
+	// 可能为会员账号，也可能是后台账号
+	if username != "" {
+		if validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
 		}
+		ex["username"] = username
 	}
 
 	// 红利审核列表
