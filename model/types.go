@@ -443,6 +443,7 @@ type MemberRebate struct {
 	DJ        string `db:"dj" json:"dj"` //电竞返水
 	DZ        string `db:"dz" json:"dz"` //电游返水
 	CP        string `db:"cp" json:"cp"` //彩票返水
+	FC        string `db:"fc" json:"fc"` //斗鸡返水
 	CreatedAt uint32 `db:"created_at" json:"created_at"`
 	ParentUID string `db:"parent_uid" json:"parent_uid"`
 	Prefix    string `db:"prefix" json:"prefix"`
@@ -455,6 +456,7 @@ type MemberMaxRebate struct {
 	DJ sql.NullFloat64 `db:"dj" json:"dj"` //电竞返水
 	DZ sql.NullFloat64 `db:"dz" json:"dz"` //电游返水
 	CP sql.NullFloat64 `db:"cp" json:"cp"` //彩票返水
+	FC sql.NullFloat64 `db:"fc" json:"fc"` //斗鸡返水
 }
 
 type NoticeData struct {

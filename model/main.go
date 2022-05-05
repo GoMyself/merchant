@@ -45,6 +45,7 @@ type VenueRebateScale struct {
 	DZ decimal.Decimal
 	DJ decimal.Decimal
 	CP decimal.Decimal
+	FC decimal.Decimal
 }
 
 var grpc_t struct {
@@ -149,6 +150,7 @@ func Constructor(mt *MetaTable, rpc string) {
 		DZ: decimal.NewFromFloat(1.2).Truncate(1),
 		DJ: decimal.NewFromFloat(1.1).Truncate(1),
 		CP: decimal.NewFromFloat(1.1).Truncate(1),
+		FC: decimal.NewFromFloat(1.5).Truncate(1),
 	}
 
 	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {

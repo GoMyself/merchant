@@ -109,6 +109,7 @@ type MemberListCol struct {
 	DJ          string  `json:"dj" db:"dj"`
 	DZ          string  `json:"dz" db:"dz"`
 	CP          string  `json:"cp" db:"cp"`
+	FC          string  `json:"fc" db:"fc"`
 	Lvl         int     `json:"lvl" db:"-"`
 	PlanID      string  `json:"plan_id" db:"-"`
 	PlanName    string  `json:"plan_name" db:"-"`
@@ -127,6 +128,7 @@ type MemberRebateResult_t struct {
 	DZ decimal.Decimal
 	DJ decimal.Decimal
 	CP decimal.Decimal
+	FC decimal.Decimal
 }
 
 func MemberInsert(username, password, remark, maintainName, groupName, agencyType, planID string, createdAt uint32, mr MemberRebate) error {
@@ -529,6 +531,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 			data.D[i].QP = rb.QP
 			data.D[i].DZ = rb.DZ
 			data.D[i].CP = rb.CP
+			data.D[i].FC = rb.FC
 		}
 
 		if lv, ok := lvls[v.UID]; ok {
@@ -1737,6 +1740,8 @@ func MemberUpdateInfo(uid, planID string, mbRecod g.Record, mr MemberRebate) err
 		"qp": mr.QP,
 		"dj": mr.DJ,
 		"dz": mr.DZ,
+		"cp": mr.CP,
+		"fc": mr.FC,
 	}
 	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
 	_, err = tx.Exec(query)
@@ -1807,6 +1812,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("dj").As("dj"),
 		g.MAX("ty").As("ty"),
 		g.MAX("cp").As("cp"),
+		g.MAX("fc").As("fc"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
