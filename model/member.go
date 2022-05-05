@@ -398,6 +398,10 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 	}
 
 	d, err := grpc_t.DecryptAll(uids, true, []string{"realname", "email", "phone", "zalo"})
+
+	fmt.Println("grpc_t.Decrypt uids = ", uids)
+	fmt.Println("grpc_t.Decrypt d = ", d)
+
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
@@ -937,11 +941,9 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 			return errors.New(helper.ZaloExist)
 		}
 
-		if zaloHash != mb.PhoneHash {
+		record["zalo_hash"] = zaloHash
+		encFields = append(encFields, []string{"zalo", param["zalo"]})
 
-			record["zalo_hash"] = zaloHash
-			encFields = append(encFields, []string{"zalo", param["zalo"]})
-		}
 	}
 
 	if _, ok := param["address"]; ok {
