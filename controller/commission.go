@@ -166,7 +166,7 @@ func (that *CommissionController) RecordList(ctx *fasthttp.RequestCtx) {
 
 	// 审核管理员
 	if reviewName != "" {
-		if validator.CheckUName(reviewName, 5, 20) {
+		if !validator.CheckUName(reviewName, 5, 20) {
 			helper.Print(ctx, false, helper.AdminNameErr)
 			return
 		}
@@ -190,7 +190,7 @@ func (that *CommissionController) RecordList(ctx *fasthttp.RequestCtx) {
 
 	// 可能为会员账号，也可能是后台账号
 	if username != "" {
-		if validator.CheckUName(username, 5, 14) {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
