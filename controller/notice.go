@@ -1,11 +1,12 @@
 package controller
 
 import (
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/valyala/fasthttp"
 )
 
 type NoticeController struct{}
@@ -136,6 +137,10 @@ func (that *NoticeController) Update(ctx *fasthttp.RequestCtx) {
 
 	if param.RedirectUrl != "" {
 		record["redirect_url"] = param.RedirectUrl
+	}
+
+	if param.Redirect == 2 {
+		record["redirect_url"] = ""
 	}
 
 	if len(record) == 0 {
