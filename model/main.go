@@ -12,7 +12,6 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/nats-io/nats.go"
 	"github.com/shopspring/decimal"
 	cpool "github.com/silenceper/pool"
@@ -82,7 +81,6 @@ var (
 	meta                     *MetaTable
 	loc                      *time.Location
 	ctx                      = context.Background()
-	cjson                    = jsoniter.ConfigCompatibleWithStandardLibrary
 	zero                     = decimal.NewFromInt(0)
 	dialect                  = g.Dialect("mysql")
 	colsGroup                = helper.EnumFields(Group{})
