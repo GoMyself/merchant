@@ -18,7 +18,7 @@ type dividendInsertParam struct {
 	Ty            int    `rule:"digit" name:"ty" min:"211" max:"222"  msg:"ty error"`
 	WaterLimit    uint8  `rule:"digit" name:"water_limit" min:"1" max:"2"  msg:"water_limit error"`
 	PlatformID    string `rule:"none" name:"platform_id" default:"0"`
-	Amount        string `rule:"float" name:"amount"  msg:"amount error"`
+	Amount        string `rule:"digit" name:"amount"  msg:"amount error"`
 	WaterMultiple int64  `rule:"digit" name:"water_multiple" min:"0" max:"1000" default:"0" required:"0"  msg:"water_multiple error"`
 	Remark        string `rule:"filter" name:"remark" min:"1" max:"300"  msg:"remark error"`
 }

@@ -540,7 +540,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	zalo := string(ctx.PostArgs().Peek("zalo"))
 	address := string(ctx.PostArgs().Peek("address")) //收货地址
 	tagsID := string(ctx.PostArgs().Peek("tags_id"))
-	realname := string(ctx.PostArgs().Peek("real_name"))
+	realname := string(ctx.PostArgs().Peek("realname"))
 	username := string(ctx.PostArgs().Peek("username"))
 
 	if !validator.CheckUName(username, 5, 14) {
@@ -550,7 +550,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	param := map[string]string{}
 	if realname != "" {
-		if !validator.CheckStringVName(param["realname"]) {
+		if helper.CtypePunct(param["realname"]) {
 			helper.Print(ctx, false, helper.RealNameFMTErr)
 			return
 		}
@@ -577,7 +577,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if zalo != "" {
-		if !validator.IsVietnameseZalo(zalo) {
+		if !helper.CtypeDigit(zalo) {
 			helper.Print(ctx, false, helper.ZaloFMTErr)
 			return
 		}
@@ -586,7 +586,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if address != "" {
-		if len(strings.Split(address, "|")) != 4 {
+		if len(strings.Split(address, "|")) != 3 {
 			helper.Print(ctx, false, helper.AddressFMTErr)
 			return
 		}
@@ -610,6 +610,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	//fmt.Println("param = ", param)
 	err = model.MemberUpdate(username, admin["id"], param, userTagsId)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
