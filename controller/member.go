@@ -586,12 +586,13 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if address != "" {
-		if len(strings.Split(address, "|")) != 3 {
+		ll := len(address)
+		if ll < 4 || ll > 50 {
 			helper.Print(ctx, false, helper.AddressFMTErr)
 			return
 		}
 
-		param["address"] = address
+		param["address"] = validator.FilterInjection(address)
 	}
 
 	var userTagsId []string
