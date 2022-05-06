@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"merchant2/contrib/helper"
 )
 
@@ -69,12 +70,9 @@ func memberInfoCache(username string) (tbl_members_t, error) {
 		return m, errors.New(helper.UsernameErr)
 	}
 
-	if rs.Err() != nil {
-		return m, pushLog(rs.Err(), helper.RedisErr)
-	}
-
 	if err = rs.Scan(&m); err != nil {
-		return m, pushLog(rs.Err(), helper.RedisErr)
+		fmt.Println("memberInfoCache rs.Scan err = ", err.Error())
+		return m, pushLog(err, helper.RedisErr)
 	}
 
 	return m, nil
