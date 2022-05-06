@@ -334,7 +334,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 发放总代佣金
 	post("/merchant/commission/ration", commissionCtl.Ration)
 	// 代理管理-佣金记录-列表
-	get("/merchant/commission/record/list", commissionCtl.RecordList)
+	post("/merchant/commission/record/list", commissionCtl.RecordList)
 	// 代理管理-佣金记录-审核
 	post("/merchant/commission/record/review", commissionCtl.RecordReview)
 

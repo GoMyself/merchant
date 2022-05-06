@@ -129,19 +129,19 @@ func (that *CommissionController) Ration(ctx *fasthttp.RequestCtx) {
 
 func (that *CommissionController) RecordList(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.QueryArgs().Peek("username"))                 //发放账号
-	receiveName := string(ctx.QueryArgs().Peek("receive_name"))          //接收账号
-	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核账号
-	transferType := ctx.QueryArgs().GetUintOrZero("transfer_type")       //类型 1佣金发放 2 佣金提取 3佣金下发
-	startTime := string(ctx.QueryArgs().Peek("start_time"))              //创建开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //创建结束时间
-	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
-	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
-	state := ctx.QueryArgs().GetUintOrZero("state")                      //1 审核中 2 审核通过 3 审核不通过
-	automatic := ctx.QueryArgs().GetUintOrZero("automatic")              //1 自动 2 手动
-	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
-	page := ctx.QueryArgs().GetUintOrZero("page")
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	username := string(ctx.PostArgs().Peek("username"))                 //发放账号
+	receiveName := string(ctx.PostArgs().Peek("receive_name"))          //接收账号
+	reviewName := string(ctx.PostArgs().Peek("review_name"))            //审核账号
+	transferType := ctx.PostArgs().GetUintOrZero("transfer_type")       //类型 1佣金发放 2 佣金提取 3佣金下发
+	startTime := string(ctx.PostArgs().Peek("start_time"))              //创建开始时间
+	endTime := string(ctx.PostArgs().Peek("end_time"))                  //创建结束时间
+	reviewStartTime := string(ctx.PostArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.PostArgs().Peek("review_end_time"))     //审核结束时间
+	state := ctx.PostArgs().GetUintOrZero("state")                      //1 审核中 2 审核通过 3 审核不通过
+	automatic := ctx.PostArgs().GetUintOrZero("automatic")              //1 自动 2 手动
+	flag := ctx.PostArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 
 	if page == 0 {
 		page = 1
