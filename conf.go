@@ -6,6 +6,7 @@ type conf struct {
 	EsPrefix       string `json:"es_prefix"`
 	PullPrefix     string `json:"pull_prefix"`
 	IsDev          bool   `json:"is_dev"`
+	GcsDoamin      string `json:"gcs_doamin"`
 	AutoCommission bool   `json:"auto_commission"`
 	Sock5          string `json:"sock5"`
 	RPC            string `json:"rpc"`
@@ -58,15 +59,6 @@ type conf struct {
 		Sentinel string   `json:"sentinel"`
 		Db       int      `json:"db"`
 	} `json:"redis"`
-	Minio struct {
-		ImagesBucket    string `json:"images_bucket"`
-		JSONBucket      string `json:"json_bucket"`
-		Endpoint        string `json:"endpoint"`
-		AccessKeyID     string `json:"accessKeyID"`
-		SecretAccessKey string `json:"secretAccessKey"`
-		UseSSL          bool   `json:"useSSL"`
-		UploadURL       string `json:"uploadUrl"`
-	} `json:"minio"`
 	Es struct {
 		Host     []string `json:"host"`
 		Username string   `json:"username"`

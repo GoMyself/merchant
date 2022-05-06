@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fastjson"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/session"
 	"merchant2/contrib/tdlog"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fastjson"
 )
 
 // Admin 用户数据库结构体
@@ -42,6 +43,7 @@ type AdminLoginResp struct {
 	Token     string `json:"token"`     // 用户token
 	Allows    string `json:"allows"`    // 用户权限列表
 	AdminName string `json:"user_name"` // 用户名
+	Domain    string `json:"domain"`    // 用户名
 }
 
 func AdminInsert(data Admin) error {
@@ -241,6 +243,7 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	rsp.Token = sid
 	rsp.AdminName = username
 	rsp.Allows = permission
+	rsp.Domain = meta.GcsDoamin
 
 	adminLoginLog := map[string]string{
 		"uid":      data.ID,
