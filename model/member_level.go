@@ -104,26 +104,23 @@ func VipRecord(page, pageSize uint, startTime, endTime string, ex g.Ex) (MemberL
 		return data, errors.New(helper.DateTimeErr)
 	}
 
-	if _, ok := ex["username"]; !ok {
+	if startTime != "" && endTime != "" {
 
-		if startTime != "" && endTime != "" {
-
-			startAt, err := helper.TimeToLocMs(startTime, loc)
-			if err != nil {
-				return data, errors.New(helper.TimeTypeErr)
-			}
-
-			endAt, err := helper.TimeToLocMs(endTime, loc)
-			if err != nil {
-				return data, errors.New(helper.TimeTypeErr)
-			}
-
-			if startAt >= endAt {
-				return data, errors.New(helper.QueryTimeRangeErr)
-			}
-
-			ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+		startAt, err := helper.TimeToLocMs(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
 		}
+
+		endAt, err := helper.TimeToLocMs(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 
 	t := dialect.From("tbl_member_level_record")
