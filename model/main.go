@@ -55,26 +55,24 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	Zlog              *fluent.Fluent
-	VenueRebate       VenueRebateScale
-	MerchantRedis     *redis.Client
-	MerchantDB        *sqlx.DB
-	ReportDB          *sqlx.DB
-	BetDB             *sqlx.DB
-	PromoteConfig     map[string]map[string]interface{}
-	BeanPool          cpool.Pool
-	BeanBetPool       cpool.Pool
-	ES                *elastic.Client
-	AccessEs          *elastic.Client
-	NatsConn          *nats.Conn
-	AutoCommission    bool
-	Prefix            string
-	EsPrefix          string
-	PullPrefix        string
-	Lang              string
-	MinioUploadUrl    string
-	MinioImagesBucket string
-	MinioJsonBucket   string
+	Zlog           *fluent.Fluent
+	VenueRebate    VenueRebateScale
+	MerchantRedis  *redis.Client
+	MerchantDB     *sqlx.DB
+	ReportDB       *sqlx.DB
+	BetDB          *sqlx.DB
+	PromoteConfig  map[string]map[string]interface{}
+	BeanPool       cpool.Pool
+	BeanBetPool    cpool.Pool
+	ES             *elastic.Client
+	AccessEs       *elastic.Client
+	NatsConn       *nats.Conn
+	AutoCommission bool
+	Prefix         string
+	EsPrefix       string
+	PullPrefix     string
+	Lang           string
+	GcsDoamin      string
 }
 
 var (
