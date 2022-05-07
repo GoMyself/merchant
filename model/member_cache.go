@@ -82,7 +82,7 @@ func MemberInfo(username string) (tbl_members_t, error) {
 
 	res, err := memberInfoCache(username)
 	if err != nil {
-		return res, errors.New(helper.AccessTokenExpires)
+		return res, err
 	}
 
 	encRes := []string{}
