@@ -40,6 +40,12 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	destName := string(ctx.PostArgs().Peek("dest_name"))
+
+	if username == destName {
+		helper.Print(ctx, false, helper.TransferToAgencyErr)
+		return
+	}
+
 	// 已有下线，不允许使用跳线转代
 	if model.MemberTransferSubCheck(username) {
 		helper.Print(ctx, false, helper.MemberHaveSubAlready)
@@ -193,6 +199,11 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	destName := string(ctx.PostArgs().Peek("dest_name"))
 	remark := string(ctx.PostArgs().Peek("remark"))
+	if username == destName {
+		helper.Print(ctx, false, helper.TransferToAgencyErr)
+		return
+	}
+
 	mb, err := model.MemberFindOne(username)
 	if err != nil {
 		helper.Print(ctx, false, helper.UsernameErr)
