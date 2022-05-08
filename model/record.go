@@ -54,6 +54,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex 
 	t := dialect.From(table)
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
@@ -66,6 +67,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex 
 
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(g.SUM("amount").As("agg")).Where(ex).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data.Agg, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
@@ -73,6 +75,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex 
 
 	query, _, _ = t.Select(colsTransaction...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
