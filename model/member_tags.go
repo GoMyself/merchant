@@ -124,6 +124,7 @@ func MemberTagsSet(batch int, adminID string, uids []string, tags []string, ts i
 				TagName:   v.Name,
 				CreatedAt: ts,
 				UpdatedAt: ts,
+				Prefix:    meta.Prefix,
 			})
 		}
 	}

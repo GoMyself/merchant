@@ -62,10 +62,10 @@ func (that *SlotsController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if game.OnLine == params.OnLine {
-		helper.Print(ctx, false, helper.StateParamErr)
-		return
-	}
+	//if game.OnLine == params.OnLine {
+	//	helper.Print(ctx, false, helper.StateParamErr)
+	//	return
+	//}
 
 	err = model.GameListUpdate(game.ID, game.PlatformId, g.Record{"online": params.OnLine})
 	if err != nil {

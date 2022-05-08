@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"merchant2/contrib/helper"
 )
 
@@ -25,13 +26,13 @@ type tbl_members_t struct {
 	SourceId            int64   `redis:"source_id" json:"source_id"`                         // 注册来源 1:pc 2:h5 3:app 4:手动
 	FirstDepositAt      int64   `redis:"first_deposit_at" json:"first_deposit_at"`           // 首充时间
 	FirstBetAt          int64   `redis:"first_bet_at" json:"first_bet_at"`                   // 首投时间
-	FirstBetAmount      float64 `redis:"first_bet_amount" json:"first_bet_amount"`           // 首投金额
-	FirstDepositAmount  float64 `redis:"first_deposit_amount" json:"first_deposit_amount"`   // 首充金额
+	FirstBetAmount      string  `redis:"first_bet_amount" json:"first_bet_amount"`           // 首投金额
+	FirstDepositAmount  string  `redis:"first_deposit_amount" json:"first_deposit_amount"`   // 首充金额
 	SecondDepositAt     int64   `redis:"second_deposit_at" json:"second_deposit_at"`         // 二存时间
-	SecondDepositAmount float64 `redis:"second_deposit_amount" json:"second_deposit_amount"` // 二存金额
-	TopUid              int64   `redis:"top_uid" json:"top_uid"`                             // 总代uid
+	SecondDepositAmount string  `redis:"second_deposit_amount" json:"second_deposit_amount"` // 二存金额
+	TopUid              string  `redis:"top_uid" json:"top_uid"`                             // 总代uid
 	TopName             string  `redis:"top_name" json:"top_name"`                           // 总代代理
-	ParentUid           int64   `redis:"parent_uid" json:"parent_uid"`                       // 上级uid
+	ParentUid           string  `redis:"parent_uid" json:"parent_uid"`                       // 上级uid
 	ParentName          string  `redis:"parent_name" json:"parent_name"`                     // 上级代理
 	BankcardTotal       int64   `redis:"bankcard_total" json:"bankcard_total"`               // 用户绑定银行卡的数量
 	LastLoginDevice     string  `redis:"last_login_device" json:"last_login_device"`         // 最后登陆设备
@@ -41,7 +42,7 @@ type tbl_members_t struct {
 	LockAmount          float64 `redis:"lock_amount" json:"lock_amount"`                     // 锁定金额
 	Commission          float64 `redis:"commission" json:"commission"`                       // 佣金
 	State               int64   `redis:"state" json:"state"`                                 // 状态 1正常 2禁用
-	WithdrawPwd         int64   `redis:"withdraw_pwd" json:"withdraw_pwd"`                   // 取款密码
+	WithdrawPwd         string  `redis:"withdraw_pwd" json:"withdraw_pwd"`                   // 取款密码
 	Level               int64   `redis:"level" json:"level"`                                 // 用户等级
 	MaintainName        string  `redis:"maintain_name" json:"maintain_name"`                 // 维护人
 	LastUpDownAt        int64   `redis:"last_up_down_at" json:"last_up_down_at"`             // 最后升级降级时间
@@ -61,20 +62,19 @@ func memberInfoCache(username string) (tbl_members_t, error) {
 	_, err := pipe.Exec(ctx)
 	pipe.Close()
 	if err != nil {
-		return m, pushLog(err, helper.RedisErr)
+		fmt.Println("memberInfoCache pipe.Exec err = ", err.Error())
+		return m, errors.New(helper.RedisErr)
 	}
 
 	num, err := exist.Result()
 	if num == 0 {
+		fmt.Println("memberInfoCache exist.Result err = ", err.Error())
 		return m, errors.New(helper.UsernameErr)
 	}
 
-	if rs.Err() != nil {
-		return m, pushLog(rs.Err(), helper.RedisErr)
-	}
-
 	if err = rs.Scan(&m); err != nil {
-		return m, pushLog(rs.Err(), helper.RedisErr)
+		fmt.Println("memberInfoCache rs.Scan err = ", err.Error())
+		return m, errors.New(helper.RedisErr)
 	}
 
 	return m, nil
@@ -84,7 +84,7 @@ func MemberInfo(username string) (tbl_members_t, error) {
 
 	res, err := memberInfoCache(username)
 	if err != nil {
-		return res, errors.New(helper.AccessTokenExpires)
+		return res, err
 	}
 
 	encRes := []string{}

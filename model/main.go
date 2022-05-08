@@ -12,7 +12,6 @@ import (
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/nats-io/nats.go"
 	"github.com/shopspring/decimal"
 	cpool "github.com/silenceper/pool"
@@ -45,6 +44,7 @@ type VenueRebateScale struct {
 	DZ decimal.Decimal
 	DJ decimal.Decimal
 	CP decimal.Decimal
+	FC decimal.Decimal
 }
 
 var grpc_t struct {
@@ -55,33 +55,30 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	Zlog              *fluent.Fluent
-	VenueRebate       VenueRebateScale
-	MerchantRedis     *redis.Client
-	MerchantDB        *sqlx.DB
-	ReportDB          *sqlx.DB
-	BetDB             *sqlx.DB
-	PromoteConfig     map[string]map[string]interface{}
-	BeanPool          cpool.Pool
-	BeanBetPool       cpool.Pool
-	ES                *elastic.Client
-	AccessEs          *elastic.Client
-	NatsConn          *nats.Conn
-	AutoCommission    bool
-	Prefix            string
-	EsPrefix          string
-	PullPrefix        string
-	Lang              string
-	MinioUploadUrl    string
-	MinioImagesBucket string
-	MinioJsonBucket   string
+	Zlog           *fluent.Fluent
+	VenueRebate    VenueRebateScale
+	MerchantRedis  *redis.Client
+	MerchantDB     *sqlx.DB
+	ReportDB       *sqlx.DB
+	BetDB          *sqlx.DB
+	PromoteConfig  map[string]map[string]interface{}
+	BeanPool       cpool.Pool
+	BeanBetPool    cpool.Pool
+	ES             *elastic.Client
+	AccessEs       *elastic.Client
+	NatsConn       *nats.Conn
+	AutoCommission bool
+	Prefix         string
+	EsPrefix       string
+	PullPrefix     string
+	Lang           string
+	GcsDoamin      string
 }
 
 var (
 	meta                     *MetaTable
 	loc                      *time.Location
 	ctx                      = context.Background()
-	cjson                    = jsoniter.ConfigCompatibleWithStandardLibrary
 	zero                     = decimal.NewFromInt(0)
 	dialect                  = g.Dialect("mysql")
 	colsGroup                = helper.EnumFields(Group{})
@@ -149,6 +146,7 @@ func Constructor(mt *MetaTable, rpc string) {
 		DZ: decimal.NewFromFloat(1.2).Truncate(1),
 		DJ: decimal.NewFromFloat(1.1).Truncate(1),
 		CP: decimal.NewFromFloat(1.1).Truncate(1),
+		FC: decimal.NewFromFloat(1.5).Truncate(1),
 	}
 
 	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {

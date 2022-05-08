@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
-	"github.com/valyala/fastjson"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"strconv"
 	"strings"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/olivere/elastic/v7"
+	"github.com/valyala/fastjson"
 )
 
 var (
@@ -881,9 +882,14 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		bids []string
 		uids []string
 	)
+
+	encFields := []string{"realname"}
+
 	for _, v := range data.D {
 		bids = append(bids, v.BID)
 		uids = append(uids, v.UID)
+
+		encFields = append(encFields, "bankcard"+v.BID)
 	}
 
 	bankcards, err := bankcardListDBByIDs(bids)
@@ -891,25 +897,35 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		return result, pushLog(err, helper.DBErr)
 	}
 
-	d1, err := grpc_t.DecryptAll(uids, true, []string{"realname"})
+	//fmt.Println("bids = ", bids)
+	//fmt.Println("uids = ", uids)
+
+	recs, err := grpc_t.DecryptAll(uids, true, encFields)
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return result, errors.New(helper.GetRPCErr)
 	}
 
-	d2, err := grpc_t.DecryptAll(bids, true, []string{"bankcard"})
-	if err != nil {
-		fmt.Println("grpc_t.Decrypt err = ", err)
-		return result, errors.New(helper.GetRPCErr)
-	}
+	/*
+		d1, err := grpc_t.DecryptAll(uids, true, []string{"realname"})
+		if err != nil {
+			fmt.Println("grpc_t.Decrypt err = ", err)
+			return result, errors.New(helper.GetRPCErr)
+		}
 
+		d2, err := grpc_t.DecryptAll(bids, true, []string{"bankcard"})
+		if err != nil {
+			fmt.Println("grpc_t.Decrypt err = ", err)
+			return result, errors.New(helper.GetRPCErr)
+		}
+	*/
 	// 处理返回前端的数据
 	for _, v := range data.D {
 		w := withdrawCols{
 			Withdraw:           v,
-			MemberBankNo:       d2[v.BID]["bankcard"],
-			MemberBankRealName: d1[v.UID]["realname"],
-			MemberRealName:     d1[v.UID]["realname"],
+			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
+			MemberBankRealName: recs[v.UID]["realname"],
+			MemberRealName:     recs[v.UID]["realname"],
 		}
 
 		card, ok := bankcards[v.BID]

@@ -132,6 +132,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	sdj := string(ctx.PostArgs().Peek("dj"))
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
+	sfc := string(ctx.PostArgs().Peek("fc"))
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 	agencyType := string(ctx.PostArgs().Peek("agency_type")) //391团队393普通
 	if len(maintainName) == 0 {
@@ -169,6 +170,11 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
+	fc, err := decimal.NewFromString(sfc)
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+
 	if !validator.CheckUName(name, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -201,6 +207,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		DJ: dj.StringFixed(1),
 		DZ: dz.StringFixed(1),
 		CP: cp.StringFixed(1),
+		FC: fc.StringFixed(1),
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
@@ -533,7 +540,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	zalo := string(ctx.PostArgs().Peek("zalo"))
 	address := string(ctx.PostArgs().Peek("address")) //收货地址
 	tagsID := string(ctx.PostArgs().Peek("tags_id"))
-	realname := string(ctx.PostArgs().Peek("real_name"))
+	realname := string(ctx.PostArgs().Peek("realname"))
 	username := string(ctx.PostArgs().Peek("username"))
 
 	if !validator.CheckUName(username, 5, 14) {
@@ -543,7 +550,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	param := map[string]string{}
 	if realname != "" {
-		if !validator.CheckStringVName(param["realname"]) {
+		if helper.CtypePunct(param["realname"]) {
 			helper.Print(ctx, false, helper.RealNameFMTErr)
 			return
 		}
@@ -570,7 +577,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if zalo != "" {
-		if !validator.IsVietnameseZalo(zalo) {
+		if !helper.CtypeDigit(zalo) {
 			helper.Print(ctx, false, helper.ZaloFMTErr)
 			return
 		}
@@ -579,12 +586,13 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if address != "" {
-		if len(strings.Split(address, "|")) != 4 {
+		ll := len(address)
+		if ll < 4 || ll > 50 {
 			helper.Print(ctx, false, helper.AddressFMTErr)
 			return
 		}
 
-		param["address"] = address
+		param["address"] = validator.FilterInjection(address)
 	}
 
 	var userTagsId []string
@@ -603,6 +611,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	//fmt.Println("param = ", param)
 	err = model.MemberUpdate(username, admin["id"], param, userTagsId)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -966,6 +975,8 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	sqp := string(ctx.PostArgs().Peek("qp"))
 	sdj := string(ctx.PostArgs().Peek("dj"))
 	sdz := string(ctx.PostArgs().Peek("dz"))
+	scp := string(ctx.PostArgs().Peek("cp"))
+	sfc := string(ctx.PostArgs().Peek("fc"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
@@ -1023,6 +1034,18 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	cp, err := decimal.NewFromString(scp) //下级会员彩票返水比例
+	if err != nil || cp.IsNegative() || cp.LessThan(MaxRebate.CP) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+		return
+	}
+
+	fc, err := decimal.NewFromString(sfc) //下级会员斗鸡返水比例
+	if err != nil || fc.IsNegative() || fc.LessThan(MaxRebate.FC) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+		return
+	}
+
 	if mb.ParentUid != "0" && mb.ParentUid != "" {
 		ParentRabte, err := model.MemberParentRebate(mb.ParentUid)
 		if err != nil {
@@ -1051,6 +1074,16 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		}
 		//大于上级电竞返水比例
 		if ParentRabte.DJ.LessThan(dj) {
+			helper.Print(ctx, false, helper.RebateOutOfRange)
+			return
+		}
+		//大于上级彩票返水比例
+		if ParentRabte.CP.LessThan(cp) {
+			helper.Print(ctx, false, helper.RebateOutOfRange)
+			return
+		}
+		//大于上级斗鸡返水比例
+		if ParentRabte.FC.LessThan(fc) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
@@ -1083,6 +1116,8 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		QP: qp.StringFixed(1),
 		DJ: dj.StringFixed(1),
 		DZ: dz.StringFixed(1),
+		FC: fc.StringFixed(1),
+		CP: cp.StringFixed(1),
 	}
 
 	// 更新代理

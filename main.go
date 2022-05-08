@@ -45,9 +45,6 @@ func main() {
 	mt.EsPrefix = cfg.EsPrefix
 	mt.PullPrefix = cfg.PullPrefix
 	mt.AutoCommission = cfg.AutoCommission
-	mt.MinioUploadUrl = cfg.Minio.UploadURL
-	mt.MinioImagesBucket = cfg.Minio.ImagesBucket
-	mt.MinioJsonBucket = cfg.Minio.JSONBucket
 	mt.Zlog = conn.InitFluentd(cfg.Zlog.Host, cfg.Zlog.Port)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Master.Addr, cfg.Db.Master.MaxIdleConn, cfg.Db.Master.MaxOpenConn)
 	mt.ReportDB = conn.InitDB(cfg.Db.Report.Addr, cfg.Db.Report.MaxIdleConn, cfg.Db.Report.MaxOpenConn)
@@ -57,6 +54,8 @@ func main() {
 	mt.BeanBetPool = conn.InitBeanstalk(cfg.BeanBet.Addr, 15, cfg.BeanBet.MaxIdle, cfg.BeanBet.MaxCap)
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
 	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
+
+	mt.GcsDoamin = cfg.GcsDoamin
 	//mt.NatsConn = conn.InitNatsIO(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	model.Constructor(mt, cfg.RPC)
