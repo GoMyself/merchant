@@ -131,7 +131,7 @@ type MemberRebateResult_t struct {
 	FC decimal.Decimal
 }
 
-func MemberInsert(username, password, remark, maintainName, groupName, agencyType, planID string, createdAt uint32, mr MemberRebate) error {
+func MemberInsert(username, password, remark, maintainName, groupName, agencyType string, createdAt uint32, mr MemberRebate) error {
 
 	userName := strings.ToLower(username)
 	if MemberExist(userName) {
@@ -198,20 +198,6 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(fmt.Errorf("sql : %s, error : %s", treeNode, err.Error()), helper.DBErr)
-	}
-
-	// 维护佣金方案
-	recd := g.Record{
-		"id":      helper.GenId(),
-		"uid":     uid,
-		"plan_id": planID,
-		"prefix":  meta.Prefix,
-	}
-	query, _, _ = dialect.Insert("tbl_commission_conf").Rows(recd).ToSQL()
-	_, err = tx.Exec(query)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
 	}
 
 	err = tx.Commit()
