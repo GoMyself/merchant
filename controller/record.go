@@ -159,13 +159,13 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		// 佣金钱包账变
 		if types != "" {
 			cashTypes := strings.Split(types, ",")
-			for _, v := range cashTypes {
-				v, err := strconv.Atoi(v)
-				if err != nil || v < model.COTransactionReceive || v > model.COTransactionRation {
-					helper.Print(ctx, false, helper.CashTypeErr)
-					return
-				}
-			}
+			//for _, v := range cashTypes {
+			//	v, err := strconv.Atoi(v)
+			//	if err != nil || v < model.COTransactionReceive || v > model.COTransactionRation {
+			//		helper.Print(ctx, false, helper.CashTypeErr)
+			//		return
+			//	}
+			//}
 
 			if len(cashTypes) > 0 {
 				ex["cash_type"] = types
