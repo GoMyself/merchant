@@ -427,7 +427,7 @@ func (that *RecordController) Game(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
 	}
 
 	// 校验username
