@@ -133,7 +133,6 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
-	planID := string(ctx.PostArgs().Peek("plan_id"))
 	agencyType := string(ctx.PostArgs().Peek("agency_type")) //391团队393普通
 	if len(maintainName) == 0 {
 		maintainName = ""
@@ -211,20 +210,8 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
-	if !validator.CheckStringDigit(planID) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	// 检测佣金方案是否存在
-	_, err = model.CommissionPlanFind(g.Ex{"id": planID})
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
 	// 添加下级代理
-	err = model.MemberInsert(name, password, remark, maintainName, groupName, agencyType, planID, createdAt, mr)
+	err = model.MemberInsert(name, password, remark, maintainName, groupName, agencyType, createdAt, mr)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

@@ -108,8 +108,11 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 		return errors.New(helper.UpdateRPCErr)
 	}
 
-	err = meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
-	fmt.Println("BankcardInsert CF.ADD = ", err)
+	meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
+
+	BankcardUpdateCache(data.Username)
+
+	//fmt.Println("BankcardInsert CF.ADD = ", err)
 
 	return nil
 }
@@ -118,10 +121,14 @@ func BankCardFindOne(ex g.Ex) (BankCard, error) {
 
 	data := BankCard{}
 	ex["prefix"] = meta.Prefix
+
 	t := dialect.From("tbl_member_bankcard")
-	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("state").Asc()).Limit(1).ToSQL()
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil && err != sql.ErrNoRows {
+		fmt.Println("BankCardFindOne query = ", query)
+		fmt.Println("BankCardFindOne err = ", err)
+
 		return data, pushLog(err, helper.DBErr)
 	}
 
@@ -282,7 +289,45 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 		return errors.New(helper.DBErr)
 	}
 
+	BankcardUpdateCache(data.Username)
+
 	return nil
+}
+
+func BankcardUpdateCache(username string) {
+
+	var data []BankCard
+
+	ex := g.Ex{
+		"prefix":   meta.Prefix,
+		"username": username,
+		"state":    "1",
+	}
+
+	t := dialect.From("tbl_member_bankcard")
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println("BankcardUpdateCache err = ", err)
+		return
+	}
+
+	key := "cbc:" + username
+
+	pipe := meta.MerchantRedis.Pipeline()
+	pipe.Del(ctx, key)
+	if len(data) > 0 {
+
+		value, err := helper.JsonMarshal(data)
+		if err == nil {
+			pipe.Set(ctx, key, string(value), 0).Err()
+			//fmt.Println("JSON.SET err = ", err)
+		}
+	}
+
+	pipe.Exec(ctx)
+	pipe.Close()
 }
 
 func BankcardDelete(bid string, adminUID, adminName string) error {
@@ -362,10 +407,18 @@ func BankcardDelete(bid string, adminUID, adminName string) error {
 	}
 
 	pipe := meta.MerchantRedis.Pipeline()
+
+	//pipe.Do(ctx, "JSON.DEL", key, path)
 	pipe.Do(ctx, "CF.DEL", "bankcard_exist", encRes["enckey"])
 	pipe.Do(ctx, "CF.ADD", "bankcard_blacklist", encRes["enckey"])
 	pipe.Exec(ctx)
 	pipe.Close()
 
+	//key := "cbc:" + data.Username
+	//path := fmt.Sprintf(".$%s", data.ID)
+
+	//meta.MerchantRedis.Do(ctx, "JSON.DEL", key, path).Err()
+
+	BankcardUpdateCache(data.Username)
 	return nil
 }
