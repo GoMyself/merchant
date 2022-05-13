@@ -22,7 +22,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	}
 
 	// 判断会员银行卡数目
-	if mb.BankcardTotal >= 3 {
+	if mb.BankcardTotal >= 5 {
 		return errors.New(helper.MaxThreeBankCard)
 	}
 
@@ -32,10 +32,10 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 		return err
 	}
 
-	member_ex := g.Ex{
+	memberEx := g.Ex{
 		"uid": mb.UID,
 	}
-	member_record := g.Record{
+	memberRecord := g.Record{
 		"bankcard_total": g.L("bankcard_total+1"),
 	}
 	// 会员未绑定真实姓名，更新第一次绑定银行卡的真实姓名到会员信息
@@ -47,10 +47,10 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 
 		encRes = append(encRes, []string{"realname", realName})
 		// 会员信息更新真实姓名和真实姓名hash
-		member_record["realname_hash"] = fmt.Sprintf("%d", MurmurHash(realName, 0))
+		memberRecord["realname_hash"] = fmt.Sprintf("%d", MurmurHash(realName, 0))
 	}
 
-	bankcard_record := g.Record{
+	bankcardRecord := g.Record{
 		"id":               data.ID,
 		"uid":              mb.UID,
 		"prefix":           meta.Prefix,
@@ -80,7 +80,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	}
 
 	// 更新会员银行卡信息
-	queryInsert, _, _ := dialect.Insert("tbl_member_bankcard").Rows(bankcard_record).ToSQL()
+	queryInsert, _, _ := dialect.Insert("tbl_member_bankcard").Rows(bankcardRecord).ToSQL()
 	_, err = tx.Exec(queryInsert)
 	if err != nil {
 		_ = tx.Rollback()
@@ -89,7 +89,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	}
 
 	// 更新会员信息
-	queryUpdate, _, _ := dialect.Update("tbl_members").Set(member_record).Where(member_ex).ToSQL()
+	queryUpdate, _, _ := dialect.Update("tbl_members").Set(memberRecord).Where(memberEx).ToSQL()
 	_, err = tx.Exec(queryUpdate)
 	if err != nil {
 		_ = tx.Rollback()
