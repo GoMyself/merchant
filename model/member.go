@@ -939,6 +939,14 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		record["address"] = param["address"]
 	}
 
+	if _, ok := param["birth"]; ok {
+		record["birth"] = param["birth"]
+	}
+
+	if _, ok := param["birth_hash"]; ok {
+		record["birth_hash"] = param["birth_hash"]
+	}
+
 	tags := map[string]string{}
 	if len(tagsId) > 0 {
 
