@@ -522,13 +522,14 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 // 修改会员信息
 func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
+	tagsID := string(ctx.PostArgs().Peek("tags_id"))
+	realname := string(ctx.PostArgs().Peek("realname"))
+	username := string(ctx.PostArgs().Peek("username"))
+	birth := string(ctx.PostArgs().Peek("birth"))
 	phone := string(ctx.PostArgs().Peek("phone"))
 	email := string(ctx.PostArgs().Peek("email"))
 	zalo := string(ctx.PostArgs().Peek("zalo"))
 	address := string(ctx.PostArgs().Peek("address")) //收货地址
-	tagsID := string(ctx.PostArgs().Peek("tags_id"))
-	realname := string(ctx.PostArgs().Peek("realname"))
-	username := string(ctx.PostArgs().Peek("username"))
 
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
@@ -536,6 +537,17 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	param := map[string]string{}
+	if birth != "" {
+		t, err := time.Parse("2006-01-02", birth)
+		if err != nil {
+			helper.Print(ctx, false, helper.TimeTypeErr)
+			return
+		}
+
+		param["birth"] = fmt.Sprintf("%d", t.Unix())
+		param["birth_hash"] = fmt.Sprintf("%d", model.MurmurHash(birth, 0))
+	}
+
 	if realname != "" {
 		if helper.CtypePunct(param["realname"]) {
 			helper.Print(ctx, false, helper.RealNameFMTErr)

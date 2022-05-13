@@ -23,6 +23,8 @@ type Member struct {
 	UID                string `db:"uid" json:"uid"`
 	Username           string `db:"username" json:"username"`                         //会员名
 	Password           string `db:"password" json:"password"`                         //密码
+	Birth              string `db:"birth" json:"birth"`                               //生日日期
+	BirthHash          string `db:"birth_hash" json:"birth_hash"`                     //生日日期哈希
 	RealnameHash       string `db:"realname_hash" json:"realname_hash"`               //真实姓名哈希
 	EmailHash          string `db:"email_hash" json:"email_hash"`                     //邮件地址哈希
 	PhoneHash          string `db:"phone_hash" json:"phone_hash"`                     //电话号码哈希
