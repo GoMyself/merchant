@@ -20,45 +20,47 @@ type MemberPageData struct {
 }
 
 type Member struct {
-	UID                 string `db:"uid" json:"uid"`
-	Username            string `db:"username" json:"username"`                           //会员名
-	Password            string `db:"password" json:"password"`                           //密码
-	RealnameHash        string `db:"realname_hash" json:"realname_hash"`                 //真实姓名哈希
-	EmailHash           string `db:"email_hash" json:"email_hash"`                       //邮件地址哈希
-	PhoneHash           string `db:"phone_hash" json:"phone_hash"`                       //电话号码哈希
-	ZaloHash            string `db:"zalo_hash" json:"zalo_hash"`                         //zalo哈希
-	Prefix              string `db:"prefix" json:"prefix"`                               //站点前缀
-	WithdrawPwd         uint64 `db:"withdraw_pwd" json:"withdraw_pwd"`                   //取款密码哈希
-	Regip               string `db:"regip" json:"regip"`                                 //注册IP
-	RegUrl              string `db:"reg_url" json:"reg_url"`                             //注册域名
-	RegDevice           string `db:"reg_device" json:"reg_device"`                       //注册设备号
-	CreatedAt           uint32 `db:"created_at" json:"created_at"`                       //注册时间
-	LastLoginIp         string `db:"last_login_ip" json:"last_login_ip"`                 //最后登陆ip
-	LastLoginAt         uint32 `db:"last_login_at" json:"last_login_at"`                 //最后登陆时间
-	SourceId            uint8  `db:"source_id" json:"source_id"`                         //注册来源 1 pc 2h5 3 app
-	FirstDepositAt      uint32 `db:"first_deposit_at" json:"first_deposit_at"`           //首充时间
-	FirstDepositAmount  string `db:"first_deposit_amount" json:"first_deposit_amount"`   //首充金额
+	UID                string `db:"uid" json:"uid"`
+	Username           string `db:"username" json:"username"`                         //会员名
+	Password           string `db:"password" json:"password"`                         //密码
+	Birth              string `db:"birth" json:"birth"`                               //生日日期
+	BirthHash          string `db:"birth_hash" json:"birth_hash"`                     //生日日期哈希
+	RealnameHash       string `db:"realname_hash" json:"realname_hash"`               //真实姓名哈希
+	EmailHash          string `db:"email_hash" json:"email_hash"`                     //邮件地址哈希
+	PhoneHash          string `db:"phone_hash" json:"phone_hash"`                     //电话号码哈希
+	ZaloHash           string `db:"zalo_hash" json:"zalo_hash"`                       //zalo哈希
+	Prefix             string `db:"prefix" json:"prefix"`                             //站点前缀
+	WithdrawPwd        uint64 `db:"withdraw_pwd" json:"withdraw_pwd"`                 //取款密码哈希
+	Regip              string `db:"regip" json:"regip"`                               //注册IP
+	RegUrl             string `db:"reg_url" json:"reg_url"`                           //注册域名
+	RegDevice          string `db:"reg_device" json:"reg_device"`                     //注册设备号
+	CreatedAt          uint32 `db:"created_at" json:"created_at"`                     //注册时间
+	LastLoginIp        string `db:"last_login_ip" json:"last_login_ip"`               //最后登陆ip
+	LastLoginAt        uint32 `db:"last_login_at" json:"last_login_at"`               //最后登陆时间
+	SourceId           uint8  `db:"source_id" json:"source_id"`                       //注册来源 1 pc 2h5 3 app
+	FirstDepositAt     uint32 `db:"first_deposit_at" json:"first_deposit_at"`         //首充时间
+	FirstDepositAmount string `db:"first_deposit_amount" json:"first_deposit_amount"` //首充金额
 	SecondDepositAt     uint32 `db:"second_deposit_at" json:"second_deposit_at"`         //二存时间
 	SecondDepositAmount string `db:"second_deposit_amount" json:"second_deposit_amount"` //二充金额
-	FirstBetAt          uint32 `db:"first_bet_at" json:"first_bet_at"`                   //首投时间
-	FirstBetAmount      string `db:"first_bet_amount" json:"first_bet_amount"`           //首投金额
-	TopUid              string `db:"top_uid" json:"top_uid"`                             //总代uid
-	TopName             string `db:"top_name" json:"top_name"`                           //总代代理
-	ParentUid           string `db:"parent_uid" json:"parent_uid"`                       //上级uid
-	ParentName          string `db:"parent_name" json:"parent_name"`                     //上级代理
-	BankcardTotal       uint8  `db:"bankcard_total" json:"bankcard_total"`               //用户绑定银行卡的数量
-	LastLoginDevice     string `db:"last_login_device" json:"last_login_device"`         //最后登陆设备
-	LastLoginSource     uint8  `db:"last_login_source" json:"last_login_source"`         //上次登录设备来源:1=pc,2=h5,3=ios,4=andriod
-	Remarks             string `db:"remarks" json:"remarks"`                             //备注
-	State               uint8  `db:"state" json:"state"`                                 //状态 1正常 2禁用
-	Level               int    `db:"level" json:"level" redis:"level"`                   //等级
-	Balance             string `db:"balance" json:"balance"`                             //余额
-	LockAmount          string `db:"lock_amount" json:"lock_amount"`                     //锁定金额
-	Commission          string `db:"commission" json:"commission"`                       //佣金
-	MaintainName        string `db:"maintain_name" json:"maintain_name"`                 //维护人
-	GroupName           string `db:"group_name" json:"group_name"`                       //团队名称
-	AgencyType          int64  `db:"agency_type" json:"agency_type"`                     //391团队代理 393普通代理
-	Address             string `db:"address" json:"address"`                             //收货地址
+	FirstBetAt         uint32 `db:"first_bet_at" json:"first_bet_at"`                 //首投时间
+	FirstBetAmount     string `db:"first_bet_amount" json:"first_bet_amount"`         //首投金额
+	TopUid             string `db:"top_uid" json:"top_uid"`                           //总代uid
+	TopName            string `db:"top_name" json:"top_name"`                         //总代代理
+	ParentUid          string `db:"parent_uid" json:"parent_uid"`                     //上级uid
+	ParentName         string `db:"parent_name" json:"parent_name"`                   //上级代理
+	BankcardTotal      uint8  `db:"bankcard_total" json:"bankcard_total"`             //用户绑定银行卡的数量
+	LastLoginDevice    string `db:"last_login_device" json:"last_login_device"`       //最后登陆设备
+	LastLoginSource    uint8  `db:"last_login_source" json:"last_login_source"`       //上次登录设备来源:1=pc,2=h5,3=ios,4=andriod
+	Remarks            string `db:"remarks" json:"remarks"`                           //备注
+	State              uint8  `db:"state" json:"state"`                               //状态 1正常 2禁用
+	Level              int    `db:"level" json:"level" redis:"level"`                 //等级
+	Balance            string `db:"balance" json:"balance"`                           //余额
+	LockAmount         string `db:"lock_amount" json:"lock_amount"`                   //锁定金额
+	Commission         string `db:"commission" json:"commission"`                     //佣金
+	MaintainName       string `db:"maintain_name" json:"maintain_name"`               //维护人
+	GroupName          string `db:"group_name" json:"group_name"`                     //团队名称
+	AgencyType         int64  `db:"agency_type" json:"agency_type"`                   //391团队代理 393普通代理
+	Address            string `db:"address" json:"address"`                           //收货地址
 }
 
 // MemberPlatform 会员场馆表
