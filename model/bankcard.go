@@ -108,8 +108,28 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 		return errors.New(helper.UpdateRPCErr)
 	}
 
-	err = meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
-	fmt.Println("BankcardInsert CF.ADD = ", err)
+	data, err = BankCardFindOne(g.Ex{"id": data.ID})
+	if err != nil {
+		return err
+	}
+
+	value, err := helper.JsonMarshal(data)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	key := "cbc:" + data.Username
+	path := fmt.Sprintf(".$%s", data.ID)
+
+	pipe := meta.MerchantRedis.Pipeline()
+	pipe.Do(ctx, "JSON.SET", key, path, string(value))
+	pipe.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo)
+
+	pipe.Exec(ctx)
+	pipe.Close()
+
+	//fmt.Println("BankcardInsert CF.ADD = ", err)
 
 	return nil
 }
@@ -282,6 +302,22 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 		return errors.New(helper.DBErr)
 	}
 
+	data, err = BankCardFindOne(g.Ex{"id": bid})
+	if err != nil {
+		return err
+	}
+
+	value, err := helper.JsonMarshal(data)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	key := "cbc:" + data.Username
+	path := fmt.Sprintf(".$%s", data.ID)
+
+	meta.MerchantRedis.Do(ctx, "JSON.SET", key, path, string(value)).Err()
+
 	return nil
 }
 
@@ -361,7 +397,12 @@ func BankcardDelete(bid string, adminUID, adminName string) error {
 		return errors.New(helper.DBErr)
 	}
 
+	key := "cbc:" + data.Username
+	path := fmt.Sprintf(".$%s", data.ID)
+
 	pipe := meta.MerchantRedis.Pipeline()
+
+	pipe.Do(ctx, "JSON.DEL", key, path)
 	pipe.Do(ctx, "CF.DEL", "bankcard_exist", encRes["enckey"])
 	pipe.Do(ctx, "CF.ADD", "bankcard_blacklist", encRes["enckey"])
 	pipe.Exec(ctx)
