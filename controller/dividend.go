@@ -13,7 +13,7 @@ import (
 )
 
 type dividendInsertParam struct {
-	Username      string `rule:"alnum" name:"username" min:"4" max:"9" msg:"username error"`
+	Username      string `rule:"alnum" name:"username" min:"5" max:"14" msg:"username error"`
 	Wallet        int    `rule:"digit" name:"wallet" min:"1" max:"2" msg:"wallet error"`
 	Ty            int    `rule:"digit" name:"ty" min:"211" max:"222"  msg:"ty error"`
 	WaterLimit    uint8  `rule:"digit" name:"water_limit" min:"1" max:"2"  msg:"water_limit error"`
