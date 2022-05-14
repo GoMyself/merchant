@@ -1242,7 +1242,7 @@ func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) err
 
 func MemberHistory(id, field string, encrypt bool) ([]string, error) {
 
-	history, err := grpc_t.View(id, field, true)
+	history, err := grpc_t.View(id, field, encrypt)
 	if err != nil {
 		fmt.Println("grpc_t.View err = ", err)
 		return nil, err

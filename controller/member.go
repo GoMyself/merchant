@@ -957,8 +957,8 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	fmt.Println("grpc_t.Decrypt data = ", data)
-	fmt.Println("grpc_t.Decrypt field = ", field)
+	//fmt.Println("grpc_t.Decrypt data = ", data)
+	//fmt.Println("grpc_t.Decrypt field = ", field)
 
 	helper.Print(ctx, true, data[field])
 }
