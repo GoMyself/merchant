@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"strconv"
@@ -1024,5 +1025,38 @@ func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex, parentN
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
+	return data, nil
+}
+
+func RecordOrder(page, pageSize int, ex g.Ex) (OrderData, error) {
+
+	data := OrderData{}
+	ex["prefix"] = meta.Prefix
+	t := dialect.From("tbl_vncp_orders")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(g.C("username"), g.C("pay_amount"), g.C("bonus").As("bonus")).Where(ex).
+		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	for i := 0; i < len(data.D); i++ {
+		pay, _ := decimal.NewFromString(data.D[i].PayAmount)
+		bonus, _ := decimal.NewFromString(data.D[i].Bonus)
+		data.D[i].NetAmount = bonus.Sub(pay).StringFixed(4)
+	}
 	return data, nil
 }

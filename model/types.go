@@ -1110,3 +1110,16 @@ type smsData struct {
 	T int64    `json:"t"`
 	D []smsLog `json:"d"`
 }
+
+type VncpOrder struct {
+	Username  string `json:"username" db:"username"`     //用户名
+	PayAmount string `json:"pay_amount" db:"pay_amount"` //跟注金额
+	Bonus     string `json:"bonus" db:"bonus"`           //奖金
+	NetAmount string `json:"net_amount" db:"net_amount"` //输赢
+}
+
+// 注单数据
+type OrderData struct {
+	T int64       `json:"t"`
+	D []VncpOrder `json:"d"`
+}
