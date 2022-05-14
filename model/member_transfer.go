@@ -44,6 +44,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		"parent_name": destMb.Username,
 		"top_uid":     destMb.TopUid,
 		"top_name":    destMb.TopName,
+		"tester":      destMb.Tester,
 	}
 	query, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
 	_, err = tx.Exec(query)
@@ -212,6 +213,7 @@ func MemberTransferInsert(mb, destMb Member, admin map[string]string, remark str
 		"before_name":   mb.ParentName,     //转代前上级代理名
 		"after_uid":     destMb.UID,        //转代后上级代理uid
 		"after_name":    destMb.Username,   //转代后上级代理名
+		"tester":        destMb.Tester,     //转代后继承新上级测试状态
 		"status":        1,                 //状态 1审核中 2审核通过 3审核拒绝 4删除
 		"apply_at":      time.Now().Unix(), //添加时间
 		"apply_uid":     admin["id"],       //添加人uid
