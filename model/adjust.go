@@ -242,19 +242,53 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 
 			// 存款成功发送到队列
 
-			param := map[string]interface{}{
-				"bean_ty":            "4",
-				"username":           username,
-				"amount":             money.String(),
-				"deposit_created_at": now,
-				"deposit_success_at": now,
-			}
-
-			_, err = BeanPut("promo", param, 0)
+			//param := map[string]interface{}{
+			//	"bean_ty":            "4",
+			//	"username":           username,
+			//	"amount":             money.String(),
+			//	"deposit_created_at": now,
+			//	"deposit_success_at": now,
+			//}
+			//
+			//_, err = BeanPut("promo", param, 0)
+			//if err != nil {
+			//	fmt.Println("user invite BeanPut err:", err.Error())
+			//}
+			member, err := MemberFindOne(username)
 			if err != nil {
-				fmt.Println("user invite BeanPut err:", err.Error())
-			}
+				if member.FirstDepositAt == 0 {
+					rec := g.Record{
+						"first_deposit_at":     now,
+						"first_deposit_amount": money,
+					}
+					ex := g.Ex{
+						"uid": member.UID,
+					}
+					query, _, _ := dialect.Update("tbl_members").Set(rec).Where(ex).ToSQL()
+					fmt.Printf("memberFirstDeposit Update: %v\n", query)
 
+					_, err := meta.MerchantDB.Exec(query)
+					if err != nil {
+						fmt.Println("update member first_amount err:", err.Error())
+					}
+				} else if member.SecondDepositAt == 0 {
+					rec := g.Record{
+						"second_deposit_at":     now,
+						"second_deposit_amount": money,
+					}
+					ex := g.Ex{
+						"uid": member.UID,
+					}
+					query, _, _ := dialect.Update("tbl_members").Set(rec).Where(ex).ToSQL()
+					fmt.Printf("memberSecondDeposit Update: %v\n", query)
+
+					_, err := meta.MerchantDB.Exec(query)
+					if err != nil {
+						fmt.Println("update member second_amount err:", err.Error())
+					}
+				}
+
+			}
 		}
 
 		// 中心钱包上分

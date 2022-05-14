@@ -40,6 +40,8 @@ type Member struct {
 	SourceId           uint8  `db:"source_id" json:"source_id"`                       //注册来源 1 pc 2h5 3 app
 	FirstDepositAt     uint32 `db:"first_deposit_at" json:"first_deposit_at"`         //首充时间
 	FirstDepositAmount string `db:"first_deposit_amount" json:"first_deposit_amount"` //首充金额
+	SecondDepositAt     uint32 `db:"second_deposit_at" json:"second_deposit_at"`         //二存时间
+	SecondDepositAmount string `db:"second_deposit_amount" json:"second_deposit_amount"` //二充金额
 	FirstBetAt         uint32 `db:"first_bet_at" json:"first_bet_at"`                 //首投时间
 	FirstBetAmount     string `db:"first_bet_amount" json:"first_bet_amount"`         //首投金额
 	TopUid             string `db:"top_uid" json:"top_uid"`                           //总代uid
