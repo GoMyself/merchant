@@ -114,13 +114,16 @@ func (that *PlatformController) Update(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		if maintainedStart == "" || maintainedEnd == "" {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
+		if maintained == 2 {
+			if maintainedStart == "" || maintainedEnd == "" {
+				helper.Print(ctx, false, helper.ParamErr)
+				return
+			}
+
+			record["maintained"] = maintained
+			record["maintained_start"] = maintainedStart
 		}
 
-		record["maintained"] = maintained
-		record["maintained_start"] = maintainedStart
 		record["maintained_end"] = maintainedEnd
 	}
 
