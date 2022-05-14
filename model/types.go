@@ -30,6 +30,7 @@ type Member struct {
 	PhoneHash           string `db:"phone_hash" json:"phone_hash"`                       //电话号码哈希
 	ZaloHash            string `db:"zalo_hash" json:"zalo_hash"`                         //zalo哈希
 	Prefix              string `db:"prefix" json:"prefix"`                               //站点前缀
+	Tester              string `db:"tester" json:"tester"`                               //1正式 0测试
 	WithdrawPwd         uint64 `db:"withdraw_pwd" json:"withdraw_pwd"`                   //取款密码哈希
 	Regip               string `db:"regip" json:"regip"`                                 //注册IP
 	RegUrl              string `db:"reg_url" json:"reg_url"`                             //注册域名
@@ -147,13 +148,6 @@ type CommissionTransfer struct {
 	ReviewName   string `json:"review_name" db:"review_name"`     //审核人名
 	ReviewRemark string `json:"review_remark" db:"review_remark"` //审核备注
 	Prefix       string `json:"prefix" db:"prefix"`
-}
-
-type VncpOrder struct {
-	Username  string `json:"username" db:"username"`     //用户名
-	PayAmount string `json:"pay_amount" db:"pay_amount"` //跟注金额
-	Bonus     string `json:"bonus" db:"bonus"`           //奖金
-	NetAmount string `json:"net_amount" db:"net_amount"` //输赢
 }
 
 type MemberLoginLogData struct {
@@ -902,12 +896,6 @@ type RebateData struct {
 	T   int64                `json:"t"`
 	D   []CommissionTransfer `json:"d"`
 	Agg map[string]string    `json:"agg"`
-}
-
-// 注单数据
-type OrderData struct {
-	T int64       `json:"t"`
-	D []VncpOrder `json:"d"`
 }
 
 // 代理团队转代
