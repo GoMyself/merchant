@@ -131,7 +131,7 @@ type MemberRebateResult_t struct {
 	FC decimal.Decimal
 }
 
-func MemberInsert(username, password, remark, maintainName, groupName, agencyType string, createdAt uint32, mr MemberRebate) error {
+func MemberInsert(username, password, remark, maintainName, groupName, agencyType, tester string, createdAt uint32, mr MemberRebate) error {
 
 	userName := strings.ToLower(username)
 	if MemberExist(userName) {
@@ -149,6 +149,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		Username:           userName,
 		Password:           fmt.Sprintf("%d", MurmurHash(password, createdAt)),
 		Prefix:             meta.Prefix,
+		Birth:              "0",
+		BirthHash:          "0",
 		State:              1,
 		CreatedAt:          createdAt,
 		LastLoginIp:        "",
@@ -172,6 +174,7 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		PhoneHash:          "0",
 		ZaloHash:           "0",
 		Level:              1,
+		Tester:             tester,
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务

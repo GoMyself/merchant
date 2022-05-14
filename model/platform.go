@@ -10,16 +10,18 @@ import (
 )
 
 type Platform struct {
-	ID         string `db:"id" json:"id"`
-	Name       string `db:"name" json:"name"`
-	Prefix     string `db:"prefix" json:"prefix"`
-	GameType   int    `db:"game_type" json:"game_type"`
-	Flags      int    `db:"flags" json:"flags"`
-	State      int    `db:"state" json:"state"`
-	Maintained int    `db:"maintained" json:"maintained"`
-	Seq        int    `db:"seq" json:"seq"`
-	CreatedAt  int32  `db:"created_at" json:"created_at"`
-	UpdatedAt  int32  `db:"updated_at" json:"updated_at"`
+	ID              string `db:"id" json:"id"`
+	Name            string `db:"name" json:"name"`
+	Prefix          string `db:"prefix" json:"prefix"`
+	GameType        int    `db:"game_type" json:"game_type"`
+	Flags           int    `db:"flags" json:"flags"`
+	State           int    `db:"state" json:"state"`
+	Maintained      int    `db:"maintained" json:"maintained"`
+	MaintainedStart string `db:"maintained_start" json:"maintained_start"`
+	MaintainedEnd   string `db:"maintained_end" json:"maintained_end"`
+	Seq             int    `db:"seq" json:"seq"`
+	CreatedAt       int32  `db:"created_at" json:"created_at"`
+	UpdatedAt       int32  `db:"updated_at" json:"updated_at"`
 }
 
 type platJson struct {

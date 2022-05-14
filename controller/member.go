@@ -125,7 +125,9 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	password := string(ctx.PostArgs().Peek("password"))
 	maintainName := string(ctx.PostArgs().Peek("maintain_name"))
 	groupName := string(ctx.PostArgs().Peek("group_name"))
+	agencyType := string(ctx.PostArgs().Peek("agency_type")) //391团队393普通
 	remark := string(ctx.PostArgs().Peek("remark"))
+	tester := string(ctx.PostArgs().Peek("tester"))
 	sty := string(ctx.PostArgs().Peek("ty"))
 	szr := string(ctx.PostArgs().Peek("zr"))
 	sqp := string(ctx.PostArgs().Peek("qp"))
@@ -133,7 +135,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
-	agencyType := string(ctx.PostArgs().Peek("agency_type")) //391团队393普通
+
 	if len(maintainName) == 0 {
 		maintainName = ""
 	}
@@ -199,6 +201,14 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if tester == "" {
+		tester = "1"
+	}
+	if tester != "0" && tester != "1" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
 	mr := model.MemberRebate{
 		TY: ty.StringFixed(1),
 		ZR: zr.StringFixed(1),
@@ -211,7 +221,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	createdAt := uint32(ctx.Time().Unix())
 
 	// 添加下级代理
-	err = model.MemberInsert(name, password, remark, maintainName, groupName, agencyType, createdAt, mr)
+	err = model.MemberInsert(name, password, remark, maintainName, groupName, agencyType, tester, createdAt, mr)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
