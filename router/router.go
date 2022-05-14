@@ -221,6 +221,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/agency/record/withdraw", recordCtl.Withdraw)
 	//代理管理-团队管理-操作记录
 	post("/merchant/agency/record/group", recordCtl.Group)
+	//聊天室-随机计划-查看统计-明细
+	get("/merchant/game/plan/list", recordCtl.Order)
 	//用户VIP配置
 	get("/merchant/vip/list", levelCtl.List)
 	//用户VIP设置

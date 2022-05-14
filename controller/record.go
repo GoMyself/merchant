@@ -64,6 +64,12 @@ type rebateParam struct {
 	PageSize   int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
 }
 
+type orderParam struct {
+	Id       string `rule:"none" name:"id"`
+	Page     int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+}
+
 type adjustRecordParam struct {
 	Username   string `rule:"none" name:"username"`                                                         // 下级账号
 	ParentName string `rule:"none" name:"parent_name"`                                                      //
@@ -820,6 +826,33 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 	}
 
 	data, err := model.RecordGroup(param.Page, param.PageSize, param.StartTime, param.EndTime, ex, param.ParentName)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *RecordController) Order(ctx *fasthttp.RequestCtx) {
+
+	param := orderParam{}
+	err := validator.Bind(ctx, &param)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	ex := g.Ex{}
+
+	if param.Id == "" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	ex["plan_id"] = param.Id
+
+	data, err := model.RecordOrder(param.Page, param.PageSize, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
