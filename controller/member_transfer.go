@@ -69,6 +69,11 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if mb.Tester == "0" || destMb.Tester == "0" {
+		helper.Print(ctx, false, helper.AgentNameErr)
+		return
+	}
+
 	err = transferRebateRateCheck(mb, destMb)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -212,6 +217,11 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 
 	destMb, err := model.MemberFindOne(destName)
 	if err != nil {
+		helper.Print(ctx, false, helper.AgentNameErr)
+		return
+	}
+
+	if mb.Tester == "0" || destMb.Tester == "0" {
 		helper.Print(ctx, false, helper.AgentNameErr)
 		return
 	}
