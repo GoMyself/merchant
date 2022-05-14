@@ -149,6 +149,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		Username:           userName,
 		Password:           fmt.Sprintf("%d", MurmurHash(password, createdAt)),
 		Prefix:             meta.Prefix,
+		Birth:              "0",
+		BirthHash:          "0",
 		State:              1,
 		CreatedAt:          createdAt,
 		LastLoginIp:        "",
