@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
-	"time"
 
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/valyala/fasthttp"
 )
 
 func BankcardInsert(realName, bankcardNo string, data BankCard) error {
@@ -330,7 +330,12 @@ func BankcardUpdateCache(username string) {
 	pipe.Close()
 }
 
-func BankcardDelete(bid string, adminUID, adminName string) error {
+func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
+
+	user, err := AdminToken(fctx)
+	if err != nil {
+		return errors.New(helper.AccessTokenExpires)
+	}
 
 	ex := g.Ex{
 		"id": bid,
@@ -386,15 +391,15 @@ func BankcardDelete(bid string, adminUID, adminName string) error {
 	// 会员删除银行卡，加入黑名单
 
 	bankcard_blacklist_record := g.Record{
-		"id":               helper.GenId(),
-		"prefix":           meta.Prefix,
-		"bank_card_no":     encRes[enckey],
-		"bank_branch_name": data.BankBranch,
-		"bank_address":     data.BankAddress,
-		"bank_id":          data.BankID,
-		"created_at":       time.Now().Unix(),
+		"id":           helper.GenId(),
+		"prefix":       meta.Prefix,
+		"value":        encRes[enckey],
+		"remark":       "",
+		"created_at":   fctx.Time().In(loc).Unix(),
+		"created_uid":  user["id"],
+		"created_name": user["name"],
 	}
-	query, _, _ = dialect.Insert("tbl_member_bankcard_blacklist").Rows(bankcard_blacklist_record).ToSQL()
+	query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()

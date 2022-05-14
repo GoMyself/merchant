@@ -124,14 +124,8 @@ func (that *BankcardController) Delete(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	// 删除银行卡
-	err = model.BankcardDelete(bid, admin["id"], admin["name"])
+	err := model.BankcardDelete(ctx, bid)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

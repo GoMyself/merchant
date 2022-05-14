@@ -7,11 +7,11 @@ import (
 	"merchant2/contrib/helper"
 	"strconv"
 	"strings"
-	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/olivere/elastic/v7"
+	"github.com/valyala/fasthttp"
 	"github.com/wI2L/jettison"
 )
 
@@ -86,113 +86,45 @@ func BlacklistList(page, pageSize uint, startTime, endTime string, ty int, ex g.
 }
 
 // 黑名单添加
-func BlacklistInsert(ty int, value string, users []string, record g.Record) error {
+func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.Record) error {
 
-	tx, err := meta.MerchantDB.Begin()
+	key := ""
+	user, err := AdminToken(fctx)
 	if err != nil {
-		return pushLog(err, helper.DBErr)
+		return errors.New(helper.AccessTokenExpires)
 	}
 
-	var (
-		msg = "设备黑名单禁用"
-	)
-	hash := MurmurHash(value, 0)
-	// 分key
-	idx := hash % 10
-	key := fmt.Sprintf("bl:dev%d", idx)
-	switch ty {
-	case TyDevice:
-	case TyIP:
-		key = fmt.Sprintf("bl:ip%d", idx)
-		msg = "IP黑名单禁用"
-	case TyEmail:
-		key = fmt.Sprintf("bl:em%d", idx)
-	case TyPhone:
-		key = fmt.Sprintf("bl:ph%d", idx)
-	case TyBankcard:
-		key = fmt.Sprintf("bl:bc%d", idx)
-		value = fmt.Sprintf("%d", hash)
-
-		data := BankCard{}
-		ex := g.Ex{
-			"bank_card_hash": value,
-			"prefix":         meta.Prefix,
-		}
-		query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).Where(ex).Limit(1).ToSQL()
-		err := meta.MerchantDB.Get(&data, query)
-		if err != nil && err != sql.ErrNoRows {
-			return pushLog(err, helper.DBErr)
-		}
-
-		// 记录不存在
-		if data.ID == "" {
-			return errors.New(helper.BankCardNotExist)
-		}
-
-		// 银行卡已经冻结或删除
-		if data.State == 2 || data.State == 3 {
-			return errors.New(helper.RecordExistErr)
-		}
-
-		t := dialect.Update("tbl_member_bankcard")
-		query, _, _ = t.Set(g.Record{"state": 3}).Where(g.Ex{"id": data.ID, "prefix": meta.Prefix}).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-		}
-
-		users = []string{data.Username}
-		record["value"] = value
-		record["id"] = data.ID
-	case TyVirtualAccount:
-		key = fmt.Sprintf("bl:va%d", idx)
-	default:
+	ex := g.Ex{
+		"ty":    ty,
+		"value": value,
+	}
+	if BlacklistExist(ex) {
+		return errors.New(helper.RecordExistErr)
 	}
 
-	// 写入相关会员账号
-	record["accounts"] = strings.Join(users, ",")
+	record["created_at"] = fctx.Time().In(loc).Unix()
+	record["created_uid"] = user["id"]
+	record["created_name"] = user["name"]
 	record["prefix"] = meta.Prefix
-	query, _, _ := dialect.Insert("tbl_blacklist").Rows(&record).ToSQL()
-	_, err = tx.Exec(query)
+
+	query, _, _ := dialect.Insert("tbl_blacklist").Rows(record).ToSQL()
+
+	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+		fmt.Println("BlacklistInsert Exec err = ", err.Error())
+		return errors.New(helper.DBErr)
 	}
 
-	if ty == TyIP || ty == TyDevice {
-
-		// 冻结黑名单相关用户
-		r := g.Record{
-			"state": 2,
-		}
-		ex := g.Ex{
-			"username": users,
-			"prefix":   meta.Prefix,
-		}
-		query, _, _ = dialect.Update("tbl_members").Set(r).Where(ex).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-		}
+	switch ty {
+	case TyIP:
+		key = "ip_blacklist"
+	case TyPhone:
+		key = "phone_blacklist"
+	case TyBankcard:
+		key = "bankcard_blacklist"
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-	}
-
-	// 加入values set
-	_, err = meta.MerchantRedis.SAdd(ctx, key, value).Result()
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
-	}
-
-	// ip/设备黑名单写入备注记录
-	if ty == TyDevice || ty == TyIP {
-		_ = MemberRemarkInsert("", msg, record["created_name"].(string), users, time.Now().Unix())
-	}
+	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Err()
 
 	return nil
 }
