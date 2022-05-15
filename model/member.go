@@ -118,6 +118,7 @@ type MemberListCol struct {
 type MemberAggData struct {
 	MemCount       int    `db:"mem_count" json:"mem_count"`
 	RegistCountNew int    `db:"regist_count" json:"regist_count"`
+	ActiveCount    int    `db:"active_count" json:"active_count"`
 	UID            string `db:"uid" json:"uid"`
 }
 
@@ -844,7 +845,7 @@ func MemberAgg(ids []string, startTIme, endTime int64) (map[string]MemberAggData
 	}
 
 	query, _, _ := dialect.From("tbl_report_agency").Select(g.MAX("subordinate_count").As("mem_count"),
-		g.SUM("regist_count").As("regist_count"), "uid").Where(ex).GroupBy("uid").ToSQL()
+		g.SUM("regist_count").As("regist_count"), g.MAX("active_count").As("active_count"), "uid").Where(ex).GroupBy("uid").ToSQL()
 	err := meta.ReportDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, pushLog(err, helper.DBErr)
