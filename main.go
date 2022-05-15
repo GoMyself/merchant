@@ -6,7 +6,6 @@ import (
 	"merchant2/contrib/apollo"
 	"merchant2/contrib/conn"
 	"merchant2/contrib/session"
-	"merchant2/contrib/tdlog"
 	"merchant2/middleware"
 	"merchant2/model"
 	"merchant2/router"
@@ -60,7 +59,7 @@ func main() {
 
 	model.Constructor(mt, cfg.RPC)
 	session.New(mt.MerchantRedis, cfg.Prefix)
-	tdlog.New(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
+	//tdlog.New(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	if os.Args[3] == "load" {
 		model.Load()
