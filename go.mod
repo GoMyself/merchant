@@ -76,6 +76,7 @@ require (
 	github.com/prometheus/client_golang v1.12.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
+	github.com/taosdata/driver-go/v2 v2.0.1-0.20220512023129-15f5b9c4b11c // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect

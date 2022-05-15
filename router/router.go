@@ -322,7 +322,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 记录管理-平台转帐
 	post("/merchant/record/transfer", recordCtl.Transfer)
 
-	post("/merchant/member/sms/list", smsCtl.List)
+	get("/merchant/member/sms/list", smsCtl.List)
 	// 会员管理-会员列表-有效投注查询
 	// 会员管理-投注管理
 	// 会员管理-投注管理-会员游戏记录详情列表
