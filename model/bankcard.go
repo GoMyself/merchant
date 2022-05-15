@@ -360,7 +360,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	enckey := "bankcard" + bid
-	encRes, err := grpc_t.Decrypt(mb.UID, true, []string{enckey})
+	encRes, err := grpc_t.Decrypt(mb.UID, false, []string{enckey})
 	if err != nil {
 		return errors.New(helper.GetRPCErr)
 	}
@@ -395,6 +395,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		"prefix":       meta.Prefix,
 		"value":        encRes[enckey],
 		"remark":       "",
+		"ty":           "5",
 		"created_at":   fctx.Time().In(loc).Unix(),
 		"created_uid":  user["id"],
 		"created_name": user["name"],
