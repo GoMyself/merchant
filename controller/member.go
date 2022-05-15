@@ -476,20 +476,20 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 	}
 
 	var press = exp.NewExpressionList(exp.AndType, g.C("uid").Eq(g.C("top_uid")))
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+		press = exp.NewExpressionList(exp.AndType, g.C("username").Eq(username))
+	}
+
 	if parentID != "" {
 		press = exp.NewExpressionList(exp.AndType, g.Or(g.C("parent_uid").Eq(parentID), g.C("uid").Eq(parentID)))
 	}
 
 	if state > 0 {
 		press = press.Append(g.C("state").Eq(state))
-	}
-
-	if username != "" {
-		if !validator.CheckUName(username, 5, 14) {
-			helper.Print(ctx, false, helper.UsernameErr)
-			return
-		}
-		press = press.Append(g.C("username").Eq(username))
 	}
 
 	if maintainName != "" {
