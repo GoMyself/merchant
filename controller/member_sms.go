@@ -18,11 +18,6 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.QueryArgs().Peek("username"))
 	phone := string(ctx.QueryArgs().Peek("phone"))
 
-	if username == "" && phone == "" {
-		helper.Print(ctx, false, helper.ParamNull)
-		return
-	}
-
 	if page < 1 {
 		page = 1
 	}
