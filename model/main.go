@@ -58,6 +58,7 @@ type MetaTable struct {
 	Zlog           *fluent.Fluent
 	VenueRebate    VenueRebateScale
 	MerchantRedis  *redis.Client
+	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
 	ReportDB       *sqlx.DB
 	BetDB          *sqlx.DB
@@ -157,8 +158,8 @@ func Constructor(mt *MetaTable, rpc string) {
 func Load() {
 
 	AppUpgradeLoadCache()
-	_ = GameToMinio()
-	_ = PlatToMinio()
+	//_ = GameToMinio()
+	//_ = PlatToMinio()
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
