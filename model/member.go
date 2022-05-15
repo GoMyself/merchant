@@ -518,12 +518,6 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 	// 获取代理层级  佣金方案
 	lvls := memberLvl(lvParams)
 
-	// 佣金方案
-	plans, err := memberPlan(ids)
-	if err != nil {
-		return data, err
-	}
-
 	for i, v := range data.D {
 		if rb, ok := rebate[v.UID]; ok {
 			data.D[i].DJ = rb.DJ
@@ -537,16 +531,6 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 
 		if lv, ok := lvls[v.UID]; ok {
 			data.D[i].Lvl = lv
-		}
-
-		if plan, ok := plans[v.UID]; ok {
-			if planID, ok := plan["plan_id"]; ok {
-				data.D[i].PlanID = planID
-			}
-
-			if plannName, ok := plan["name"]; ok {
-				data.D[i].PlanName = plannName
-			}
 		}
 
 	}
@@ -729,6 +713,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	}
 	if page == 1 {
 		query, _, _ := dialect.From("tbl_members").Select(g.COUNT(1)).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&number, query)
 		if err != nil && err != sql.ErrNoRows {
 			return data, number, pushLog(err, helper.DBErr)
@@ -778,14 +763,14 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 		or := g.Or(
 			g.And(
 				g.C("uid").In(parentID),
-				g.C("parent_uid").Eq(g.C("uid")),
+				g.C("data_type").Eq("2"),
 			),
 		)
 
 		if len(ids) > 0 {
 			or = or.Append(
 				g.And(
-					g.C("uid").Neq(g.C("parent_uid")),
+					g.C("data_type").Eq("1"),
 					g.C("uid").In(ids),
 				),
 			)
@@ -793,7 +778,6 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 
 		and = and.Append(or)
 	}
-
 	query, _, _ = dialect.From("tbl_report_agency").Where(and).
 		Select(
 			"uid",
@@ -841,6 +825,7 @@ func MemberAgg(ids []string, startTIme, endTime int64) (map[string]MemberAggData
 		"uid":         ids,
 		"report_time": g.Op{"between": exp.NewRangeVal(startTIme, endTime)},
 		"report_type": 2,
+		"data_type":   1,
 		"prefix":      meta.Prefix,
 	}
 
