@@ -307,14 +307,10 @@ type Blacklist struct {
 	ID          string `json:"id" db:"id"`                                 //id
 	Ty          int    `json:"ty" db:"ty"`                                 //黑名单类型
 	Value       string `json:"value" db:"value"`                           //黑名单类型值
-	Accounts    string `json:"accounts" db:"accounts"`                     //关联账号名 逗号分割
 	Remark      string `json:"remark" db:"remark"`                         //备注
 	CreatedAt   string `json:"created_at" db:"created_at" rule:"none"`     //添加时间
 	CreatedUID  string `json:"created_uid" db:"created_uid" rule:"none"`   //添加人uid
 	CreatedName string `json:"created_name" db:"created_name" rule:"none"` //添加人name
-	UpdatedAt   string `json:"updated_at" db:"updated_at" rule:"none"`     //更新时间
-	UpdatedUID  string `json:"updated_uid" db:"updated_uid" rule:"none"`   //更新人uid
-	UpdatedName string `json:"updated_name" db:"updated_name" rule:"none"` //更新人name
 }
 
 type MemberAssocLoginLogData struct {

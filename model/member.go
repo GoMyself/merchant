@@ -145,36 +145,37 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	mr.Prefix = meta.Prefix
 	agtype, _ := strconv.ParseInt(agencyType, 10, 64)
 	m := Member{
-		UID:                uid,
-		Username:           userName,
-		Password:           fmt.Sprintf("%d", MurmurHash(password, createdAt)),
-		Prefix:             meta.Prefix,
-		Birth:              "0",
-		BirthHash:          "0",
-		State:              1,
-		CreatedAt:          createdAt,
-		LastLoginIp:        "",
-		LastLoginAt:        createdAt,
-		LastLoginDevice:    "",
-		LastLoginSource:    0,
-		ParentUid:          "0",
-		TopUid:             uid,
-		TopName:            userName,
-		FirstDepositAmount: "0.000",
-		FirstBetAmount:     "0.000",
-		Balance:            "0.000",
-		LockAmount:         "0.000",
-		Commission:         "0.000",
-		Remarks:            remark,
-		MaintainName:       maintainName,
-		GroupName:          groupName,
-		AgencyType:         agtype,
-		EmailHash:          "0",
-		RealnameHash:       "0",
-		PhoneHash:          "0",
-		ZaloHash:           "0",
-		Level:              1,
-		Tester:             tester,
+		UID:                 uid,
+		Username:            userName,
+		Password:            fmt.Sprintf("%d", MurmurHash(password, createdAt)),
+		Prefix:              meta.Prefix,
+		Birth:               "0",
+		BirthHash:           "0",
+		State:               1,
+		CreatedAt:           createdAt,
+		LastLoginIp:         "",
+		LastLoginAt:         createdAt,
+		LastLoginDevice:     "",
+		LastLoginSource:     0,
+		ParentUid:           "0",
+		TopUid:              uid,
+		TopName:             userName,
+		FirstDepositAmount:  "0.000",
+		FirstBetAmount:      "0.000",
+		Balance:             "0.000",
+		LockAmount:          "0.000",
+		Commission:          "0.000",
+		SecondDepositAmount: "0.000",
+		Remarks:             remark,
+		MaintainName:        maintainName,
+		GroupName:           groupName,
+		AgencyType:          agtype,
+		EmailHash:           "0",
+		RealnameHash:        "0",
+		PhoneHash:           "0",
+		ZaloHash:            "0",
+		Level:               1,
+		Tester:              tester,
 	}
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
@@ -186,6 +187,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("tbl_members query = ", query)
+		fmt.Println("tbl_members err = ", err.Error())
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -193,6 +196,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("tbl_member_rebate_info query = ", query)
+		fmt.Println("tbl_member_rebate_info err = ", err.Error())
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -200,11 +205,13 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
+		fmt.Println("MemberClosureInsert err = ", err.Error())
 		return pushLog(fmt.Errorf("sql : %s, error : %s", treeNode, err.Error()), helper.DBErr)
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		fmt.Println("tx.Commit err = ", err.Error())
 		return pushLog(err, helper.DBErr)
 	}
 

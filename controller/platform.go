@@ -74,8 +74,8 @@ func (that *PlatformController) Update(ctx *fasthttp.RequestCtx) {
 	id := ctx.PostArgs().GetUintOrZero("id")
 	state := ctx.PostArgs().GetUintOrZero("state")
 	maintained := ctx.PostArgs().GetUintOrZero("maintained")
-	maintainedStart := string(ctx.PostArgs().Peek("maintained_start"))
-	maintainedEnd := string(ctx.PostArgs().Peek("maintained_end"))
+	//maintainedStart := string(ctx.PostArgs().Peek("maintained_start"))
+	//maintainedEnd := string(ctx.PostArgs().Peek("maintained_end"))
 	seq := ctx.PostArgs().GetUintOrZero("seq")
 
 	if id == 0 {
@@ -115,16 +115,22 @@ func (that *PlatformController) Update(ctx *fasthttp.RequestCtx) {
 		}
 
 		if maintained == 2 {
-			if maintainedStart == "" || maintainedEnd == "" {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-
+			//if maintainedStart == "" || maintainedEnd == "" {
+			//	helper.Print(ctx, false, helper.ParamErr)
+			//	return
+			//}
+			//
+			//record["maintained"] = maintained
+			//record["maintained_start"] = maintainedStart
 			record["maintained"] = maintained
-			record["maintained_start"] = maintainedStart
+
 		}
 
-		record["maintained_end"] = maintainedEnd
+		if maintained == 1 {
+			record["maintained"] = maintained
+		}
+
+		//record["maintained_end"] = maintainedEnd
 	}
 
 	if seq > 0 {

@@ -66,6 +66,7 @@ type rebateParam struct {
 
 type orderParam struct {
 	Id       string `rule:"none" name:"id"`
+	Ty       string `rule:"none" name:"ty"`
 	Page     int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
 	PageSize int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
 }
@@ -850,7 +851,16 @@ func (that *RecordController) Order(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ex["plan_id"] = param.Id
+	if param.Ty == "1" {
+		ex["plan_id"] = param.Id
+	} else if param.Ty == "2" {
+		ids, err := model.RecordIssuse(param.Id)
+		if err != nil {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+		ex["plan_id"] = ids
+	}
 
 	data, err := model.RecordOrder(param.Page, param.PageSize, ex)
 	if err != nil {

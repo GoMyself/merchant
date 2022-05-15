@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/olivere/elastic/v7"
-	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
 	"strconv"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/olivere/elastic/v7"
+	"github.com/valyala/fasthttp"
 )
 
 type BlacklistController struct{}
@@ -156,9 +156,9 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 				return
 			}
 
-			cardNoHash := fmt.Sprintf("%d", model.MurmurHash(value, 0))
-			ex["value"] = cardNoHash
-			fmt.Println(cardNoHash)
+			//cardNoHash := fmt.Sprintf("%d", model.MurmurHash(value, 0))
+			ex["value"] = value
+			//fmt.Println(cardNoHash)
 		default:
 			if !validator.CheckStringLength(value, 1, 60) {
 				helper.Print(ctx, false, helper.ParamErr)
@@ -213,37 +213,13 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ex := g.Ex{
-		"ty":    ty,
-		"value": value,
-	}
-	if model.BlacklistExist(ex) {
-		helper.Print(ctx, false, helper.RecordExistErr)
-		return
-	}
-
-	users := model.BlacklistFindUsers(ty, value)
-	if len(users) == 0 && ty != model.TyBankcard {
-		helper.Print(ctx, false, helper.RecordNotExistErr)
-		return
-	}
-
-	data, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	record := g.Record{
-		"id":           helper.GenId(),
-		"ty":           ty,
-		"value":        value,
-		"remark":       remark,
-		"created_at":   ctx.Time().Unix(),
-		"created_uid":  data["id"],
-		"created_name": data["name"],
+		"id":     helper.GenId(),
+		"ty":     ty,
+		"value":  value,
+		"remark": remark,
 	}
-	err = model.BlacklistInsert(ty, value, users, record)
+	err := model.BlacklistInsert(ctx, ty, value, record)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -267,22 +243,13 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	ex := g.Ex{
 		"id": id,
 	}
 	record := g.Record{
-		"remark":       remark,
-		"updated_name": data["name"],
-		"updated_uid":  data["id"],
-		"updated_at":   ctx.Time().Unix(),
+		"remark": validator.FilterInjection(remark),
 	}
-	err = model.BlacklistUpdate(ex, record)
+	err := model.BlacklistUpdate(ex, record)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

@@ -1028,6 +1028,28 @@ func RecordGroup(page, pageSize int, startTime, endTime string, ex g.Ex, parentN
 	return data, nil
 }
 
+func RecordIssuse(id string) ([]string, error) {
+
+	tableName := "tbl_vncp_plan_issues"
+	var result []string
+
+	ex := g.Ex{
+		"plan_id": id,
+	}
+	build := dialect.From(tableName).Where(ex)
+
+	build = build.Select(
+		"id",
+	).Order(g.C("created_at").Desc())
+	query, _, _ := build.ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&result, query)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
 func RecordOrder(page, pageSize int, ex g.Ex) (OrderData, error) {
 
 	data := OrderData{}
@@ -1035,6 +1057,7 @@ func RecordOrder(page, pageSize int, ex g.Ex) (OrderData, error) {
 	t := dialect.From("tbl_vncp_orders")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
@@ -1048,6 +1071,7 @@ func RecordOrder(page, pageSize int, ex g.Ex) (OrderData, error) {
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(g.C("username"), g.C("pay_amount"), g.C("bonus").As("bonus")).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
