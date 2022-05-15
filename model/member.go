@@ -1712,7 +1712,7 @@ func memberPlatformBalance(username string) []PlatBalance {
 	return p
 }
 
-func MemberUpdateInfo(uid, planID string, mbRecod g.Record, mr MemberRebate) error {
+func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -1724,8 +1724,8 @@ func MemberUpdateInfo(uid, planID string, mbRecod g.Record, mr MemberRebate) err
 		"prefix": meta.Prefix,
 	}
 
-	if len(mbRecod) > 0 {
-		query, _, _ := dialect.Update("tbl_members").Set(&mbRecod).Where(subEx).ToSQL()
+	if len(mbRecord) > 0 {
+		query, _, _ := dialect.Update("tbl_members").Set(&mbRecord).Where(subEx).ToSQL()
 		_, err = tx.Exec(query)
 		if err != nil {
 			_ = tx.Rollback()
@@ -1770,7 +1770,7 @@ func MemberUpdateInfo(uid, planID string, mbRecod g.Record, mr MemberRebate) err
 	return nil
 }
 
-func MemberUpdateMaintanName(uid, maintainName string) error {
+func MemberUpdateMaintainName(uid, maintainName string) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -1824,13 +1824,15 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
+	res.FC = decimal.NewFromFloat(data.FC.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
 	res.TY = res.TY.Truncate(1)
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
-	res.CP = res.DZ.Truncate(1)
+	res.CP = res.CP.Truncate(1)
+	res.FC = res.FC.Truncate(1)
 
 	return res, nil
 }
@@ -1848,6 +1850,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 		g.C("dj").As("dj"),
 		g.C("ty").As("ty"),
 		g.C("cp").As("cp"),
+		g.C("fc").As("fc"),
 	).Where(g.Ex{"uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
@@ -1860,6 +1863,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
+	res.FC = decimal.NewFromFloat(data.FC.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -1867,6 +1871,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
+	res.FC = res.CP.Truncate(1)
 
 	return res, nil
 }
@@ -1918,11 +1923,11 @@ func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
 		}
 	}
 
-	var memberList []memberListShow
+	var mbList []memberListShow
 	offset := (param.Page - 1) * param.PageSize
 	query, _, _ := t.Select(colsMemberListShow...).
 		Where(ex).Offset(uint(offset)).Limit(uint(param.PageSize)).Order(g.C("created_at").Desc()).ToSQL()
-	err := meta.MerchantDB.Select(&memberList, query)
+	err := meta.MerchantDB.Select(&mbList, query)
 	if err != nil {
 		return res, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
@@ -1932,7 +1937,7 @@ func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
 		agencyNames []string
 	)
 
-	for _, val := range memberList {
+	for _, val := range mbList {
 		uids = append(uids, val.UID)
 
 		if val.ParentName != "" && val.ParentName != "root" {
@@ -1968,7 +1973,7 @@ func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
 		return res, err
 	}
 
-	for _, m := range memberList {
+	for _, m := range mbList {
 
 		val := memberListData{memberListShow: m}
 		if md, ok := md[m.UID]; ok {

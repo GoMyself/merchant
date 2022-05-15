@@ -1056,43 +1056,43 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	}
 
 	if mb.ParentUid != "0" && mb.ParentUid != "" {
-		ParentRabte, err := model.MemberParentRebate(mb.ParentUid)
+		ParentRebate, err := model.MemberParentRebate(mb.ParentUid)
 		if err != nil {
 			helper.Print(ctx, false, err.Error())
 			return
 		}
 		//大于上级棋牌返水比例
-		if ParentRabte.QP.LessThan(qp) {
+		if ParentRebate.QP.LessThan(qp) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级体育返水比例
-		if ParentRabte.TY.LessThan(ty) {
+		if ParentRebate.TY.LessThan(ty) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级真人返水比例
-		if ParentRabte.ZR.LessThan(zr) {
+		if ParentRebate.ZR.LessThan(zr) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级电子游戏返水比例
-		if ParentRabte.DZ.LessThan(dz) {
+		if ParentRebate.DZ.LessThan(dz) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级电竞返水比例
-		if ParentRabte.DJ.LessThan(dj) {
+		if ParentRebate.DJ.LessThan(dj) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级彩票返水比例
-		if ParentRabte.CP.LessThan(cp) {
+		if ParentRebate.CP.LessThan(cp) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
 		//大于上级斗鸡返水比例
-		if ParentRabte.FC.LessThan(fc) {
+		if ParentRebate.FC.LessThan(fc) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
@@ -1162,7 +1162,7 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 更新代理
-	err = model.MemberUpdateMaintanName(mb.UID, maintainName)
+	err = model.MemberUpdateMaintainName(mb.UID, maintainName)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
