@@ -60,7 +60,7 @@ func main() {
 
 	model.Constructor(mt, cfg.RPC)
 	session.New(mt.MerchantRedis, cfg.Prefix)
-	tdlog.New(cfg.Td.Servers, cfg.Td.Username, cfg.Td.Password)
+	tdlog.New(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	if os.Args[3] == "load" {
 		model.Load()
