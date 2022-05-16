@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"merchant2/contrib/helper"
-	"merchant2/contrib/tdlog"
 	"merchant2/contrib/tracerr"
 	"strings"
 
@@ -74,6 +73,7 @@ type MetaTable struct {
 	PullPrefix     string
 	Lang           string
 	GcsDoamin      string
+	Program        string
 }
 
 var (
@@ -181,31 +181,21 @@ func MurmurHash(str string, seed uint32) uint64 {
 func pushLog(err error, code string) error {
 
 	err = tracerr.Wrap(err)
-	fields := map[string]string{
-		"filename": tracerr.SprintSource(err, 2, 2),
-		"content":  err.Error(),
-		"fn":       code,
+	ts := time.Now()
+	fields := g.Record{
 		"id":       helper.GenId(),
-		"project":  "MerchantAdmin",
-	}
-	l := log_t{
-		ID:      helper.GenId(),
-		Project: "merchant",
-		Flags:   code,
-		Fn:      "",
-		File:    tracerr.SprintSource(err, 2, 2),
-		Content: err.Error(),
-	}
-	err = tdlog.Info(fields)
-	if err != nil {
-		fmt.Printf("write td[%#v] err : %s", fields, err.Error())
+		"content":  err.Error(),
+		"project":  meta.Program,
+		"flags":    code,
+		"filename": tracerr.SprintSource(err, 2, 2),
+		"ts":       ts.In(loc).UnixMilli(),
 	}
 
-	_ = meta.Zlog.Post(esPrefixIndex("merchant_error"), l)
-
-	switch code {
-	case helper.DBErr, helper.RedisErr, helper.ESErr:
-		code = helper.ServerErr
+	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
+	//fmt.Println(query)
+	_, err1 := meta.MerchantTD.Exec(query)
+	if err1 != nil {
+		fmt.Println("insert SMS = ", err1.Error())
 	}
 
 	note := fmt.Sprintf("Hệ thống lỗi %s", fields["id"])

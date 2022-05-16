@@ -61,7 +61,7 @@ func SmsList(page, pageSize uint, username, phone string) (SmsData_t, error) {
 	//.Order(g.C("ts").Desc())
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "username", "ip", "code", "flags", "source", "phone", "create_at").Where(ex).Offset(offset).Limit(pageSize).ToSQL()
+	query, _, _ := t.Select("id", "username", "ip", "code", "flags", "source", "phone", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("SmsList query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
