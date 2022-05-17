@@ -77,7 +77,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 	ex["prefix"] = meta.Prefix
 
-	t := dialect.From("memberlogin")
+	t := dialect.From("member_login_log")
 
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
