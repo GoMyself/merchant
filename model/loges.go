@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"merchant2/contrib/helper"
+
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"merchant2/contrib/helper"
 
 	"github.com/olivere/elastic/v7"
 	"github.com/wI2L/jettison"
@@ -100,7 +101,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 	fmt.Println("====>3")
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("username", "ip", "device", "device_no", "parent_name", "create_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("username", "ip", "device", "device_no", "top_name", "parent_name", "create_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)

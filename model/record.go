@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"strconv"
 	"strings"
+
+	"github.com/shopspring/decimal"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -595,38 +596,39 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize int, query 
 func RecordLoginLog(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (MemberLoginLogData, error) {
 
 	data := MemberLoginLogData{}
-	if startTime != "" && endTime != "" {
+	/*
+		if startTime != "" && endTime != "" {
 
-		startAt, err := helper.TimeToLoc(startTime, loc)
-		if err != nil {
-			return data, errors.New(helper.TimeTypeErr)
+			startAt, err := helper.TimeToLoc(startTime, loc)
+			if err != nil {
+				return data, errors.New(helper.TimeTypeErr)
+			}
+
+			endAt, err := helper.TimeToLoc(endTime, loc)
+			if err != nil {
+				return data, errors.New(helper.TimeTypeErr)
+			}
+
+			query.Filter(elastic.NewRangeQuery("date").Gte(startAt).Lte(endAt))
 		}
 
-		endAt, err := helper.TimeToLoc(endTime, loc)
+		t, esResult, _, err := EsQuerySearch(
+			esPrefixIndex("memberlogin"), "date", page, pageSize, loginLogFields, query, nil)
 		if err != nil {
-			return data, errors.New(helper.TimeTypeErr)
+			return data, pushLog(err, helper.DBErr)
 		}
 
-		query.Filter(elastic.NewRangeQuery("date").Gte(startAt).Lte(endAt))
-	}
+		var names []string
+		data.S = pageSize
+		data.T = t
+		for _, v := range esResult {
 
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("memberlogin"), "date", page, pageSize, loginLogFields, query, nil)
-	if err != nil {
-		return data, pushLog(err, helper.DBErr)
-	}
-
-	var names []string
-	data.S = pageSize
-	data.T = t
-	for _, v := range esResult {
-
-		log := MemberLoginLog{}
-		_ = helper.JsonUnmarshal(v.Source, &log)
-		data.D = append(data.D, log)
-		names = append(names, log.Parents)
-	}
-
+			log := MemberLoginLog{}
+			_ = helper.JsonUnmarshal(v.Source, &log)
+			data.D = append(data.D, log)
+			names = append(names, log.Parents)
+		}
+	*/
 	return data, nil
 }
 
