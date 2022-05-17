@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -42,6 +43,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
+		fmt.Println(parentName)
 		//param["parents"] = agency
 		ex["parent_name"] = parentName
 	}
