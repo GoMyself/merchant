@@ -178,7 +178,7 @@ type MemberLoginLog struct {
 	TopName    string `db:"top_name" json:"top_name"`       // 总代代理
 	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
 	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
-	CreateAt   string `db:"create_at" json:"create_at"`
+	CreateAt   int    `db:"create_at" json:"create_at"`
 	//Prefix   string `db:"prefix" json:"prefix"`
 }
 
