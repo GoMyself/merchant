@@ -73,7 +73,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 			return data, errors.New(helper.QueryTimeRangeErr)
 		}
 
-		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+		ex["create_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 	ex["prefix"] = meta.Prefix
 
@@ -99,7 +99,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 	fmt.Println("====>4")
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("username", "ip", "device", "device_no", "created_at", "parent_name").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("username", "ip", "device", "device_no", "create_at", "parent_name").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
