@@ -36,14 +36,17 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	}
 
 	parentName := string(ctx.QueryArgs().Peek("parent_name"))
-	if len(parentName) > 0 {
-		if !validator.CheckUName(parentName, 4, 14) {
+	if len(parentName) > 4 {
+		if !validator.CheckUName(parentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
 		//param["parents"] = agency
 		ex["parent_name"] = parentName
+	}
+	if parentName == "root" {
+		ex["parent_name"] = "root"
 	}
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
