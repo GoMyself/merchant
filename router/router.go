@@ -302,7 +302,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	//风控管理-流水稽查查询
 	get("/merchant/inspection/list", inspectionCtl.List)
 	//风控管理-流水稽查查询
-	post("/merchant/inspection/review", inspectionCtl.List)
+	post("/merchant/inspection/review", inspectionCtl.Review)
 	//风控管理-流水稽查查询
 	get("/merchant/inspection/history", inspectionCtl.History)
 
