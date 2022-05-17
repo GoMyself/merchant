@@ -69,8 +69,8 @@ func (that *InspectionController) History(ctx *fasthttp.RequestCtx) {
 
 	reviewName := string(ctx.PostArgs().Peek("review_name"))
 	inspectName := string(ctx.PostArgs().Peek("inspect_name"))
-	page := string(ctx.PostArgs().GetUintOrZero("page"))
-	pageSize := string(ctx.PostArgs().GetUintOrZero("page_size"))
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 	ex := g.Ex{}
 	if len(username) != 0 {
 		ex["username"] = username
