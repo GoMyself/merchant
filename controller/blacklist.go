@@ -22,7 +22,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	param := map[string]interface{}{}
+	ex := g.Ex{}
+	//param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
 		if !validator.CheckUName(username, 5, 14) {
@@ -30,7 +31,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		param["username"] = username
+		//param["username"] = username
+		ex["username"] = username
 	}
 
 	agency := string(ctx.QueryArgs().Peek("agency"))
@@ -40,17 +42,20 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		param["parents"] = agency
+		//param["parents"] = agency
+		ex["parents"] = agency
 	}
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
 	if len(deviceNo) > 0 {
-		param["device_no.keyword"] = deviceNo
+		//param["device_no.keyword"] = deviceNo
+		ex["device_no"] = deviceNo
 	}
 
 	ip := string(ctx.QueryArgs().Peek("ip"))
 	if len(ip) > 0 {
-		param["ips.keyword"] = ip
+		//param["ips.keyword"] = ip
+		ex["ips"] = ip
 	}
 
 	device := string(ctx.QueryArgs().Peek("device"))
@@ -66,7 +71,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		param["device"] = device
+		//param["device"] = device
+		ex["device"] = device
 	}
 
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
@@ -74,7 +80,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	p, _ := strconv.Atoi(page)
 	ps, _ := strconv.Atoi(pageSize)
 
-	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
+	//data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
+	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

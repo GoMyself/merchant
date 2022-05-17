@@ -1,8 +1,11 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
 
 	"github.com/olivere/elastic/v7"
@@ -47,10 +50,13 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	return result, nil
 }
 
-func MemberLoginLogList(startTime, endTime string, page, pageSize int, param map[string]interface{}) (MemberLoginLogData, error) {
+func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) (MemberLoginLogData, error) {
 
 	data := MemberLoginLogData{}
-	rangeParam := make(map[string][]interface{})
+	if len(ex) == 0 && (startTime == "" || endTime == "") {
+		return data, errors.New(helper.QueryTermsErr)
+	}
+
 	if startTime != "" && endTime != "" {
 
 		startAt, err := helper.TimeToLoc(startTime, loc)
@@ -60,46 +66,107 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, param map
 
 		endAt, err := helper.TimeToLoc(endTime, loc)
 		if err != nil {
-			return data, errors.New(helper.DateTimeErr)
+			return data, errors.New(helper.TimeTypeErr)
 		}
 
 		if startAt >= endAt {
 			return data, errors.New(helper.QueryTimeRangeErr)
 		}
 
-		rangeParam["date"] = []interface{}{startAt, endAt}
+		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	}
+	ex["prefix"] = meta.Prefix
+
+	t := dialect.From("member_remarks_log")
+
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+		err := meta.MerchantTD.Get(&data.T, query)
+		if err == sql.ErrNoRows {
+			return data, nil
+		}
+
+		if err != nil {
+			fmt.Println("Member Remarks Log err = ", err.Error())
+			fmt.Println("Member Remarks Log query = ", query)
+			body := fmt.Errorf("%s,[%s]", err.Error(), query)
+			return data, pushLog(body, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
 	}
 
-	result, err := memberLoginLogList(meta.EsPrefix, page, pageSize, param, rangeParam)
+	offset := (page - 1) * pageSize
+	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "admin_name", "created_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	fmt.Println("Member Remarks Log query = ", query)
+
+	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
-		return data, err
+		fmt.Println("Member Remarks Log err = ", err.Error())
+		fmt.Println("Member Remarks Log query = ", query)
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
 	}
 
-	err = helper.JsonUnmarshal([]byte(result), &data)
-	if err != nil {
-		return data, errors.New(helper.FormatErr)
-	}
-
-	// var agencyNames []string
-	// for _, log := range data.D {
-	// 	if log.Parents != "" && log.Parents != "root" {
-	// 		agencyNames = append(agencyNames, log.Parents)
-	// 	}
-	// }
-
-	//riskMap, err := AgencyIsRiskNameMap(agencyNames)
-	//if err != nil {
-	//	return data, err
-	//}
-	//
-	//for i, log := range data.D {
-	//	if risk, ok := riskMap[log.Parents]; ok {
-	//		data.D[i].IsRisk = risk
-	//	}
-	//}
-
+	data.S = pageSize
 	return data, nil
 }
+
+//func MemberLoginLogList(startTime, endTime string, page, pageSize int, param map[string]interface{}) (MemberLoginLogData, error) {
+//
+//	data := MemberLoginLogData{}
+//	rangeParam := make(map[string][]interface{})
+//	if startTime != "" && endTime != "" {
+//
+//		startAt, err := helper.TimeToLoc(startTime, loc)
+//		if err != nil {
+//			return data, errors.New(helper.DateTimeErr)
+//		}
+//
+//		endAt, err := helper.TimeToLoc(endTime, loc)
+//		if err != nil {
+//			return data, errors.New(helper.DateTimeErr)
+//		}
+//
+//		if startAt >= endAt {
+//			return data, errors.New(helper.QueryTimeRangeErr)
+//		}
+//
+//		rangeParam["date"] = []interface{}{startAt, endAt}
+//	}
+//
+//	result, err := memberLoginLogList(meta.EsPrefix, page, pageSize, param, rangeParam)
+//	if err != nil {
+//		return data, err
+//	}
+//
+//	err = helper.JsonUnmarshal([]byte(result), &data)
+//	if err != nil {
+//		return data, errors.New(helper.FormatErr)
+//	}
+//
+//	// var agencyNames []string
+//	// for _, log := range data.D {
+//	// 	if log.Parents != "" && log.Parents != "root" {
+//	// 		agencyNames = append(agencyNames, log.Parents)
+//	// 	}
+//	// }
+//
+//	//riskMap, err := AgencyIsRiskNameMap(agencyNames)
+//	//if err != nil {
+//	//	return data, err
+//	//}
+//	//
+//	//for i, log := range data.D {
+//	//	if risk, ok := riskMap[log.Parents]; ok {
+//	//		data.D[i].IsRisk = risk
+//	//	}
+//	//}
+//
+//	return data, nil
+//}
 
 func memberRemarkLogList(esPrefix string, page, pageSize int, param map[string]interface{}, rangeParam map[string][]interface{}) (string, error) {
 
