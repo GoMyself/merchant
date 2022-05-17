@@ -80,7 +80,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	t := dialect.From("member_login_log")
 	fmt.Println("====>3")
 	if page == 1 {
-		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
 		err := meta.MerchantTD.Get(&data.T, query)
 		if err == sql.ErrNoRows {
 			return data, nil
