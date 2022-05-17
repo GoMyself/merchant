@@ -264,12 +264,6 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	// 验证用户名
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
@@ -279,12 +273,19 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
+	/*
+		admin, err := model.AdminToken(ctx)
+		if err != nil {
+			helper.Print(ctx, false, helper.AccessTokenExpires)
+			return
+		}
 
+			err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
+			if err != nil {
+				helper.Print(ctx, false, err.Error())
+				return
+			}
+	*/
 	err = model.MemberUpdateState(names, params.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -763,12 +764,6 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	if !validator.CheckStringLength(params.Msg, 1, 300) {
 		helper.Print(ctx, false, helper.ContentLengthErr)
 		return
@@ -795,12 +790,19 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
+	/*
+			admin, err := model.AdminToken(ctx)
+		if err != nil {
+			helper.Print(ctx, false, helper.AccessTokenExpires)
+			return
+		}
 
+			err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
+			if err != nil {
+				helper.Print(ctx, false, err.Error())
+				return
+			}
+	*/
 	helper.Print(ctx, true, helper.Success)
 }
 

@@ -1044,6 +1044,7 @@ func MemberRetryReset(username string, ty uint8, pid string) error {
 	return nil
 }
 
+/*
 // 会员列表 用户日志写入
 func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt int64) error {
 
@@ -1092,6 +1093,7 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 	return nil
 }
 
+*/
 // 会员管理-会员列表-数据概览
 func MemberDataOverview(username, startTime, endTime string) (MemberDataOverviewData, error) {
 

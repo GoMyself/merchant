@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/session"
-	"merchant2/contrib/tdlog"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"
@@ -245,26 +244,27 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	rsp.Allows = permission
 	rsp.Domain = meta.GcsDoamin
 
-	adminLoginLog := map[string]string{
-		"uid":      data.ID,
-		"username": username,
-		"ip":       ip,
-	}
-	tdlog.Login(adminLoginLog)
-	// 写入登录日志
-	log := adminLoginLogBase{
-		UID:       data.ID,
-		Name:      username,
-		IP:        ip,
-		Flag:      1,
-		CreatedAt: lastLoginTime,
-	}
+	/*
+		adminLoginLog := map[string]string{
+			"uid":      data.ID,
+			"username": username,
+			"ip":       ip,
+		}
+		tdlog.Login(adminLoginLog)
+		// 写入登录日志
+		log := adminLoginLogBase{
+			UID:       data.ID,
+			Name:      username,
+			IP:        ip,
+			Flag:      1,
+			CreatedAt: lastLoginTime,
+		}
 
-	err = meta.Zlog.Post(esPrefixIndex("admin_login_log"), log)
-	if err != nil {
-		fmt.Printf("user %s login_log wirte err = %s", username, err.Error())
-	}
-
+		err = meta.Zlog.Post(esPrefixIndex("admin_login_log"), log)
+		if err != nil {
+			fmt.Printf("user %s login_log wirte err = %s", username, err.Error())
+		}
+	*/
 	return rsp, nil
 }
 

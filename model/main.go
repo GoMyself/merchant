@@ -7,7 +7,6 @@ import (
 	"merchant2/contrib/tracerr"
 	"strings"
 
-	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
@@ -54,7 +53,6 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	Zlog           *fluent.Fluent
 	VenueRebate    VenueRebateScale
 	MerchantRedis  *redis.Client
 	MerchantTD     *sqlx.DB
