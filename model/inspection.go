@@ -65,11 +65,6 @@ type PromoData struct {
 	ApplyTotal  int    `json:"apply_total" db:"apply_total"`
 	ApplyDaily  int    `json:"apply_daily" db:"apply_daily"`
 	Platforms   string `json:"platforms" db:"platforms"`
-	StaticJson  string `json:"static_json" db:"static_json"`
-	RulesJson   string `json:"rules_json" db:"rules_json"`
-	ConfigJson  string `json:"config_json" db:"config_json"`
-	WebContent  string `json:"web_content" db:"web_content"`
-	H5Content   string `json:"h5_content" db:"h_5_content"`
 }
 
 type InspectionData struct {
@@ -300,7 +295,7 @@ func EsPlatValidBet(username string, pid []string, startAt, endAt int64) (decima
 	fsc := elastic.NewFetchSourceContext(true)
 	//打印es查询json
 	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(esPrefixIndex("tbl_game_record")).
+	resOrder, err := esService.Index(pullPrefixIndex("tbl_game_record")).
 		Aggregation("valid_bet_amount_agg", elastic.NewSumAggregation().Field("valid_bet_amount")).Do(ctx)
 	if err != nil {
 		fmt.Println(err)
