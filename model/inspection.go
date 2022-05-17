@@ -80,9 +80,47 @@ type InspectionData struct {
 	UnfinishedAmount string `json:"unfinished_amount"`
 	CreatedAt        int64  `json:"created_at"`
 	ReviewName       string `json:"review_name"`
+	Ty               string `json:"ty"`
+	Pid              string `json:"pid"`
+	Platforms        string `json:"platforms"`
+	RecordId         string `json:"recordId"`
 }
 
-func InspectionList(username string) (Inspection, error) {
+type PromoInspection struct {
+	Id               string `json:"id"`
+	Uid              string `json:"uid"`
+	Username         string `json:"username"`
+	TopUid           string `json:"top_uid"`
+	TopName          string `json:"top_name"`
+	ParentUid        string `json:"parent_uid"`
+	ParentName       string `json:"parent_name"`
+	Level            int    `json:"level"`
+	Pid              string `json:"pid"`
+	Title            string `json:"title"`
+	Platforms        string `json:"platforms"`
+	State            string `json:"state"`
+	CapitalAmount    string `json:"capital_amount"`
+	DividendAmount   string `json:"dividend_amount"`
+	FlowMultiple     string `json:"flow_multiple"`
+	FlowAmount       string `json:"flow_amount"`
+	FinishedAmount   string `json:"finished_amount"`
+	UnfinishedAmount string `json:"unfinished_amount"`
+	ReviewAt         int64  `json:"review_at"`
+	ReviewUid        string `json:"review_uid"`
+	ReviewName       string `json:"review_name"`
+	InspectAt        int64  `json:"inspect_at"`
+	InspectUid       string `json:"inspect_uid"`
+	InspectName      string `json:"inspect_name"`
+	Ty               string `json:"ty"`
+	BillNo           string `json:"bill_no"`
+}
+
+type PagePromoInspection struct {
+	D []PromoInspection
+	T int64
+}
+
+func InspectionList(username string) (Inspection, Member, error) {
 
 	var data Inspection
 	i := 1
@@ -90,19 +128,19 @@ func InspectionList(username string) (Inspection, error) {
 	//查用户
 	mb, err := MemberFindOne(username)
 	if err != nil || mb.Username == "" {
-		return data, errors.New(helper.UsernameErr)
+		return data, mb, errors.New(helper.UsernameErr)
 	}
 	//上一次提现成功
 	lastWithdraw, err := getWithdrawLast(username)
 	if err != nil && err != sql.ErrNoRows {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
 
 	//查活动记录
 	recordList, err := promoRecrodList(username)
 	recrodMap := map[string]PromoRecord{}
 	if err != nil {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
 	//查活动记录对应的活动 理论上会有多个活
 	var pids []string
@@ -113,19 +151,19 @@ func InspectionList(username string) (Inspection, error) {
 	//参加的活动
 	promolist, err := promoDataList(pids)
 	if err != nil {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
 	//上次提现至今的流水
 	totalVaild, err := EsPlatValidBet(username, "", lastWithdraw.CreatedAt, now)
 	if err != nil {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
 	//查升级红利
 	dividendAmount, err := EsDividend(username, lastWithdraw.CreatedAt, now, []int{DividendUpgrade, DividendBirthday, DividendMonthly, DividendRedPacket})
 	if err != nil {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装vip礼金的流水稽查
+	//组装红利的流水稽查
 	data.D = append(data.D, InspectionData{
 		No:               fmt.Sprintf(`%d`, i),
 		Username:         username,
@@ -140,13 +178,40 @@ func InspectionList(username string) (Inspection, error) {
 		FinishedAmount:   totalVaild.StringFixed(4),
 		UnfinishedAmount: totalVaild.Sub(dividendAmount).StringFixed(4),
 		CreatedAt:        0,
+		Ty:               "2",
+		Pid:              "0",
+	})
+	i++
+
+	//查调整
+	adjustAmount, err := EsAdjust(username, lastWithdraw.CreatedAt, now)
+	if err != nil {
+		return data, mb, errors.New(helper.DBErr)
+	}
+	//组装vip礼金的流水稽查
+	data.D = append(data.D, InspectionData{
+		No:               fmt.Sprintf(`%d`, i),
+		Username:         username,
+		Level:            fmt.Sprintf(`%d`, mb.Level),
+		TopName:          mb.TopName,
+		Title:            "调整（分数调整和输赢调整）",
+		Amount:           "0",
+		RewardAmount:     adjustAmount.StringFixed(4),
+		ReviewName:       "",
+		FlowMultiple:     "1",
+		FlowAmount:       adjustAmount.StringFixed(4),
+		FinishedAmount:   totalVaild.StringFixed(4),
+		UnfinishedAmount: totalVaild.Sub(adjustAmount).StringFixed(4),
+		CreatedAt:        0,
+		Ty:               "4",
+		Pid:              "0",
 	})
 	i++
 
 	//查存款
 	depostAmount, err := EsDepost(username, lastWithdraw.CreatedAt, now)
 	if err != nil {
-		return data, errors.New(helper.DBErr)
+		return data, mb, errors.New(helper.DBErr)
 	}
 	//组装存款的流水稽查
 	data.D = append(data.D, InspectionData{
@@ -163,6 +228,8 @@ func InspectionList(username string) (Inspection, error) {
 		FinishedAmount:   totalVaild.StringFixed(4),
 		UnfinishedAmount: totalVaild.Sub(depostAmount).StringFixed(4),
 		CreatedAt:        0,
+		Ty:               "1",
+		Pid:              "0",
 	})
 	i++
 
@@ -170,7 +237,7 @@ func InspectionList(username string) (Inspection, error) {
 	for _, v := range promolist {
 		vaildBetAmount, err := EsPlatValidBet(username, v.Platforms, v.CreatedAt, now)
 		if err != nil {
-			return data, errors.New(helper.ESErr)
+			return data, mb, errors.New(helper.ESErr)
 		}
 		//组装活动的流水稽查
 		data.D = append(data.D, InspectionData{
@@ -187,10 +254,112 @@ func InspectionList(username string) (Inspection, error) {
 			FinishedAmount:   vaildBetAmount.StringFixed(4),
 			UnfinishedAmount: vaildBetAmount.Sub(decimal.NewFromFloat(recrodMap[v.Id].Flow)).StringFixed(4),
 			CreatedAt:        v.CreatedAt,
+			Ty:               "3",
+			Pid:              v.Id,
+			Platforms:        v.Platforms,
+			RecordId:         recrodMap[v.Id].Id,
 		})
 		i++
 	}
 
+	return data, mb, nil
+}
+
+func InspectionReview(username, inspectState, billNo, remark string, admin map[string]string) (bool, error) {
+
+	inspection, mb, err := InspectionList(username)
+	if err != nil {
+		return false, err
+	}
+
+	//开启事务
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return false, pushLog(err, helper.DBErr)
+	}
+	for _, v := range inspection.D {
+		data := &PromoInspection{
+			Id:               helper.GenId(),
+			Uid:              mb.UID,
+			Username:         mb.Username,
+			TopUid:           mb.TopUid,
+			TopName:          mb.TopName,
+			ParentUid:        mb.ParentUid,
+			ParentName:       mb.ParentName,
+			Level:            mb.Level,
+			Pid:              v.Pid,
+			Title:            v.Title,
+			Platforms:        v.Platforms,
+			State:            inspectState,
+			CapitalAmount:    v.Amount,
+			DividendAmount:   v.RewardAmount,
+			FlowMultiple:     v.FlowMultiple,
+			FlowAmount:       v.FlowAmount,
+			FinishedAmount:   v.FinishedAmount,
+			UnfinishedAmount: v.UnfinishedAmount,
+			ReviewAt:         time.Now().Unix(),
+			ReviewUid:        admin["id"],
+			ReviewName:       admin["name"],
+			InspectAt:        time.Now().Unix(),
+			InspectUid:       admin["id"],
+			InspectName:      admin["name"],
+			Ty:               v.Ty,
+			BillNo:           billNo,
+		}
+
+		// 插入稽查历史
+		queryInsert, _, _ := dialect.Insert("tbl_promo_inspection").Rows(data).ToSQL()
+		_, err = tx.Exec(queryInsert)
+		if err != nil {
+			_ = tx.Rollback()
+			return false, pushLog(fmt.Errorf("%s,[%s]", err.Error(), queryInsert), helper.DBErr)
+		}
+		//是活动的要更新活动记录稽查状态
+		if v.Ty == "3" {
+			ex := g.Ex{
+				"id": v.RecordId,
+			}
+			record := g.Record{
+				"state": inspectState,
+			}
+			query, _, _ := dialect.Update("tbl_promo_record").Set(record).Where(ex).ToSQL()
+			_, err = tx.Exec(query)
+			if err != nil {
+				_ = tx.Rollback()
+				return false, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+			}
+		}
+	}
+
+	tx.Commit()
+	return true, nil
+}
+
+func InspectionHistory(ex g.Ex, page, pageSize int) (PagePromoInspection, error) {
+
+	var data PagePromoInspection
+	t := dialect.From("tbl_promo_inspection")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println("总代佣金:sql:", query)
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(colsPromoInspection...).Where(ex).
+		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("review_at").Desc()).ToSQL()
+	fmt.Println("稽查历史:sql:", query)
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil && err != sql.ErrNoRows {
+		return data, pushLog(err, helper.DBErr)
+	}
 	return data, nil
 }
 
@@ -400,6 +569,56 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decima
 	}
 
 	handOutAmount, ok := resOrder.Aggregations.Sum("hand_out_amount_agg")
+	if handOutAmount == nil || !ok {
+		return waterFlow, errors.New("agg error")
+	}
+
+	return decimal.NewFromFloat(*handOutAmount.Value), nil
+}
+
+func EsAdjust(username string, startAt, endAt int64) (decimal.Decimal, error) {
+
+	waterFlow := decimal.NewFromFloat(0.0000)
+	if startAt == 0 && endAt == 0 {
+		return waterFlow, errors.New(helper.QueryTimeRangeErr)
+	}
+
+	boolQuery := elastic.NewBoolQuery()
+
+	filters := make([]elastic.Query, 0)
+	rg := elastic.NewRangeQuery("review_at").Gte(startAt)
+	if startAt == 0 {
+		rg.IncludeLower(false)
+	}
+	if endAt == 0 {
+		rg.IncludeUpper(false)
+	}
+
+	if endAt > 0 {
+		rg.Lt(endAt)
+	}
+
+	filters = append(filters, rg)
+	boolQuery.Filter(filters...)
+
+	terms := make([]elastic.Query, 0)
+	terms = append(terms, elastic.NewTermQuery("username", username))
+	terms = append(terms, elastic.NewTermQuery("is_turnover", "1"))
+	terms = append(terms, elastic.NewTermQuery("hand_out_state", AdjustSuccess))
+
+	boolQuery.Must(terms...)
+
+	fsc := elastic.NewFetchSourceContext(true)
+	//打印es查询json
+	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
+	resOrder, err := esService.Index(esPrefixIndex("tbl_member_adjust")).
+		Aggregation("amount_agg", elastic.NewSumAggregation().Field("amount")).Do(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return waterFlow, err
+	}
+
+	handOutAmount, ok := resOrder.Aggregations.Sum("amount_agg")
 	if handOutAmount == nil || !ok {
 		return waterFlow, errors.New("agg error")
 	}
