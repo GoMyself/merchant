@@ -1132,3 +1132,13 @@ type OrderData struct {
 	T int64       `json:"t"`
 	D []VncpOrder `json:"d"`
 }
+
+type WithdrawRecord struct {
+	ID        string  `db:"id"                  json:"id"                 redis:"id"`
+	Prefix    string  `db:"prefix"              json:"prefix"             redis:"prefix"`
+	UID       string  `db:"uid"                 json:"uid"                redis:"uid"`        //
+	Username  string  `db:"username"            json:"username"           redis:"username"`   //
+	Amount    float64 `db:"amount"              json:"amount"             redis:"amount"`     // 提款金额
+	State     int     `db:"state"               json:"state"              redis:"state"`      // 371:审核中 372:审核拒绝 373:出款中 374:提款成功 375:出款失败 376:异常订单 377:代付失败
+	CreatedAt int64   `db:"created_at"          json:"created_at"         redis:"created_at"` //
+}

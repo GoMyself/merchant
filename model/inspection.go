@@ -214,7 +214,7 @@ func promoRecrodList(username string) ([]PromoRecord, error) {
 	var data []PromoRecord
 	t := dialect.From("tbl_promo_record")
 
-	query, _, _ := t.Select(colsPromoRecord).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	query, _, _ := t.Select(colsPromoRecord...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -233,7 +233,7 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	var data []PromoData
 	t := dialect.From("tbl_promo")
 
-	query, _, _ := t.Select(colsPromoData).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	query, _, _ := t.Select(colsPromoData...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -242,22 +242,24 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	return data, nil
 }
 
-func getWithdrawLast(username string) (Withdraw, error) {
+func getWithdrawLast(username string) (WithdrawRecord, error) {
 
 	ex := g.Ex{
 		"username": username,
-		"state":    374,
+		"state":    WithdrawSuccess,
 	}
-	var data Withdraw
-	t := dialect.From("tbl_withdraw")
+	w := WithdrawRecord{}
 
-	query, _, _ := t.Select(colsWithdraw).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Get(&data, query)
-	if err != nil {
-		return data, pushLog(err, helper.DBErr)
+	err := meta.MerchantDB.Get(&w, query)
+	if err != nil && err != sql.ErrNoRows {
+		return w, pushLog(err, helper.DBErr)
 	}
-	return data, nil
+	if err == sql.ErrNoRows {
+		return w, nil
+	}
+	return w, nil
 }
 
 // EsPlatValidBet 获取指定会员指定场馆的有效投注

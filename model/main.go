@@ -114,7 +114,7 @@ var (
 	colsAgencyTransferRecord = helper.EnumFields(AgencyTransferRecord{})
 	colsMessage              = helper.EnumFields(Message{})
 	colsPromoRecord          = helper.EnumFields(PromoRecord{})
-	colsWithdraw             = helper.EnumFields(Withdraw{})
+	colWithdrawRecord        = helper.EnumFields(WithdrawRecord{})
 	colsPromoData            = helper.EnumFields(PromoData{})
 	dividendFields           = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "wallet", "batch", "batch_id", "level", "ty", "agency_type", "water_limit", "platform_id", "username", "amount", "hand_out_amount", "water_flow", "notify", "state", "hand_out_state", "remark", "review_remark", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
