@@ -37,7 +37,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 
 	parentName := string(ctx.QueryArgs().Peek("parent_name"))
 	if len(parentName) > 0 {
-		if !validator.CheckUName(parentName, 5, 14) {
+		if !validator.CheckUName(parentName, 4, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
