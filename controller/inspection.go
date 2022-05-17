@@ -58,7 +58,7 @@ func (that *InspectionController) Review(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	helper.Print(ctx, true, data)
+	helper.Print(ctx, data, helper.Success)
 }
 
 func (that *InspectionController) History(ctx *fasthttp.RequestCtx) {
