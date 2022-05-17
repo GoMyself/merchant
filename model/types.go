@@ -158,21 +158,22 @@ type MemberLoginLogData struct {
 
 type MemberLoginLog struct {
 	Username string `db:"username" json:"username"`
-	IP       int64  `db:"ip" json:"ip"`
+	IP       string `db:"ip" json:"ip"`
 	//IPS      string `msg:"ips" json:"ips"`
-	Device   string `db:"device" json:"device"`
-	DeviceNo string `db:"device_no" json:"device_no"`
+	Device     string `db:"device" json:"device"`
+	DeviceNo   string `db:"device_no" json:"device_no"`
+	TopUID     string `db:"top_uid" json:"top_uid"`         // 总代uid
+	TopName    string `db:"top_name" json:"top_name"`       // 总代代理
+	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
+	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
 	//Date     uint32 `msg:"date" json:"date"`
 	//Serial   string `msg:"serial" json:"serial"`
 	//Agency   bool   `msg:"agency" json:"agency"`
 	//Parents string `msg:"parents" json:"parents"`
 	//IsRisk   int    `msg:"-" json:"is_risk"`
-	CreateAt uint32 `db:"create_at" json:"create_at"`
+	CreateAt string `db:"create_at" json:"create_at"`
 	//Prefix     string `msg:"prefix" json:"prefix"`
-	TopUID     string `db:"top_uid" json:"top_uid"`         // 总代uid
-	TopName    string `db:"top_name" json:"top_name"`       // 总代代理
-	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
-	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
+
 }
 
 type memberRemarkLogData struct {
