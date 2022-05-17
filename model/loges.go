@@ -85,14 +85,14 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 		if err == sql.ErrNoRows {
 			return data, nil
 		}
-
+		fmt.Println("====>3A")
 		if err != nil {
 			fmt.Println("Member Remarks Log err = ", err.Error())
 			fmt.Println("Member Remarks Log query = ", query)
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
 		}
-
+		fmt.Println("====>3B")
 		if data.T == 0 {
 			return data, nil
 		}
