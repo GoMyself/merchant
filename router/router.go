@@ -301,9 +301,9 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	get("/merchant/blacklist/delete", blacklistCtl.Delete)
 	//风控管理-流水稽查查询
 	get("/merchant/inspection/list", inspectionCtl.List)
-	//风控管理-流水稽查查询
+	//风控管理-流水稽查审核
 	post("/merchant/inspection/review", inspectionCtl.Review)
-	//风控管理-流水稽查查询
+	//风控管理-流水稽查记录
 	get("/merchant/inspection/history", inspectionCtl.History)
 
 	// 系统管理-日志管理-登录日志
