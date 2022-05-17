@@ -11,7 +11,7 @@ type InspectionController struct{}
 //List 稽查列表
 func (that *InspectionController) List(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.PostArgs().Peek("username"))
+	username := string(ctx.QueryArgs().Peek("username"))
 
 	if len(username) == 0 {
 		helper.Print(ctx, false, helper.ParamErr)
