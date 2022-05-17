@@ -90,6 +90,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	appUpCtl := new(controller.AppUpgradeController)
 	//黑名单管理
 	blacklistCtl := new(controller.BlacklistController)
+	//流水稽查管理
+	inspectionCtl := new(controller.InspectionController)
 	// 日志管理
 	logCtl := new(controller.LogController)
 	// 返水管理
@@ -297,6 +299,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/blacklist/update", blacklistCtl.Update)
 	//风控管理-黑名单删除
 	get("/merchant/blacklist/delete", blacklistCtl.Delete)
+	//风控管理-流水稽查查询
+	get("/merchant/inspection/list", inspectionCtl.List)
 
 	// 系统管理-日志管理-登录日志
 	get("/merchant/sys/log/login/list", logCtl.AdminLoginLog)
