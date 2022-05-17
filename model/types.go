@@ -159,14 +159,20 @@ type MemberLoginLogData struct {
 type MemberLoginLog struct {
 	Username string `msg:"username" json:"username"`
 	IP       int64  `msg:"ip" json:"ip"`
-	IPS      string `msg:"ips" json:"ips"`
+	//IPS      string `msg:"ips" json:"ips"`
 	Device   string `msg:"device" json:"device"`
 	DeviceNo string `msg:"device_no" json:"device_no"`
-	Date     uint32 `msg:"date" json:"date"`
-	Serial   string `msg:"serial" json:"serial"`
-	Agency   bool   `msg:"agency" json:"agency"`
-	Parents  string `msg:"parents" json:"parents"`
-	IsRisk   int    `msg:"-" json:"is_risk"`
+	//Date     uint32 `msg:"date" json:"date"`
+	//Serial   string `msg:"serial" json:"serial"`
+	//Agency   bool   `msg:"agency" json:"agency"`
+	//Parents string `msg:"parents" json:"parents"`
+	//IsRisk   int    `msg:"-" json:"is_risk"`
+	CreateAt uint32 `msg:"create_at" json:"create_at"`
+
+	TopUID     string `json:"top_uid"`     // 总代uid
+	TopName    string `json:"top_name"`    // 总代代理
+	ParentUID  string `json:"parent_uid"`  // 上级uid
+	ParentName string `json:"parent_name"` // 上级代理
 }
 
 type memberRemarkLogData struct {

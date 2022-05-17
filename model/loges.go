@@ -99,7 +99,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 	fmt.Println("====>4")
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("username", "ip", "device", "device_no", "create_at", "parent_name").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("username", "ip", "device", "device_no", "parent_name", "create_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
