@@ -769,7 +769,7 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if params.File != "" && !validator.CheckUrl(params.File) {
+	if params.File != "" {
 		helper.Print(ctx, false, helper.FileURLErr)
 		return
 	}
