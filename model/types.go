@@ -156,17 +156,30 @@ type MemberLoginLogData struct {
 	T int64            `json:"t"`
 }
 
+//type MemberLoginLog struct {
+//	Username string `msg:"username" json:"username"`
+//	IP       int64  `msg:"ip" json:"ip"`
+//	IPS      string `msg:"ips" json:"ips"`
+//	Device   string `msg:"device" json:"device"`
+//	DeviceNo string `msg:"device_no" json:"device_no"`
+//	Date     uint32 `msg:"date" json:"date"`
+//	Serial   string `msg:"serial" json:"serial"`
+//	Agency   bool   `msg:"agency" json:"agency"`
+//	Parents  string `msg:"parents" json:"parents"`
+//	IsRisk   int    `msg:"-" json:"is_risk"`
+//}
+
 type MemberLoginLog struct {
-	Username string `msg:"username" json:"username"`
-	IP       int64  `msg:"ip" json:"ip"`
-	IPS      string `msg:"ips" json:"ips"`
-	Device   string `msg:"device" json:"device"`
-	DeviceNo string `msg:"device_no" json:"device_no"`
-	Date     uint32 `msg:"date" json:"date"`
-	Serial   string `msg:"serial" json:"serial"`
-	Agency   bool   `msg:"agency" json:"agency"`
-	Parents  string `msg:"parents" json:"parents"`
-	IsRisk   int    `msg:"-" json:"is_risk"`
+	Username   string `db:"username" json:"username"`
+	IP         string `db:"ip" json:"ip"`
+	Device     int    `db:"device" json:"device"`
+	DeviceNo   string `db:"device_no" json:"device_no"`
+	TopUID     string `db:"top_uid" json:"top_uid"`         // 总代uid
+	TopName    string `db:"top_name" json:"top_name"`       // 总代代理
+	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
+	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
+	CreateAt   int    `db:"create_at" json:"create_at"`
+	//Prefix   string `db:"prefix" json:"prefix"`
 }
 
 type memberRemarkLogData struct {
@@ -674,7 +687,7 @@ type MemberLevel struct {
 	UpgradeDeposit    int     `db:"upgrade_deposit" json:"upgrade_deposit" name:"upgrade_deposit" rule:"digit" msg:"upgrade_deposit error"`
 	UpgradeRecord     int     `db:"upgrade_record" json:"upgrade_record" name:"upgrade_record" rule:"digit" msg:"upgrade_record error"`
 	RelegationFlowing int     `db:"relegation_flowing" json:"relegation_flowing" name:"relegation_flowing" rule:"digit" msg:"relegation_flowing error"`
-	UpgradeGift       int     `db:"upgrade_gift" json:"upgrade_gift" name:"upgrade_gift" rule:"digit"msg:"upgrade_gift error"`
+	UpgradeGift       int     `db:"upgrade_gift" json:"upgrade_gift" name:"upgrade_gift" rule:"digit" msg:"upgrade_gift error"`
 	BirthGift         int     `db:"birth_gift" json:"birth_gift" name:"birth_gift" rule:"digit" msg:"birth_gift error"`
 	WithdrawCount     int     `db:"withdraw_count" json:"withdraw_count" name:"withdraw_count" rule:"digit" msg:"withdraw_count error"`
 	WithdrawMax       float64 `db:"withdraw_max" json:"withdraw_max" name:"withdraw_max" rule:"float" msg:"withdraw_max error"`

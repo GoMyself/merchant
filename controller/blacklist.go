@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -35,15 +36,19 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		ex["username"] = username
 	}
 
-	agency := string(ctx.QueryArgs().Peek("agency"))
-	if len(agency) > 0 {
-		if !validator.CheckUName(agency, 5, 14) {
+	parentName := string(ctx.QueryArgs().Peek("parent_name"))
+	if len(parentName) > 4 {
+		if !validator.CheckUName(parentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
+		fmt.Println(parentName)
 		//param["parents"] = agency
-		ex["parents"] = agency
+		ex["parent_name"] = parentName
+	}
+	if parentName == "root" {
+		ex["parent_name"] = "root"
 	}
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
@@ -55,7 +60,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	ip := string(ctx.QueryArgs().Peek("ip"))
 	if len(ip) > 0 {
 		//param["ips.keyword"] = ip
-		ex["ips"] = ip
+		ex["ip"] = ip
 	}
 
 	device := string(ctx.QueryArgs().Peek("device"))
