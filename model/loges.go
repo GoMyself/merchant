@@ -78,13 +78,10 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	ex["prefix"] = meta.Prefix
 
 	t := dialect.From("member_login_log")
-	fmt.Println("====>1")
 	fmt.Println(ex)
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
-		fmt.Printf("====>2  %s\n", query)
 		err := meta.MerchantTD.Get(&data.T, query)
-		fmt.Printf("====>2E  %s\n", err)
 		if err == sql.ErrNoRows {
 			return data, nil
 		}
@@ -99,7 +96,6 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 			return data, nil
 		}
 	}
-	fmt.Println("====>3")
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select("username", "ip", "device", "device_no", "top_name", "parent_name", "create_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
@@ -112,7 +108,6 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 		return data, pushLog(body, helper.DBErr)
 	}
 
-	fmt.Println("====>4")
 	data.S = pageSize
 	return data, nil
 }
