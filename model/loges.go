@@ -73,7 +73,7 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 			return data, errors.New(helper.QueryTimeRangeErr)
 		}
 
-		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+		ex["date"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 	ex["prefix"] = meta.Prefix
 
