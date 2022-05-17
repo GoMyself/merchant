@@ -43,7 +43,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		}
 
 		//param["parents"] = agency
-		ex["parents"] = agency
+		ex["parent_name"] = agency
 	}
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
@@ -55,7 +55,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	ip := string(ctx.QueryArgs().Peek("ip"))
 	if len(ip) > 0 {
 		//param["ips.keyword"] = ip
-		ex["ips"] = ip
+		ex["ip"] = ip
 	}
 
 	device := string(ctx.QueryArgs().Peek("device"))
