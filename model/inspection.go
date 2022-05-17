@@ -8,7 +8,6 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"merchant2/contrib/helper"
-	"strings"
 	"time"
 )
 
@@ -117,7 +116,7 @@ func InspectionList(username string) (Inspection, error) {
 		return data, errors.New(helper.DBErr)
 	}
 	//上次提现至今的流水
-	totalVaild, err := EsPlatValidBet(username, []string{}, lastWithdraw.CreatedAt, now)
+	totalVaild, err := EsPlatValidBet(username, "", lastWithdraw.CreatedAt, now)
 	if err != nil {
 		return data, errors.New(helper.DBErr)
 	}
@@ -169,12 +168,7 @@ func InspectionList(username string) (Inspection, error) {
 
 	//查活动对应场馆的流水总和
 	for _, v := range promolist {
-		var platformIds []string
-		if len(v.Platforms) > 0 {
-			platformIds = strings.Split(v.Platforms, ",")
-		}
-
-		vaildBetAmount, err := EsPlatValidBet(username, platformIds, v.CreatedAt, now)
+		vaildBetAmount, err := EsPlatValidBet(username, v.Platforms, v.CreatedAt, now)
 		if err != nil {
 			return data, errors.New(helper.ESErr)
 		}
@@ -222,10 +216,14 @@ func promoRecrodList(username string) ([]PromoRecord, error) {
 
 func promoDataList(pids []string) ([]PromoData, error) {
 
+	var data []PromoData
+	if len(pids) == 0 {
+		return data, nil
+
+	}
 	ex := g.Ex{
 		"id": pids,
 	}
-	var data []PromoData
 	t := dialect.From("tbl_promo")
 
 	query, _, _ := t.Select(colsPromoData...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
@@ -258,7 +256,7 @@ func getWithdrawLast(username string) (WithdrawRecord, error) {
 }
 
 // EsPlatValidBet 获取指定会员指定场馆的有效投注
-func EsPlatValidBet(username string, pid []string, startAt, endAt int64) (decimal.Decimal, error) {
+func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.Decimal, error) {
 
 	waterFlow := decimal.NewFromFloat(0.0000)
 	if startAt == 0 && endAt == 0 {
@@ -386,7 +384,7 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decima
 
 	terms := make([]elastic.Query, 0)
 	terms = append(terms, elastic.NewTermQuery("username", username))
-	terms = append(terms, elastic.NewTermQuery("ty", ty))
+	terms = append(terms, elastic.NewRangeQuery("ty").Gte(DividendUpgrade).Lte(DividendRedPacket))
 	terms = append(terms, elastic.NewTermQuery("hand_out_state", DividendSuccess))
 
 	boolQuery.Must(terms...)
