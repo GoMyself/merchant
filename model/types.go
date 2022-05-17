@@ -172,8 +172,7 @@ type MemberLoginLog struct {
 	//Parents string `msg:"parents" json:"parents"`
 	//IsRisk   int    `msg:"-" json:"is_risk"`
 	CreateAt string `db:"create_at" json:"create_at"`
-	//Prefix     string `msg:"prefix" json:"prefix"`
-
+	Prefix   string `db:"prefix" json:"prefix"`
 }
 
 type memberRemarkLogData struct {
