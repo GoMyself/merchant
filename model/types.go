@@ -167,12 +167,12 @@ type MemberLoginLog struct {
 	//Agency   bool   `msg:"agency" json:"agency"`
 	//Parents string `msg:"parents" json:"parents"`
 	//IsRisk   int    `msg:"-" json:"is_risk"`
-	CreateAt uint32 `msg:"create_at" json:"create_at"`
-
-	TopUID     string `json:"top_uid"`     // 总代uid
-	TopName    string `json:"top_name"`    // 总代代理
-	ParentUID  string `json:"parent_uid"`  // 上级uid
-	ParentName string `json:"parent_name"` // 上级代理
+	CreateAt   uint32 `msg:"create_at" json:"create_at"`
+	Prefix     string `msg:"prefix" json:"prefix"`
+	TopUID     string `msg:"top_uid" json:"top_uid"`         // 总代uid
+	TopName    string `msg:"top_name" json:"top_name"`       // 总代代理
+	ParentUID  string `msg:"parent_uid" json:"parent_uid"`   // 上级uid
+	ParentName string `msg:"parent_name" json:"parent_name"` // 上级代理
 }
 
 type memberRemarkLogData struct {
