@@ -41,6 +41,9 @@ func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 		rc["voice"] = voiceState
 	}
 
+	fmt.Println("===========>")
+	fmt.Println(rc)
+
 	query, _, _ := dialect.Update("tbl_sms").Set(rc).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
