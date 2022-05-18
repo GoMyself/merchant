@@ -5,14 +5,16 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/shopspring/decimal"
 	"merchant2/contrib/helper"
+	"time"
 )
 
 func DividendInsert(data g.Record) error {
 
 	data["prefix"] = meta.Prefix
-
 	query, _, _ := dialect.Insert("tbl_member_dividend").Rows(data).ToSQL()
+	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
@@ -93,43 +95,164 @@ func DividendList(page, pageSize int, startTime, endTime, reviewStartTime, revie
 	return data, nil
 }
 
-func DividendReview(state int, t int64, adminID, adminName, reviewRemark string, ids []string) error {
+func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string, ids []string) error {
 
 	ex := g.Ex{
-		"id":    ids,
-		"state": DividendReviewing,
+		"id":     ids,
+		"prefix": meta.Prefix,
+		"state":  DividendReviewing,
 	}
-	record := g.Record{
-		"state":         state,
-		"review_remark": reviewRemark,
-		"review_at":     t,
-		"review_uid":    adminID,
-		"review_name":   adminName,
-	}
-	err := dividendUpdate(ex, record)
-	if err != nil {
-		return err
-	}
-
 	// 批量/单条不通过
 	if state == DividendReviewReject {
+		record := g.Record{
+			"state":         DividendReviewReject,
+			"review_remark": reviewRemark,
+			"review_at":     ts,
+			"review_uid":    adminID,
+			"review_name":   adminName,
+		}
+		query, _, _ := dialect.Update("tbl_member_dividend").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
+
 		return nil
 	}
 
-	for _, id := range ids {
-		param := map[string]interface{}{
-			"id":            id,                   //红利记录id，字符串
-			"review_at":     fmt.Sprintf("%d", t), //字符串
-			"review_uid":    adminID,              //字符串
-			"review_name":   adminName,            //字符串
-			"review_remark": reviewRemark,         // 审核备注
+	var (
+		data []MemberDividend
+	)
+	query, _, _ := dialect.From("tbl_member_dividend").Where(ex).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range data {
+
+		mb, err := MemberBalance(v.Username)
+		if err != nil {
+			_ = pushLog(err, helper.BalanceErr)
+			continue
 		}
 
-		topic := "dividend"
-		_, err := BeanPut(topic, param, 0)
+		tx, err := meta.MerchantDB.Begin()
 		if err != nil {
-			fmt.Printf("红利发送队列写入失败：订单号：%s, errMSg: %s", id, err.Error())
+			return pushLog(err, helper.DBErr)
 		}
+
+		record := g.Record{
+			"state":         DividendReviewPass,
+			"review_remark": reviewRemark,
+			"review_at":     ts,
+			"review_uid":    adminID,
+			"review_name":   adminName,
+		}
+		query, _, _ = dialect.Update("tbl_member_dividend").Set(record).Where(g.Ex{"id": v.ID}).ToSQL()
+		fmt.Println(query)
+		_, err = tx.Exec(query)
+		if err != nil {
+			_ = tx.Rollback()
+			_ = pushLog(err, helper.DBErr)
+			continue
+		}
+
+		// 活动红利
+		if v.PID != "" && v.Ty == DividendPromo {
+			r := g.Record{
+				"id":            helper.GenId(),
+				"flag":          "static",
+				"uid":           v.UID,           // 会员账号
+				"username":      v.Username,      // 会员名称
+				"level":         v.Level,         // 会员等级
+				"top_uid":       v.TopUid,        // 总代账号uid
+				"top_name":      v.TopName,       // 总代账号名
+				"parent_uid":    v.ParentUid,     // 上级代理账号uid
+				"parent_name":   v.ParentName,    // 上级代理账号名
+				"pid":           v.PID,           // 活动ID
+				"title":         v.PTitle,        // 活动名称
+				"amount":        v.Amount,        // 活动金额
+				"bonus_type":    1,               // 彩金类型 1 固定金额 2 百分比
+				"bonus_rate":    0,               // 彩金比例 bonus_type=2时使用
+				"bonus":         v.Amount,        // 活动彩金
+				"flow":          v.WaterFlow,     // 流水金额
+				"multiple":      v.WaterMultiple, // 流水倍数
+				"state":         2,               // 已发放
+				"created_at":    ts,              // 记录的创建时间
+				"review_at":     ts,              // 记录的最后更新时间
+				"review_uid":    adminID,         // 活动审批人员ID 如果需要人工审批同意，维护这个字段
+				"review_name":   adminName,       // 审核人名
+				"inspect_at":    0,               // 稽查时间
+				"inspect_uid":   "0",             // 流水稽查ID
+				"inspect_name":  "",              // 稽查人名
+				"inspect_state": 1,               // 稽查状态 1 待稽查 2 完成流水 3 余额清零
+			}
+			query, _, _ = dialect.Insert("tbl_promo_record").Rows(r).ToSQL()
+			fmt.Println(query)
+			_, err = tx.Exec(query)
+			if err != nil {
+				_ = tx.Rollback()
+				_ = pushLog(err, helper.DBErr)
+				continue
+			}
+		}
+
+		balance, _ := decimal.NewFromString(mb.Balance)
+		amount := decimal.NewFromFloat(v.Amount)
+
+		// 中心钱包转出
+		balanceAfter := balance.Add(amount)
+
+		//1、判断金额是否合法
+		if balanceAfter.IsNegative() {
+			return errors.New(fmt.Sprintf("after amount : %s less than 0", balanceAfter.String()))
+		}
+
+		trans := MemberTransaction{
+			AfterAmount:  balanceAfter.String(),
+			Amount:       amount.String(),
+			BeforeAmount: balance.String(),
+			BillNo:       v.ID,
+			CreatedAt:    time.Now().UnixMilli(),
+			ID:           helper.GenId(),
+			CashType:     TransactionDividend,
+			UID:          v.UID,
+			Username:     v.Username,
+			Prefix:       meta.Prefix,
+		}
+		query, _, _ = dialect.Insert("tbl_balance_transaction").Rows(trans).ToSQL()
+		_, err = tx.Exec(query)
+		if err != nil {
+			_ = tx.Rollback()
+			_ = pushLog(err, helper.DBErr)
+			continue
+		}
+
+		op := "+"
+		// 红利金额为负数
+		if amount.IsNegative() {
+			op = "-"
+		}
+		// 中心钱包上下分
+		record = g.Record{
+			"balance": g.L(fmt.Sprintf("balance%s%s", op, amount.Abs().String())),
+		}
+		ex = g.Ex{
+			"uid": v.UID,
+		}
+		query, _, _ = dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
+		_, err = tx.Exec(query)
+		if err != nil {
+			_ = tx.Rollback()
+			_ = pushLog(err, helper.DBErr)
+			continue
+		}
+
+		_ = tx.Commit()
 	}
 
 	return nil
