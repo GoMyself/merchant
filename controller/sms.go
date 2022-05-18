@@ -19,9 +19,11 @@ func (*SMSChannelController) List(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{}
 
-	if len(channelName) < 5 || len(channelName) >= 30 {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
+	if channelName != "" {
+		if len(channelName) < 5 || len(channelName) >= 30 {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
 	}
 	ex["name"] = channelName
 
