@@ -52,7 +52,7 @@ type PromoData struct {
 	Sort        int    `json:"sort" db:"sort"`
 	Flag        string `json:"flag" db:"flag"`
 	State       int    `json:"state" db:"state"`
-	StartAt     int    `json:"start_at" db:"start_at"`
+	StartAt     int64  `json:"start_at" db:"start_at"`
 	EndAt       int    `json:"end_at" db:"end_at"`
 	ShowAt      int    `json:"show_at" db:"show_at"`
 	CreatedAt   int64  `json:"created_at" db:"created_at"`
@@ -136,6 +136,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 
+	cutTime := lastWithdraw.CreatedAt
+	lastInspenction, err := getInspectionLast(username)
+	if cutTime < lastInspenction.InspectAt {
+		cutTime = lastInspenction.InspectAt
+	}
+
 	//查活动记录
 	recordList, err := promoRecrodList(username)
 	recrodMap := map[string]PromoRecord{}
@@ -154,12 +160,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 	//上次提现至今的流水
-	totalVaild, err := EsPlatValidBet(username, "", lastWithdraw.CreatedAt, now)
+	totalVaild, err := EsPlatValidBet(username, "", cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
 	//查升级红利
-	dividendAmount, err := EsDividend(username, lastWithdraw.CreatedAt, now, []int{DividendUpgrade, DividendBirthday, DividendMonthly, DividendRedPacket})
+	dividendAmount, err := EsDividend(username, cutTime, now, []int{DividendUpgrade, DividendBirthday, DividendMonthly, DividendRedPacket})
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -184,7 +190,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	i++
 
 	//查调整
-	adjustAmount, err := EsAdjust(username, lastWithdraw.CreatedAt, now)
+	adjustAmount, err := EsAdjust(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -209,7 +215,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	i++
 
 	//查存款
-	depostAmount, err := EsDepost(username, lastWithdraw.CreatedAt, now)
+	depostAmount, err := EsDepost(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -235,7 +241,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	//查活动对应场馆的流水总和
 	for _, v := range promolist {
-		vaildBetAmount, err := EsPlatValidBet(username, v.Platforms, v.CreatedAt, now)
+		vaildBetAmount, err := EsPlatValidBet(username, v.Platforms, v.StartAt, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
@@ -367,7 +373,8 @@ func promoRecrodList(username string) ([]PromoRecord, error) {
 
 	ex := g.Ex{
 		"username":      username,
-		"inspect_state": []int{1, 2},
+		"state":         2,
+		"inspect_state": 1,
 	}
 	var data []PromoRecord
 	t := dialect.From("tbl_promo_record")
@@ -391,7 +398,8 @@ func promoDataList(pids []string) ([]PromoData, error) {
 
 	}
 	ex := g.Ex{
-		"id": pids,
+		"id":    pids,
+		"state": "2",
 	}
 	t := dialect.From("tbl_promo")
 
@@ -413,6 +421,26 @@ func getWithdrawLast(username string) (WithdrawRecord, error) {
 	w := WithdrawRecord{}
 
 	query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&w, query)
+	if err != nil && err != sql.ErrNoRows {
+		return w, pushLog(err, helper.DBErr)
+	}
+	if err == sql.ErrNoRows {
+		return w, nil
+	}
+	return w, nil
+}
+
+func getInspectionLast(username string) (PromoInspection, error) {
+
+	ex := g.Ex{
+		"username": username,
+		"state":    []int{2, 3},
+	}
+	w := PromoInspection{}
+
+	query, _, _ := dialect.From("tbl_promo_inspection").Select(colsPromoInspection...).Where(ex).Order(g.C("inspect_at").Desc()).Limit(1).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&w, query)
 	if err != nil && err != sql.ErrNoRows {

@@ -160,8 +160,7 @@ func Constructor(mt *MetaTable, rpc string) {
 func Load() {
 
 	AppUpgradeLoadCache()
-	//_ = GameToMinio()
-	//_ = PlatToMinio()
+
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
