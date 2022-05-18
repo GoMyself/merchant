@@ -1145,13 +1145,14 @@ type WithdrawRecord struct {
 
 // SMSChannel 短信通道
 type SMSChannel struct {
-	ID          string `db:"id" json:"id"`
-	Name        string `db:"name" json:"name"`                 // 渠道名称
-	Alias       string `db:"alias" json:"alias"`               // 别名
-	Flags       int    `db:"flags" json:"flags"`               // 1=文本 2=语音
-	State       int    `db:"state" json:"state"`               // 二进制 0=关闭(b00)  3=开启(b11)  2=文开语闭(b10)  1=文闭语开(b01)
-	CreatedAt   int64  `db:"created_at" json:"created_at"`     // 创建时间
-	CreatedUID  string `db:"created_uid" json:"created_uid"`   // 创建人 ID
-	CreatedName string `db:"created_name" json:"created_name"` // 创建人名字
-	Remark      string `db:"remark" json:"remark"`             // 备注
+	Id          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`
+	Alias       string `db:"alias" json:"alias"`
+	Txt         string `db:"txt" json:"txt"`               // 0:没有1:开启2:关闭
+	Voice       string `db:"voice" json:"voice"`           // 0:没有1:开启2:关闭
+	CreatedAt   int64  `db:"created_at" json:"created_at"` // 创建时间
+	CreatedUid  string `db:"created_uid" json:"created_uid"`
+	CreatedName string `db:"created_name" json:"created_name"`
+	Prefix      string `db:"prefix" json:"prefix"` // 前缀
+	Remark      string `db:"remark" json:"remark"` // 备注
 }

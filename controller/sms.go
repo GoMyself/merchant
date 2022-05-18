@@ -42,20 +42,26 @@ func (*SMSChannelController) List(ctx *fasthttp.RequestCtx) {
 
 func (*SMSChannelController) UpdateState(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.PostArgs().Peek("id"))        // 短信通道ID
-	state := ctx.PostArgs().GetUintOrZero("state") // 短信通道状态
+	id := string(ctx.PostArgs().Peek("id"))             // 短信通道ID
+	txtState := ctx.PostArgs().GetUintOrZero("txt")     // 短信通道状态
+	voiceState := ctx.PostArgs().GetUintOrZero("voice") // 短信通道状态
 
 	if !validator.CtypeDigit(id) {
 		helper.Print(ctx, false, helper.DBErr)
 		return
 	}
 
-	if state < 0 || state > 4 {
+	if txtState == 0 || (txtState != 1 && txtState != 2) {
 		helper.Print(ctx, false, helper.StateParamErr)
 		return
 	}
 
-	err := model.SMSChannelUpdateState(id, state)
+	if voiceState == 0 || (voiceState != 1 && voiceState != 2) {
+		helper.Print(ctx, false, helper.StateParamErr)
+		return
+	}
+
+	err := model.SMSChannelUpdateState(id, txtState, voiceState)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

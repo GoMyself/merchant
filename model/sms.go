@@ -13,8 +13,8 @@ func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_sms")
 
-	query, _, _ := t.Select("id", "name", "alias", "created_at", "state", "remark", "created_name").
-		Where(ex).Order(g.C("state").Desc()).Order(g.C("created_at").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "name", "alias", "created_at", "txt", "voice", "remark", "created_name").
+		Where(ex).Order(g.C("txt").Desc()).Order(g.C("voice").Desc()).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -24,14 +24,19 @@ func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 	return data, nil
 }
 
-func SMSChannelUpdateState(cid string, state int) error {
+func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 
 	ex := g.Ex{
 		"id":     cid,
 		"prefix": meta.Prefix,
 	}
 
-	query, _, _ := dialect.Update("tbl_sms").Set(g.Record{"state": state}).Where(ex).ToSQL()
+	rc := g.Record{
+		"txt":   txtState,
+		"voice": voiceState,
+	}
+
+	query, _, _ := dialect.Update("tbl_sms").Set(rc).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
