@@ -87,32 +87,32 @@ type InspectionData struct {
 }
 
 type PromoInspection struct {
-	Id               string `json:"id"`
-	Uid              string `json:"uid"`
-	Username         string `json:"username"`
-	TopUid           string `json:"top_uid"`
-	TopName          string `json:"top_name"`
-	ParentUid        string `json:"parent_uid"`
-	ParentName       string `json:"parent_name"`
-	Level            int    `json:"level"`
-	Pid              string `json:"pid"`
-	Title            string `json:"title"`
-	Platforms        string `json:"platforms"`
-	State            string `json:"state"`
-	CapitalAmount    string `json:"capital_amount"`
-	DividendAmount   string `json:"dividend_amount"`
-	FlowMultiple     string `json:"flow_multiple"`
-	FlowAmount       string `json:"flow_amount"`
-	FinishedAmount   string `json:"finished_amount"`
-	UnfinishedAmount string `json:"unfinished_amount"`
-	ReviewAt         int64  `json:"review_at"`
-	ReviewUid        string `json:"review_uid"`
-	ReviewName       string `json:"review_name"`
-	InspectAt        int64  `json:"inspect_at"`
-	InspectUid       string `json:"inspect_uid"`
-	InspectName      string `json:"inspect_name"`
-	Ty               string `json:"ty"`
-	BillNo           string `json:"bill_no"`
+	Id               string `json:"id" db:"id"`
+	Uid              string `json:"uid" db:"uid"`
+	Username         string `json:"username" db:"username"`
+	TopUid           string `json:"top_uid" db:"top_uid"`
+	TopName          string `json:"top_name" db:"top_name"`
+	ParentUid        string `json:"parent_uid" db:"parent_uid"`
+	ParentName       string `json:"parent_name" db:"parent_name"`
+	Level            int    `json:"level" db:"level"`
+	Pid              string `json:"pid" db:"pid"`
+	Title            string `json:"title" db:"title"`
+	Platforms        string `json:"platforms" db:"platforms"`
+	State            string `json:"state" db:"state"`
+	CapitalAmount    string `json:"capital_amount" db:"capital_amount"`
+	DividendAmount   string `json:"dividend_amount" db:"dividend_amount"`
+	FlowMultiple     string `json:"flow_multiple" db:"flow_multiple"`
+	FlowAmount       string `json:"flow_amount" db:"flow_amount"`
+	FinishedAmount   string `json:"finished_amount" db:"finished_amount"`
+	UnfinishedAmount string `json:"unfinished_amount" db:"unfinished_amount"`
+	ReviewAt         int64  `json:"review_at" db:"review_at"`
+	ReviewUid        string `json:"review_uid" db:"review_uid"`
+	ReviewName       string `json:"review_name" db:"review_name"`
+	InspectAt        int64  `json:"inspect_at" db:"inspect_at"`
+	InspectUid       string `json:"inspect_uid" db:"inspect_uid"`
+	InspectName      string `json:"inspect_name" db:"inspect_name"`
+	Ty               string `json:"ty" db:"ty"`
+	BillNo           string `json:"bill_no" db:"bill_no"`
 }
 
 type PagePromoInspection struct {
