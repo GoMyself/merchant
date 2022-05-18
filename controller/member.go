@@ -128,50 +128,63 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	agencyType := string(ctx.PostArgs().Peek("agency_type")) //391团队393普通
 	remark := string(ctx.PostArgs().Peek("remark"))
 	tester := string(ctx.PostArgs().Peek("tester"))
-	sty := string(ctx.PostArgs().Peek("ty"))
-	szr := string(ctx.PostArgs().Peek("zr"))
-	sqp := string(ctx.PostArgs().Peek("qp"))
-	sdj := string(ctx.PostArgs().Peek("dj"))
-	sdz := string(ctx.PostArgs().Peek("dz"))
-	scp := string(ctx.PostArgs().Peek("cp"))
-	sfc := string(ctx.PostArgs().Peek("fc"))
 
+	ty_temp := string(ctx.PostArgs().Peek("ty"))
+	zr_temp := string(ctx.PostArgs().Peek("zr"))
+	qp_temp := string(ctx.PostArgs().Peek("qp"))
+	dj_temp := string(ctx.PostArgs().Peek("dj"))
+	dz_temp := string(ctx.PostArgs().Peek("dz"))
+	cp_temp := string(ctx.PostArgs().Peek("cp"))
+	fc_temp := string(ctx.PostArgs().Peek("fc"))
+
+	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
+	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
+
+	//fmt.Println("Insert = ", string(ctx.PostBody()))
 	if len(maintainName) == 0 {
 		maintainName = ""
 	}
 
 	vs := model.RebateScale()
-	ty, err := decimal.NewFromString(sty)
+	ty, err := decimal.NewFromString(ty_temp)
 	if err != nil || ty.IsNegative() || ty.GreaterThan(vs.TY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	zr, err := decimal.NewFromString(szr)
+	zr, err := decimal.NewFromString(zr_temp)
 	if err != nil || zr.IsNegative() || zr.GreaterThan(vs.ZR) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	qp, err := decimal.NewFromString(sqp)
+	qp, err := decimal.NewFromString(qp_temp)
 	if err != nil || qp.IsNegative() || qp.GreaterThan(vs.QP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	dj, err := decimal.NewFromString(sdj)
+	dj, err := decimal.NewFromString(dj_temp)
 	if err != nil || dj.IsNegative() || dj.GreaterThan(vs.DJ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	dz, err := decimal.NewFromString(sdz)
+	dz, err := decimal.NewFromString(dz_temp)
 	if err != nil || dz.IsNegative() || dz.GreaterThan(vs.DZ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	cp, err := decimal.NewFromString(scp)
+	cp, err := decimal.NewFromString(cp_temp)
 	if err != nil || cp.IsNegative() || cp.GreaterThan(vs.CP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	fc, err := decimal.NewFromString(sfc)
+	fc, err := decimal.NewFromString(fc_temp)
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+	cg_high_rebate, err := decimal.NewFromString(cg_high_rebate_temp)
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+	cg_official_rebate, err := decimal.NewFromString(cg_official_rebate_temp)
 	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
@@ -201,22 +214,20 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if tester == "" {
+	if tester != "0" {
 		tester = "1"
-	}
-	if tester != "0" && tester != "1" {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
 	}
 
 	mr := model.MemberRebate{
-		TY: ty.StringFixed(1),
-		ZR: zr.StringFixed(1),
-		QP: qp.StringFixed(1),
-		DJ: dj.StringFixed(1),
-		DZ: dz.StringFixed(1),
-		CP: cp.StringFixed(1),
-		FC: fc.StringFixed(1),
+		TY:               ty.StringFixed(1),
+		ZR:               zr.StringFixed(1),
+		QP:               qp.StringFixed(1),
+		DJ:               dj.StringFixed(1),
+		DZ:               dz.StringFixed(1),
+		CP:               cp.StringFixed(1),
+		FC:               fc.StringFixed(1),
+		CgOfficialRebate: cg_official_rebate.StringFixed(2),
+		CgHighRebate:     cg_high_rebate.StringFixed(2),
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
@@ -623,103 +634,6 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	//fmt.Println("param = ", param)
 	err = model.MemberUpdate(username, admin["id"], param, userTagsId)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.Print(ctx, true, helper.Success)
-}
-
-// Tags 用户标签
-func (that *MemberController) Tags(ctx *fasthttp.RequestCtx) {
-
-	uid := string(ctx.QueryArgs().Peek("uid"))
-	if !validator.CheckStringDigit(uid) {
-		helper.Print(ctx, false, helper.UIDErr)
-		return
-	}
-
-	data, err := model.MemberTagsList(uid)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.Print(ctx, true, data)
-
-}
-
-// SetTags 设置用户标签
-// 为单个用户设置标签时batch=0,uid为用户id, 为多个用户批量设置标签的时候batch=1,uid用`,`分割
-func (that *MemberController) SetTags(ctx *fasthttp.RequestCtx) {
-
-	params := setTagParam{}
-	err := validator.Bind(ctx, &params)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	// 校验tags，并拆解组装成slice
-	var tags []string
-	for _, v := range strings.Split(params.tags, ",") {
-		v = strings.TrimSpace(v)
-		if v == "" {
-			continue
-		}
-
-		tags = append(tags, v)
-	}
-	if len(tags) == 0 {
-		helper.Print(ctx, false, helper.UserTagErr)
-		return
-	}
-
-	// 校验uid，并拆解组装成slice
-	uids := strings.Split(params.uid, ",")
-	var ids []string
-	for _, v := range uids {
-		v = strings.TrimSpace(v)
-		if v == "" {
-			continue
-		}
-
-		ids = append(ids, v)
-	}
-
-	if len(ids) == 0 {
-		helper.Print(ctx, false, helper.UIDErr)
-		return
-	}
-
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
-	err = model.MemberTagsSet(params.Batch, admin["id"], ids, tags, ctx.Time().Unix())
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.Print(ctx, true, helper.Success)
-}
-
-// CancelTags 取消用户标签
-// 取消单个用户标签时uid为用户id, 批量取消多个用户标签的时候uid用`,`分割
-func (that *MemberController) CancelTags(ctx *fasthttp.RequestCtx) {
-
-	params := setTagParam{}
-	err := validator.Bind(ctx, &params)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	err = model.MemberTagsCancel(params.uid, params.tags)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
