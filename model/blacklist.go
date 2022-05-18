@@ -95,6 +95,8 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 	}
 
 	switch ty {
+	case 1:
+		key = "device_blacklist"
 	case TyIP:
 		key = "ip_blacklist"
 	case TyPhone:
@@ -144,6 +146,8 @@ func BlacklistDelete(id string) error {
 
 	key := ""
 	switch data.Ty {
+	case 1:
+		key = "device_blacklist"
 	case TyIP:
 		key = "ip_blacklist"
 	case TyPhone:
@@ -182,6 +186,8 @@ func BlacklistLoadCache() error {
 	for _, v := range data {
 		key := ""
 		switch v.Ty {
+		case 1:
+			key = "device_blacklist"
 		case TyIP:
 			key = "ip_blacklist"
 		case TyPhone:
