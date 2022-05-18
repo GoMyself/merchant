@@ -66,7 +66,7 @@ func (that *InspectionController) History(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.QueryArgs().Peek("username"))
 	inspectState := string(ctx.QueryArgs().Peek("state"))
 	billNo := string(ctx.QueryArgs().Peek("bill_no"))
-
+	title := string(ctx.QueryArgs().Peek("title"))
 	reviewName := string(ctx.QueryArgs().Peek("review_name"))
 	inspectName := string(ctx.QueryArgs().Peek("inspect_name"))
 	page := ctx.QueryArgs().GetUintOrZero("page")
@@ -78,6 +78,10 @@ func (that *InspectionController) History(ctx *fasthttp.RequestCtx) {
 
 	if len(billNo) != 0 {
 		ex["bill_no"] = billNo
+	}
+
+	if len(title) != 0 {
+		ex["title"] = title
 	}
 
 	if len(inspectState) != 0 {
