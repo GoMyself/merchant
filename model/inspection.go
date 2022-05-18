@@ -418,22 +418,6 @@ func promoDataList(pids []string) ([]PromoData, error) {
 
 func getWithdrawLast(username string) (Withdraw, error) {
 
-	//ex := g.Ex{
-	//	"username": username,
-	//	"state":    WithdrawSuccess,
-	//}
-	//w := WithdrawRecord{}
-	//
-	//query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
-	//fmt.Println(query)
-	//err := meta.MerchantDB.Get(&w, query)
-	//if err != nil && err != sql.ErrNoRows {
-	//	return w, pushLog(err, helper.DBErr)
-	//}
-	//if err == sql.ErrNoRows {
-	//	return w, nil
-	//}
-
 	data := Withdraw{}
 
 	query := elastic.NewBoolQuery()
