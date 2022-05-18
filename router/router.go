@@ -329,7 +329,9 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 运营管理-短信通道-增加
 	post("/merchant/sms/insert", smsChannelCtl.Insert)
 	// 运营管理-短信通道-编辑
-	post("/merchant/sms/update", smsChannelCtl.UpdateState)
+	post("/merchant/sms/update", smsChannelCtl.Update)
+	// 运营管理-短信通道-更新短信通道状态
+	post("/merchant/sms/updatestate", smsChannelCtl.UpdateState)
 	// 运营管理-短信通道-删除
 	get("/merchant/sms/delete", smsChannelCtl.Delete)
 

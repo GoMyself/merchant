@@ -45,3 +45,28 @@ func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 
 	return nil
 }
+
+func SMSChannelUpdate(cid string, channelName, remark string) error {
+
+	ex := g.Ex{
+		"id":     cid,
+		"prefix": meta.Prefix,
+	}
+
+	rc := g.Record{}
+	if channelName != "" {
+		rc["name"] = channelName
+	}
+	if remark != "" {
+		rc["remark"] = remark
+	}
+
+	query, _, _ := dialect.Update("tbl_sms").Set(rc).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	return nil
+}
