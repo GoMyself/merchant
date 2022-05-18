@@ -36,13 +36,15 @@ type log_t struct {
 }
 
 type VenueRebateScale struct {
-	ZR decimal.Decimal
-	QP decimal.Decimal
-	TY decimal.Decimal
-	DZ decimal.Decimal
-	DJ decimal.Decimal
-	CP decimal.Decimal
-	FC decimal.Decimal
+	ZR               decimal.Decimal
+	QP               decimal.Decimal
+	TY               decimal.Decimal
+	DZ               decimal.Decimal
+	DJ               decimal.Decimal
+	CP               decimal.Decimal
+	FC               decimal.Decimal
+	CGOfficialRebate decimal.Decimal
+	CGHighRebate     decimal.Decimal
 }
 
 var grpc_t struct {
@@ -143,13 +145,15 @@ func Constructor(mt *MetaTable, rpc string) {
 	client.UseService(&grpc_t)
 
 	meta.VenueRebate = VenueRebateScale{
-		ZR: decimal.NewFromFloat(1.0).Truncate(1),
-		QP: decimal.NewFromFloat(1.2).Truncate(1),
-		TY: decimal.NewFromFloat(1.5).Truncate(1),
-		DZ: decimal.NewFromFloat(1.2).Truncate(1),
-		DJ: decimal.NewFromFloat(1.1).Truncate(1),
-		CP: decimal.NewFromFloat(1.1).Truncate(1),
-		FC: decimal.NewFromFloat(1.5).Truncate(1),
+		ZR:               decimal.NewFromFloat(1.0).Truncate(1),
+		QP:               decimal.NewFromFloat(1.2).Truncate(1),
+		TY:               decimal.NewFromFloat(1.5).Truncate(1),
+		DZ:               decimal.NewFromFloat(1.2).Truncate(1),
+		DJ:               decimal.NewFromFloat(1.1).Truncate(1),
+		CP:               decimal.NewFromFloat(1.1).Truncate(1),
+		FC:               decimal.NewFromFloat(1.5).Truncate(1),
+		CGHighRebate:     decimal.NewFromFloat(10.00).Truncate(2),
+		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}
 
 	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {
@@ -164,7 +168,7 @@ func Load() {
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
-	_ = BlacklistLoadCache()
+	_ = BlacklistLoadCache(0)
 	_ = BannersLoadCache()
 	_ = TreeLoadToRedis()
 }
