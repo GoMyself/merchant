@@ -110,8 +110,8 @@ type MemberListCol struct {
 	DZ               string  `json:"dz" db:"dz"`
 	CP               string  `json:"cp" db:"cp"`
 	FC               string  `json:"fc" db:"fc"`
-	CgOfficialRebate string  `db:"fc" json:"fc"` //CG官方彩返点
-	CgHighRebate     string  `db:"fc" json:"fc"` //CG高频彩返点
+	CgOfficialRebate string  `json:"cg_official_rebate" db:"cg_official_rebate"` //CG官方彩返点
+	CgHighRebate     string  `json:"cg_high_rebate" db:"cg_high_rebate"`         //CG高频彩返点
 	Lvl              int     `json:"lvl" db:"-"`
 	PlanID           string  `json:"plan_id" db:"-"`
 	PlanName         string  `json:"plan_name" db:"-"`
