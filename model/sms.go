@@ -37,7 +37,7 @@ func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 		rc["txt"] = txtState
 	}
 
-	if txtState != 0 {
+	if voiceState != 0 {
 		rc["voice"] = voiceState
 	}
 
