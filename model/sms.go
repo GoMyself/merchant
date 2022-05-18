@@ -8,6 +8,7 @@ import (
 
 func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 
+	fmt.Println("========> In 1")
 	data := make([]SMSChannel, 0)
 
 	ex["prefix"] = meta.Prefix
@@ -20,7 +21,8 @@ func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
+	fmt.Println(data)
+	fmt.Println("========> In 2")
 	return data, nil
 }
 

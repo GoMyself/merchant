@@ -24,14 +24,18 @@ func (*SMSChannelController) List(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
-	}
-	ex["name"] = channelName
 
-	if createdName != "" && !validator.CheckAName(createdName, 5, 20) {
-		helper.Print(ctx, false, helper.AdminNameErr)
-		return
+		ex["name"] = channelName
 	}
-	ex["created_name"] = createdName
+
+	if createdName != "" {
+		if !validator.CheckAName(createdName, 5, 20) {
+			helper.Print(ctx, false, helper.AdminNameErr)
+			return
+		}
+
+		ex["created_name"] = createdName
+	}
 
 	list, err := model.SMSChannelList(ex)
 	if err != nil {
