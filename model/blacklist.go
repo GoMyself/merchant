@@ -95,6 +95,8 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 	}
 
 	switch ty {
+	case 1:
+		key = "device_blacklist"
 	case TyIP:
 		key = "ip_blacklist"
 	case TyPhone:
@@ -142,17 +144,7 @@ func BlacklistDelete(id string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	key := ""
-	switch data.Ty {
-	case TyIP:
-		key = "ip_blacklist"
-	case TyPhone:
-		key = "phone_blacklist"
-	case TyBankcard:
-		key = "bankcard_blacklist"
-	}
-
-	meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value).Err()
+	BlacklistLoadCache(data.Ty)
 
 	return nil
 }
@@ -168,20 +160,47 @@ func BlacklistExist(ex g.Ex) bool {
 	return err != sql.ErrNoRows
 }
 
-func BlacklistLoadCache() error {
+func BlacklistLoadCache(ty int) error {
 
 	data := []Blacklist{}
-	query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).ToSQL()
-	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
-		return err
+
+	if ty != 0 {
+		ex := g.Ex{"ty": ty}
+		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).Where(ex).ToSQL()
+		err := meta.MerchantDB.Select(&data, query)
+		if err != nil {
+			return err
+		}
+	} else {
+		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).ToSQL()
+		err := meta.MerchantDB.Select(&data, query)
+		if err != nil {
+			return err
+		}
 	}
 
 	pipe := meta.MerchantRedis.Pipeline()
-	pipe.Unlink(ctx, "phone_blacklist", "bankcard_blacklist", "ip_blacklist")
+	if ty != 0 {
+		key := ""
+		switch ty {
+		case 1:
+			key = "device_blacklist"
+		case TyIP:
+			key = "ip_blacklist"
+		case TyPhone:
+			key = "phone_blacklist"
+		case TyBankcard:
+			key = "bankcard_blacklist"
+		}
+		pipe.Unlink(ctx, key)
+	} else {
+		pipe.Unlink(ctx, "phone_blacklist", "bankcard_blacklist", "ip_blacklist")
+	}
 	for _, v := range data {
 		key := ""
 		switch v.Ty {
+		case 1:
+			key = "device_blacklist"
 		case TyIP:
 			key = "ip_blacklist"
 		case TyPhone:

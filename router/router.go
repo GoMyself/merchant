@@ -90,6 +90,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	appUpCtl := new(controller.AppUpgradeController)
 	//黑名单管理
 	blacklistCtl := new(controller.BlacklistController)
+	//流水稽查管理
+	inspectionCtl := new(controller.InspectionController)
 	// 日志管理
 	logCtl := new(controller.LogController)
 	// 返水管理
@@ -104,6 +106,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	msgCtl := new(controller.MessageController)
 	//验证码管理
 	smsCtl := new(controller.SmsRecordController)
+	// 短信通道管理
+	smsChannelCtl := new(controller.SMSChannelController)
 
 	get("/merchant/version", Version)
 
@@ -297,6 +301,12 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/blacklist/update", blacklistCtl.Update)
 	//风控管理-黑名单删除
 	get("/merchant/blacklist/delete", blacklistCtl.Delete)
+	//风控管理-流水稽查查询
+	get("/merchant/inspection/list", inspectionCtl.List)
+	//风控管理-流水稽查审核
+	post("/merchant/inspection/review", inspectionCtl.Review)
+	//风控管理-流水稽查记录
+	get("/merchant/inspection/history", inspectionCtl.History)
 
 	// 系统管理-日志管理-登录日志
 	get("/merchant/sys/log/login/list", logCtl.AdminLoginLog)
@@ -314,6 +324,17 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	//运营管理-系统公告-删除
 	get("/merchant/notice/delete", noticeCtl.Delete)
 
+	// 运营管理-短信通道-列表
+	post("/merchant/sms/list", smsChannelCtl.List)
+	// 运营管理-短信通道-增加
+	//post("/merchant/sms/insert", smsChannelCtl.Insert)
+	// 运营管理-短信通道-编辑
+	post("/merchant/sms/update", smsChannelCtl.Update)
+	// 运营管理-短信通道-更新短信通道状态
+	post("/merchant/sms/update/state", smsChannelCtl.UpdateState)
+	// 运营管理-短信通道-删除
+	//get("/merchant/sms/delete", smsChannelCtl.Delete)
+
 	// 获取返水上限
 	get("/merchant/rebate/scale", rebateCtl.Scale)
 
@@ -322,7 +343,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 记录管理-平台转帐
 	post("/merchant/record/transfer", recordCtl.Transfer)
 
-	post("/merchant/member/sms/list", smsCtl.List)
+	get("/merchant/member/sms/list", smsCtl.List)
 	// 会员管理-会员列表-有效投注查询
 	// 会员管理-投注管理
 	// 会员管理-投注管理-会员游戏记录详情列表

@@ -97,27 +97,30 @@ type memberInfo struct {
 }
 
 type MemberListCol struct {
-	UID         string  `json:"uid" db:"uid"`
-	Deposit     float64 `json:"deposit" db:"deposit"`
-	Withdraw    float64 `json:"withdraw" db:"withdraw"`
-	ValidAmount float64 `json:"valid_amount" db:"valid_amount"`
-	Rebate      float64 `json:"rebate" db:"rebate"`
-	NetAmount   float64 `json:"net_amount" db:"net_amount"`
-	TY          string  `json:"ty" db:"ty"`
-	ZR          string  `json:"zr" db:"zr"`
-	QP          string  `json:"qp" db:"qp"`
-	DJ          string  `json:"dj" db:"dj"`
-	DZ          string  `json:"dz" db:"dz"`
-	CP          string  `json:"cp" db:"cp"`
-	FC          string  `json:"fc" db:"fc"`
-	Lvl         int     `json:"lvl" db:"-"`
-	PlanID      string  `json:"plan_id" db:"-"`
-	PlanName    string  `json:"plan_name" db:"-"`
+	UID              string  `json:"uid" db:"uid"`
+	Deposit          float64 `json:"deposit" db:"deposit"`
+	Withdraw         float64 `json:"withdraw" db:"withdraw"`
+	ValidAmount      float64 `json:"valid_amount" db:"valid_amount"`
+	Rebate           float64 `json:"rebate" db:"rebate"`
+	NetAmount        float64 `json:"net_amount" db:"net_amount"`
+	TY               string  `json:"ty" db:"ty"`
+	ZR               string  `json:"zr" db:"zr"`
+	QP               string  `json:"qp" db:"qp"`
+	DJ               string  `json:"dj" db:"dj"`
+	DZ               string  `json:"dz" db:"dz"`
+	CP               string  `json:"cp" db:"cp"`
+	FC               string  `json:"fc" db:"fc"`
+	CgOfficialRebate string  `json:"cg_official_rebate" db:"cg_official_rebate"` //CG官方彩返点
+	CgHighRebate     string  `json:"cg_high_rebate" db:"cg_high_rebate"`         //CG高频彩返点
+	Lvl              int     `json:"lvl" db:"-"`
+	PlanID           string  `json:"plan_id" db:"-"`
+	PlanName         string  `json:"plan_name" db:"-"`
 }
 
 type MemberAggData struct {
 	MemCount       int    `db:"mem_count" json:"mem_count"`
 	RegistCountNew int    `db:"regist_count" json:"regist_count"`
+	ActiveCount    int    `db:"active_count" json:"active_count"`
 	UID            string `db:"uid" json:"uid"`
 }
 
@@ -517,12 +520,6 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 	// 获取代理层级  佣金方案
 	lvls := memberLvl(lvParams)
 
-	// 佣金方案
-	plans, err := memberPlan(ids)
-	if err != nil {
-		return data, err
-	}
-
 	for i, v := range data.D {
 		if rb, ok := rebate[v.UID]; ok {
 			data.D[i].DJ = rb.DJ
@@ -532,20 +529,12 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 			data.D[i].DZ = rb.DZ
 			data.D[i].CP = rb.CP
 			data.D[i].FC = rb.FC
+			data.D[i].CgOfficialRebate = rb.CgOfficialRebate
+			data.D[i].CgHighRebate = rb.CgHighRebate
 		}
 
 		if lv, ok := lvls[v.UID]; ok {
 			data.D[i].Lvl = lv
-		}
-
-		if plan, ok := plans[v.UID]; ok {
-			if planID, ok := plan["plan_id"]; ok {
-				data.D[i].PlanID = planID
-			}
-
-			if plannName, ok := plan["name"]; ok {
-				data.D[i].PlanName = plannName
-			}
 		}
 
 	}
@@ -728,6 +717,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	}
 	if page == 1 {
 		query, _, _ := dialect.From("tbl_members").Select(g.COUNT(1)).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&number, query)
 		if err != nil && err != sql.ErrNoRows {
 			return data, number, pushLog(err, helper.DBErr)
@@ -777,14 +767,14 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 		or := g.Or(
 			g.And(
 				g.C("uid").In(parentID),
-				g.C("parent_uid").Eq(g.C("uid")),
+				g.C("data_type").Eq("2"),
 			),
 		)
 
 		if len(ids) > 0 {
 			or = or.Append(
 				g.And(
-					g.C("uid").Neq(g.C("parent_uid")),
+					g.C("data_type").Eq("1"),
 					g.C("uid").In(ids),
 				),
 			)
@@ -792,7 +782,6 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 
 		and = and.Append(or)
 	}
-
 	query, _, _ = dialect.From("tbl_report_agency").Where(and).
 		Select(
 			"uid",
@@ -840,11 +829,12 @@ func MemberAgg(ids []string, startTIme, endTime int64) (map[string]MemberAggData
 		"uid":         ids,
 		"report_time": g.Op{"between": exp.NewRangeVal(startTIme, endTime)},
 		"report_type": 2,
+		"data_type":   1,
 		"prefix":      meta.Prefix,
 	}
 
 	query, _, _ := dialect.From("tbl_report_agency").Select(g.MAX("subordinate_count").As("mem_count"),
-		g.SUM("regist_count").As("regist_count"), "uid").Where(ex).GroupBy("uid").ToSQL()
+		g.SUM("regist_count").As("regist_count"), g.MAX("active_count").As("active_count"), "uid").Where(ex).GroupBy("uid").ToSQL()
 	err := meta.ReportDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, pushLog(err, helper.DBErr)
@@ -1058,6 +1048,7 @@ func MemberRetryReset(username string, ty uint8, pid string) error {
 	return nil
 }
 
+/*
 // 会员列表 用户日志写入
 func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt int64) error {
 
@@ -1106,6 +1097,7 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 	return nil
 }
 
+*/
 // 会员管理-会员列表-数据概览
 func MemberDataOverview(username, startTime, endTime string) (MemberDataOverviewData, error) {
 

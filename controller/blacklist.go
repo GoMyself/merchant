@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
@@ -22,7 +23,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	param := map[string]interface{}{}
+	ex := g.Ex{}
+	//param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
 		if !validator.CheckUName(username, 5, 14) {
@@ -30,27 +32,35 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		param["username"] = username
+		//param["username"] = username
+		ex["username"] = username
 	}
 
-	agency := string(ctx.QueryArgs().Peek("agency"))
-	if len(agency) > 0 {
-		if !validator.CheckUName(agency, 5, 14) {
+	parentName := string(ctx.QueryArgs().Peek("parent_name"))
+	if len(parentName) > 4 {
+		if !validator.CheckUName(parentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		param["parents"] = agency
+		fmt.Println(parentName)
+		//param["parents"] = agency
+		ex["parent_name"] = parentName
+	}
+	if parentName == "root" {
+		ex["parent_name"] = "root"
 	}
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
 	if len(deviceNo) > 0 {
-		param["device_no.keyword"] = deviceNo
+		//param["device_no.keyword"] = deviceNo
+		ex["device_no"] = deviceNo
 	}
 
 	ip := string(ctx.QueryArgs().Peek("ip"))
 	if len(ip) > 0 {
-		param["ips.keyword"] = ip
+		//param["ips.keyword"] = ip
+		ex["ip"] = ip
 	}
 
 	device := string(ctx.QueryArgs().Peek("device"))
@@ -66,7 +76,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		param["device"] = device
+		//param["device"] = device
+		ex["device"] = device
 	}
 
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
@@ -74,7 +85,8 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	p, _ := strconv.Atoi(page)
 	ps, _ := strconv.Atoi(pageSize)
 
-	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
+	//data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
+	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -129,14 +141,13 @@ func (that *BlacklistController) AssociateList(ctx *fasthttp.RequestCtx) {
 
 func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 
-	page := string(ctx.QueryArgs().Peek("page"))
-	pageSize := string(ctx.QueryArgs().Peek("page_size"))
-	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	startTime := string(ctx.QueryArgs().Peek("start_time"))
+	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	page_size := ctx.QueryArgs().GetUintOrZero("page_size")
 	ty := ctx.QueryArgs().GetUintOrZero("ty")
+
 	if _, ok := model.BlackTy[ty]; !ok {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
@@ -149,34 +160,8 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 	if len(value) > 0 {
 
 		ex["value"] = value
-		switch ty {
-		case model.TyBankcard:
-			if !validator.CheckStringLength(value, 6, 20) || !validator.CheckStringDigit(value) {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-
-			//cardNoHash := fmt.Sprintf("%d", model.MurmurHash(value, 0))
-			ex["value"] = value
-			//fmt.Println(cardNoHash)
-		default:
-			if !validator.CheckStringLength(value, 1, 60) {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-		}
-		if !validator.CheckStringLength(value, 1, 60) {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
-		}
 	}
-
-	startTime := string(ctx.QueryArgs().Peek("start_time"))
-	endTime := string(ctx.QueryArgs().Peek("end_time"))
-	p, _ := strconv.Atoi(page)
-	ps, _ := strconv.Atoi(pageSize)
-
-	data, err := model.BlacklistList(uint(p), uint(ps), startTime, endTime, ty, ex)
+	data, err := model.BlacklistList(uint(page), uint(page_size), startTime, endTime, ty, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

@@ -264,12 +264,6 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	// 验证用户名
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
@@ -279,12 +273,19 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
+	/*
+		admin, err := model.AdminToken(ctx)
+		if err != nil {
+			helper.Print(ctx, false, helper.AccessTokenExpires)
+			return
+		}
 
+			err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
+			if err != nil {
+				helper.Print(ctx, false, err.Error())
+				return
+			}
+	*/
 	err = model.MemberUpdateState(names, params.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -476,20 +477,20 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 	}
 
 	var press = exp.NewExpressionList(exp.AndType, g.C("uid").Eq(g.C("top_uid")))
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+		press = exp.NewExpressionList(exp.AndType, g.C("username").Eq(username))
+	}
+
 	if parentID != "" {
 		press = exp.NewExpressionList(exp.AndType, g.Or(g.C("parent_uid").Eq(parentID), g.C("uid").Eq(parentID)))
 	}
 
 	if state > 0 {
 		press = press.Append(g.C("state").Eq(state))
-	}
-
-	if username != "" {
-		if !validator.CheckUName(username, 5, 14) {
-			helper.Print(ctx, false, helper.UsernameErr)
-			return
-		}
-		press = press.Append(g.C("username").Eq(username))
 	}
 
 	if maintainName != "" {
@@ -763,18 +764,12 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	admin, err := model.AdminToken(ctx)
-	if err != nil {
-		helper.Print(ctx, false, helper.AccessTokenExpires)
-		return
-	}
-
 	if !validator.CheckStringLength(params.Msg, 1, 300) {
 		helper.Print(ctx, false, helper.ContentLengthErr)
 		return
 	}
 
-	if params.File != "" && !validator.CheckUrl(params.File) {
+	if len(params.File) < 5 {
 		helper.Print(ctx, false, helper.FileURLErr)
 		return
 	}
@@ -795,12 +790,19 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
+	/*
+			admin, err := model.AdminToken(ctx)
+		if err != nil {
+			helper.Print(ctx, false, helper.AccessTokenExpires)
+			return
+		}
 
+			err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
+			if err != nil {
+				helper.Print(ctx, false, err.Error())
+				return
+			}
+	*/
 	helper.Print(ctx, true, helper.Success)
 }
 

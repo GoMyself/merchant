@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"merchant2/contrib/helper"
-	"merchant2/contrib/tdlog"
 	"merchant2/contrib/tracerr"
 	"strings"
 
-	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
@@ -38,13 +36,15 @@ type log_t struct {
 }
 
 type VenueRebateScale struct {
-	ZR decimal.Decimal
-	QP decimal.Decimal
-	TY decimal.Decimal
-	DZ decimal.Decimal
-	DJ decimal.Decimal
-	CP decimal.Decimal
-	FC decimal.Decimal
+	ZR               decimal.Decimal
+	QP               decimal.Decimal
+	TY               decimal.Decimal
+	DZ               decimal.Decimal
+	DJ               decimal.Decimal
+	CP               decimal.Decimal
+	FC               decimal.Decimal
+	CGOfficialRebate decimal.Decimal
+	CGHighRebate     decimal.Decimal
 }
 
 var grpc_t struct {
@@ -55,9 +55,9 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	Zlog           *fluent.Fluent
 	VenueRebate    VenueRebateScale
 	MerchantRedis  *redis.Client
+	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
 	ReportDB       *sqlx.DB
 	BetDB          *sqlx.DB
@@ -73,6 +73,7 @@ type MetaTable struct {
 	PullPrefix     string
 	Lang           string
 	GcsDoamin      string
+	Program        string
 }
 
 var (
@@ -114,6 +115,10 @@ var (
 	colsAgencyTransfer       = helper.EnumFields(AgencyTransfer{})
 	colsAgencyTransferRecord = helper.EnumFields(AgencyTransferRecord{})
 	colsMessage              = helper.EnumFields(Message{})
+	colsPromoRecord          = helper.EnumFields(PromoRecord{})
+	colWithdrawRecord        = helper.EnumFields(WithdrawRecord{})
+	colsPromoData            = helper.EnumFields(PromoData{})
+	colsPromoInspection      = helper.EnumFields(PromoInspection{})
 	dividendFields           = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "wallet", "batch", "batch_id", "level", "ty", "agency_type", "water_limit", "platform_id", "username", "amount", "hand_out_amount", "water_flow", "notify", "state", "hand_out_state", "remark", "review_remark", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
@@ -140,13 +145,15 @@ func Constructor(mt *MetaTable, rpc string) {
 	client.UseService(&grpc_t)
 
 	meta.VenueRebate = VenueRebateScale{
-		ZR: decimal.NewFromFloat(1.0).Truncate(1),
-		QP: decimal.NewFromFloat(1.2).Truncate(1),
-		TY: decimal.NewFromFloat(1.5).Truncate(1),
-		DZ: decimal.NewFromFloat(1.2).Truncate(1),
-		DJ: decimal.NewFromFloat(1.1).Truncate(1),
-		CP: decimal.NewFromFloat(1.1).Truncate(1),
-		FC: decimal.NewFromFloat(1.5).Truncate(1),
+		ZR:               decimal.NewFromFloat(1.0).Truncate(1),
+		QP:               decimal.NewFromFloat(1.2).Truncate(1),
+		TY:               decimal.NewFromFloat(1.5).Truncate(1),
+		DZ:               decimal.NewFromFloat(1.2).Truncate(1),
+		DJ:               decimal.NewFromFloat(1.1).Truncate(1),
+		CP:               decimal.NewFromFloat(1.1).Truncate(1),
+		FC:               decimal.NewFromFloat(1.5).Truncate(1),
+		CGHighRebate:     decimal.NewFromFloat(10.00).Truncate(2),
+		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}
 
 	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {
@@ -157,12 +164,11 @@ func Constructor(mt *MetaTable, rpc string) {
 func Load() {
 
 	AppUpgradeLoadCache()
-	_ = GameToMinio()
-	_ = PlatToMinio()
+
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
-	_ = BlacklistLoadCache()
+	_ = BlacklistLoadCache(0)
 	_ = BannersLoadCache()
 	_ = TreeLoadToRedis()
 }
@@ -180,34 +186,26 @@ func MurmurHash(str string, seed uint32) uint64 {
 func pushLog(err error, code string) error {
 
 	err = tracerr.Wrap(err)
-	fields := map[string]string{
-		"filename": tracerr.SprintSource(err, 2, 2),
-		"content":  err.Error(),
-		"fn":       code,
-		"id":       helper.GenId(),
-		"project":  "MerchantAdmin",
-	}
-	l := log_t{
-		ID:      helper.GenId(),
-		Project: "merchant",
-		Flags:   code,
-		Fn:      "",
-		File:    tracerr.SprintSource(err, 2, 2),
-		Content: err.Error(),
-	}
-	err = tdlog.Info(fields)
-	if err != nil {
-		fmt.Printf("write td[%#v] err : %s", fields, err.Error())
+	ts := time.Now()
+	id := helper.GenId()
+
+	fields := g.Record{
+		"id":       id,
+		"content":  tracerr.SprintSource(err, 2, 2),
+		"project":  meta.Program,
+		"flags":    code,
+		"filename": err.Error(),
+		"ts":       ts.In(loc).UnixMilli(),
 	}
 
-	_ = meta.Zlog.Post(esPrefixIndex("merchant_error"), l)
-
-	switch code {
-	case helper.DBErr, helper.RedisErr, helper.ESErr:
-		code = helper.ServerErr
+	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
+	//fmt.Println(query)
+	_, err1 := meta.MerchantTD.Exec(query)
+	if err1 != nil {
+		fmt.Println("insert SMS = ", err1.Error())
 	}
 
-	note := fmt.Sprintf("Hệ thống lỗi %s", fields["id"])
+	note := fmt.Sprintf("Hệ thống lỗi %s", id)
 	return errors.New(note)
 }
 

@@ -156,17 +156,30 @@ type MemberLoginLogData struct {
 	T int64            `json:"t"`
 }
 
+//type MemberLoginLog struct {
+//	Username string `msg:"username" json:"username"`
+//	IP       int64  `msg:"ip" json:"ip"`
+//	IPS      string `msg:"ips" json:"ips"`
+//	Device   string `msg:"device" json:"device"`
+//	DeviceNo string `msg:"device_no" json:"device_no"`
+//	Date     uint32 `msg:"date" json:"date"`
+//	Serial   string `msg:"serial" json:"serial"`
+//	Agency   bool   `msg:"agency" json:"agency"`
+//	Parents  string `msg:"parents" json:"parents"`
+//	IsRisk   int    `msg:"-" json:"is_risk"`
+//}
+
 type MemberLoginLog struct {
-	Username string `msg:"username" json:"username"`
-	IP       int64  `msg:"ip" json:"ip"`
-	IPS      string `msg:"ips" json:"ips"`
-	Device   string `msg:"device" json:"device"`
-	DeviceNo string `msg:"device_no" json:"device_no"`
-	Date     uint32 `msg:"date" json:"date"`
-	Serial   string `msg:"serial" json:"serial"`
-	Agency   bool   `msg:"agency" json:"agency"`
-	Parents  string `msg:"parents" json:"parents"`
-	IsRisk   int    `msg:"-" json:"is_risk"`
+	Username   string `db:"username" json:"username"`
+	IP         string `db:"ip" json:"ip"`
+	Device     int    `db:"device" json:"device"`
+	DeviceNo   string `db:"device_no" json:"device_no"`
+	TopUID     string `db:"top_uid" json:"top_uid"`         // 总代uid
+	TopName    string `db:"top_name" json:"top_name"`       // 总代代理
+	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
+	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
+	CreateAt   int    `db:"create_at" json:"create_at"`
+	//Prefix   string `db:"prefix" json:"prefix"`
 }
 
 type memberRemarkLogData struct {
@@ -437,17 +450,19 @@ type SystemLogData struct {
 }
 
 type MemberRebate struct {
-	UID       string `db:"uid" json:"uid"`
-	ZR        string `db:"zr" json:"zr"` //真人返水
-	QP        string `db:"qp" json:"qp"` //棋牌返水
-	TY        string `db:"ty" json:"ty"` //体育返水
-	DJ        string `db:"dj" json:"dj"` //电竞返水
-	DZ        string `db:"dz" json:"dz"` //电游返水
-	CP        string `db:"cp" json:"cp"` //彩票返水
-	FC        string `db:"fc" json:"fc"` //斗鸡返水
-	CreatedAt uint32 `db:"created_at" json:"created_at"`
-	ParentUID string `db:"parent_uid" json:"parent_uid"`
-	Prefix    string `db:"prefix" json:"prefix"`
+	UID              string `db:"uid" json:"uid"`
+	ZR               string `db:"zr" json:"zr"`                                 //真人返水
+	QP               string `db:"qp" json:"qp"`                                 //棋牌返水
+	TY               string `db:"ty" json:"ty"`                                 //体育返水
+	DJ               string `db:"dj" json:"dj"`                                 //电竞返水
+	DZ               string `db:"dz" json:"dz"`                                 //电游返水
+	CP               string `db:"cp" json:"cp"`                                 //彩票返水
+	FC               string `db:"fc" json:"fc"`                                 //斗鸡返水
+	CgOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //CG官方彩返点
+	CgHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //CG高频彩返点
+	CreatedAt        uint32 `db:"created_at" json:"created_at"`
+	ParentUID        string `db:"parent_uid" json:"parent_uid"`
+	Prefix           string `db:"prefix" json:"prefix"`
 }
 
 type MemberMaxRebate struct {
@@ -674,7 +689,7 @@ type MemberLevel struct {
 	UpgradeDeposit    int     `db:"upgrade_deposit" json:"upgrade_deposit" name:"upgrade_deposit" rule:"digit" msg:"upgrade_deposit error"`
 	UpgradeRecord     int     `db:"upgrade_record" json:"upgrade_record" name:"upgrade_record" rule:"digit" msg:"upgrade_record error"`
 	RelegationFlowing int     `db:"relegation_flowing" json:"relegation_flowing" name:"relegation_flowing" rule:"digit" msg:"relegation_flowing error"`
-	UpgradeGift       int     `db:"upgrade_gift" json:"upgrade_gift" name:"upgrade_gift" rule:"digit"msg:"upgrade_gift error"`
+	UpgradeGift       int     `db:"upgrade_gift" json:"upgrade_gift" name:"upgrade_gift" rule:"digit" msg:"upgrade_gift error"`
 	BirthGift         int     `db:"birth_gift" json:"birth_gift" name:"birth_gift" rule:"digit" msg:"birth_gift error"`
 	WithdrawCount     int     `db:"withdraw_count" json:"withdraw_count" name:"withdraw_count" rule:"digit" msg:"withdraw_count error"`
 	WithdrawMax       float64 `db:"withdraw_max" json:"withdraw_max" name:"withdraw_max" rule:"float" msg:"withdraw_max error"`
@@ -1118,4 +1133,28 @@ type VncpOrder struct {
 type OrderData struct {
 	T int64       `json:"t"`
 	D []VncpOrder `json:"d"`
+}
+
+type WithdrawRecord struct {
+	ID        string  `db:"id"                  json:"id"                 redis:"id"`
+	Prefix    string  `db:"prefix"              json:"prefix"             redis:"prefix"`
+	UID       string  `db:"uid"                 json:"uid"                redis:"uid"`        //
+	Username  string  `db:"username"            json:"username"           redis:"username"`   //
+	Amount    float64 `db:"amount"              json:"amount"             redis:"amount"`     // 提款金额
+	State     int     `db:"state"               json:"state"              redis:"state"`      // 371:审核中 372:审核拒绝 373:出款中 374:提款成功 375:出款失败 376:异常订单 377:代付失败
+	CreatedAt int64   `db:"created_at"          json:"created_at"         redis:"created_at"` //
+}
+
+// SMSChannel 短信通道
+type SMSChannel struct {
+	Id          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`
+	Alias       string `db:"alias" json:"alias"`
+	Txt         string `db:"txt" json:"txt"`               // 0:没有1:开启2:关闭
+	Voice       string `db:"voice" json:"voice"`           // 0:没有1:开启2:关闭
+	CreatedAt   int64  `db:"created_at" json:"created_at"` // 创建时间
+	CreatedUid  string `db:"created_uid" json:"created_uid"`
+	CreatedName string `db:"created_name" json:"created_name"`
+	Prefix      string `db:"prefix" json:"prefix"` // 前缀
+	Remark      string `db:"remark" json:"remark"` // 备注
 }
