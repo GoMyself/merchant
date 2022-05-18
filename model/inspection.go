@@ -271,7 +271,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		})
 		i++
 	}
-
+	data.T = int64(i)
 	return data, mb, nil
 }
 
