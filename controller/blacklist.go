@@ -141,14 +141,13 @@ func (that *BlacklistController) AssociateList(ctx *fasthttp.RequestCtx) {
 
 func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 
-	page := string(ctx.QueryArgs().Peek("page"))
-	pageSize := string(ctx.QueryArgs().Peek("page_size"))
-	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	startTime := string(ctx.QueryArgs().Peek("start_time"))
+	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	page_size := ctx.QueryArgs().GetUintOrZero("page_size")
 	ty := ctx.QueryArgs().GetUintOrZero("ty")
+
 	if _, ok := model.BlackTy[ty]; !ok {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
@@ -161,34 +160,8 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 	if len(value) > 0 {
 
 		ex["value"] = value
-		switch ty {
-		case model.TyBankcard:
-			if !validator.CheckStringLength(value, 6, 20) || !validator.CheckStringDigit(value) {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-
-			//cardNoHash := fmt.Sprintf("%d", model.MurmurHash(value, 0))
-			ex["value"] = value
-			//fmt.Println(cardNoHash)
-		default:
-			if !validator.CheckStringLength(value, 1, 60) {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-		}
-		if !validator.CheckStringLength(value, 1, 60) {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
-		}
 	}
-
-	startTime := string(ctx.QueryArgs().Peek("start_time"))
-	endTime := string(ctx.QueryArgs().Peek("end_time"))
-	p, _ := strconv.Atoi(page)
-	ps, _ := strconv.Atoi(pageSize)
-
-	data, err := model.BlacklistList(uint(p), uint(ps), startTime, endTime, ty, ex)
+	data, err := model.BlacklistList(uint(page), uint(page_size), startTime, endTime, ty, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
