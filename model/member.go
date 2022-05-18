@@ -126,14 +126,16 @@ type MemberAggData struct {
 }
 
 type MemberRebateResult_t struct {
-	ZR decimal.Decimal
-	QP decimal.Decimal
-	TY decimal.Decimal
-	DZ decimal.Decimal
-	DJ decimal.Decimal
-	CP decimal.Decimal
-	FC decimal.Decimal
-	BY decimal.Decimal
+	ZR               decimal.Decimal
+	QP               decimal.Decimal
+	TY               decimal.Decimal
+	DZ               decimal.Decimal
+	DJ               decimal.Decimal
+	CP               decimal.Decimal
+	FC               decimal.Decimal
+	BY               decimal.Decimal
+	CGOfficialRebate decimal.Decimal
+	CGHighRebate     decimal.Decimal
 }
 
 func MemberInsert(username, password, remark, maintainName, groupName, agencyType, tester string, createdAt uint32, mr MemberRebate) error {
