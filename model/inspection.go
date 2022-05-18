@@ -12,8 +12,8 @@ import (
 )
 
 type Inspection struct {
-	T int64
-	D []InspectionData
+	T int64            `json:"t"`
+	D []InspectionData `json:"d"`
 }
 
 type PromoRecord struct {
@@ -116,8 +116,8 @@ type PromoInspection struct {
 }
 
 type PagePromoInspection struct {
-	D []PromoInspection
-	T int64
+	D []PromoInspection `json:"d"`
+	T int64             `json:"t"`
 }
 
 func InspectionList(username string) (Inspection, Member, error) {
