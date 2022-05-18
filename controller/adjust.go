@@ -61,12 +61,16 @@ func (that *AdjustController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 校验图片
-	if params.Images != "" {
-		if !validator.CheckUrl(params.Images) {
-			helper.Print(ctx, false, helper.ImagesURLErr)
-			return
-		}
+	if len(params.Images) < 5 {
+		helper.Print(ctx, false, helper.ImagesURLErr)
+		return
 	}
+	//if params.Images != "" {
+	//	if !validator.CheckUrl(params.Images) {
+	//		helper.Print(ctx, false, helper.ImagesURLErr)
+	//		return
+	//	}
+	//}
 
 	// get member info
 	m, err := model.MemberFindOne(params.Username)

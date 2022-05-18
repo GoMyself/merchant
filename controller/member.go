@@ -769,7 +769,7 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if params.File != "" {
+	if len(params.File) < 5 {
 		helper.Print(ctx, false, helper.FileURLErr)
 		return
 	}
