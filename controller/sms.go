@@ -70,6 +70,33 @@ func (*SMSChannelController) UpdateState(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, "success")
 }
 
+func (*SMSChannelController) Update(ctx *fasthttp.RequestCtx) {
+
+	id := string(ctx.PostArgs().Peek("id"))            // 短信通道ID
+	channelName := string(ctx.PostArgs().Peek("name")) // 短信通道状态
+	remark := string(ctx.PostArgs().Peek("remark"))    // 短信通道状态
+
+	if !validator.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.DBErr)
+		return
+	}
+
+	if channelName != "" {
+		if len(channelName) < 5 || len(channelName) >= 30 {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+	}
+
+	err := model.SMSChannelUpdate(id, channelName, remark)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, "success")
+}
+
 func (*SMSChannelController) Insert(ctx *fasthttp.RequestCtx) {
 
 }
