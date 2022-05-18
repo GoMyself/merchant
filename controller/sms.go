@@ -19,7 +19,7 @@ func (*SMSChannelController) List(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{}
 
-	if len(channelName) < 5 || len(channelName) > 25 {
+	if len(channelName) < 5 || len(channelName) >= 30 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -68,4 +68,12 @@ func (*SMSChannelController) UpdateState(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, "success")
+}
+
+func (*SMSChannelController) Insert(ctx *fasthttp.RequestCtx) {
+
+}
+
+func (*SMSChannelController) Delete(ctx *fasthttp.RequestCtx) {
+
 }

@@ -106,6 +106,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	msgCtl := new(controller.MessageController)
 	//验证码管理
 	smsCtl := new(controller.SmsRecordController)
+	// 短信通道管理
+	smsChannelCtl := new(controller.SMSChannelController)
 
 	get("/merchant/version", Version)
 
@@ -321,6 +323,15 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/notice/updatestate", noticeCtl.UpdateState)
 	//运营管理-系统公告-删除
 	get("/merchant/notice/delete", noticeCtl.Delete)
+
+	// 运营管理-短信通道-列表
+	post("/merchant/sms/list", smsChannelCtl.List)
+	// 运营管理-短信通道-增加
+	post("/merchant/sms/insert", smsChannelCtl.Insert)
+	// 运营管理-短信通道-编辑
+	post("/merchant/sms/update", smsChannelCtl.UpdateState)
+	// 运营管理-短信通道-删除
+	get("/merchant/sms/delete", smsChannelCtl.Delete)
 
 	// 获取返水上限
 	get("/merchant/rebate/scale", rebateCtl.Scale)
