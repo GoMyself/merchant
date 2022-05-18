@@ -450,17 +450,19 @@ type SystemLogData struct {
 }
 
 type MemberRebate struct {
-	UID       string `db:"uid" json:"uid"`
-	ZR        string `db:"zr" json:"zr"` //真人返水
-	QP        string `db:"qp" json:"qp"` //棋牌返水
-	TY        string `db:"ty" json:"ty"` //体育返水
-	DJ        string `db:"dj" json:"dj"` //电竞返水
-	DZ        string `db:"dz" json:"dz"` //电游返水
-	CP        string `db:"cp" json:"cp"` //彩票返水
-	FC        string `db:"fc" json:"fc"` //斗鸡返水
-	CreatedAt uint32 `db:"created_at" json:"created_at"`
-	ParentUID string `db:"parent_uid" json:"parent_uid"`
-	Prefix    string `db:"prefix" json:"prefix"`
+	UID              string `db:"uid" json:"uid"`
+	ZR               string `db:"zr" json:"zr"` //真人返水
+	QP               string `db:"qp" json:"qp"` //棋牌返水
+	TY               string `db:"ty" json:"ty"` //体育返水
+	DJ               string `db:"dj" json:"dj"` //电竞返水
+	DZ               string `db:"dz" json:"dz"` //电游返水
+	CP               string `db:"cp" json:"cp"` //彩票返水
+	FC               string `db:"fc" json:"fc"` //斗鸡返水
+	CgOfficialRebate string `db:"fc" json:"fc"` //CG官方彩返点
+	CgHighRebate     string `db:"fc" json:"fc"` //CG高频彩返点
+	CreatedAt        uint32 `db:"created_at" json:"created_at"`
+	ParentUID        string `db:"parent_uid" json:"parent_uid"`
+	Prefix           string `db:"prefix" json:"prefix"`
 }
 
 type MemberMaxRebate struct {

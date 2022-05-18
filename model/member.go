@@ -97,22 +97,24 @@ type memberInfo struct {
 }
 
 type MemberListCol struct {
-	UID         string  `json:"uid" db:"uid"`
-	Deposit     float64 `json:"deposit" db:"deposit"`
-	Withdraw    float64 `json:"withdraw" db:"withdraw"`
-	ValidAmount float64 `json:"valid_amount" db:"valid_amount"`
-	Rebate      float64 `json:"rebate" db:"rebate"`
-	NetAmount   float64 `json:"net_amount" db:"net_amount"`
-	TY          string  `json:"ty" db:"ty"`
-	ZR          string  `json:"zr" db:"zr"`
-	QP          string  `json:"qp" db:"qp"`
-	DJ          string  `json:"dj" db:"dj"`
-	DZ          string  `json:"dz" db:"dz"`
-	CP          string  `json:"cp" db:"cp"`
-	FC          string  `json:"fc" db:"fc"`
-	Lvl         int     `json:"lvl" db:"-"`
-	PlanID      string  `json:"plan_id" db:"-"`
-	PlanName    string  `json:"plan_name" db:"-"`
+	UID              string  `json:"uid" db:"uid"`
+	Deposit          float64 `json:"deposit" db:"deposit"`
+	Withdraw         float64 `json:"withdraw" db:"withdraw"`
+	ValidAmount      float64 `json:"valid_amount" db:"valid_amount"`
+	Rebate           float64 `json:"rebate" db:"rebate"`
+	NetAmount        float64 `json:"net_amount" db:"net_amount"`
+	TY               string  `json:"ty" db:"ty"`
+	ZR               string  `json:"zr" db:"zr"`
+	QP               string  `json:"qp" db:"qp"`
+	DJ               string  `json:"dj" db:"dj"`
+	DZ               string  `json:"dz" db:"dz"`
+	CP               string  `json:"cp" db:"cp"`
+	FC               string  `json:"fc" db:"fc"`
+	CgOfficialRebate string  `db:"fc" json:"fc"` //CG官方彩返点
+	CgHighRebate     string  `db:"fc" json:"fc"` //CG高频彩返点
+	Lvl              int     `json:"lvl" db:"-"`
+	PlanID           string  `json:"plan_id" db:"-"`
+	PlanName         string  `json:"plan_name" db:"-"`
 }
 
 type MemberAggData struct {
@@ -527,6 +529,8 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 			data.D[i].DZ = rb.DZ
 			data.D[i].CP = rb.CP
 			data.D[i].FC = rb.FC
+			data.D[i].CgOfficialRebate = rb.CgOfficialRebate
+			data.D[i].CgHighRebate = rb.CgHighRebate
 		}
 
 		if lv, ok := lvls[v.UID]; ok {
