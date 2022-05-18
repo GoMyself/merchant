@@ -103,10 +103,10 @@ func (*SMSChannelController) Update(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, "success")
 }
 
-func (*SMSChannelController) Insert(ctx *fasthttp.RequestCtx) {
-
-}
-
-func (*SMSChannelController) Delete(ctx *fasthttp.RequestCtx) {
-
-}
+//func (*SMSChannelController) Insert(ctx *fasthttp.RequestCtx) {
+//
+//}
+//
+//func (*SMSChannelController) Delete(ctx *fasthttp.RequestCtx) {
+//
+//}

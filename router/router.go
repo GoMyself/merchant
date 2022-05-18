@@ -327,13 +327,13 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 运营管理-短信通道-列表
 	post("/merchant/sms/list", smsChannelCtl.List)
 	// 运营管理-短信通道-增加
-	post("/merchant/sms/insert", smsChannelCtl.Insert)
+	//post("/merchant/sms/insert", smsChannelCtl.Insert)
 	// 运营管理-短信通道-编辑
 	post("/merchant/sms/update", smsChannelCtl.Update)
 	// 运营管理-短信通道-更新短信通道状态
-	post("/merchant/sms/updatestate", smsChannelCtl.UpdateState)
+	post("/merchant/sms/update/state", smsChannelCtl.UpdateState)
 	// 运营管理-短信通道-删除
-	get("/merchant/sms/delete", smsChannelCtl.Delete)
+	//get("/merchant/sms/delete", smsChannelCtl.Delete)
 
 	// 获取返水上限
 	get("/merchant/rebate/scale", rebateCtl.Scale)
