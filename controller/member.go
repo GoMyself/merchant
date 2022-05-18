@@ -137,11 +137,9 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	cp_temp := string(ctx.PostArgs().Peek("cp"))
 	fc_temp := string(ctx.PostArgs().Peek("fc"))
 	by_temp := string(ctx.PostArgs().Peek("by"))
-
 	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
 	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
 
-	//fmt.Println("Insert = ", string(ctx.PostBody()))
 	if len(maintainName) == 0 {
 		maintainName = ""
 	}
@@ -188,11 +186,11 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	cg_high_rebate, err := decimal.NewFromString(cg_high_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGHighRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 	cg_official_rebate, err := decimal.NewFromString(cg_official_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGOfficialRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
