@@ -43,6 +43,7 @@ type VenueRebateScale struct {
 	DJ               decimal.Decimal
 	CP               decimal.Decimal
 	FC               decimal.Decimal
+	BY               decimal.Decimal
 	CGOfficialRebate decimal.Decimal
 	CGHighRebate     decimal.Decimal
 }
@@ -152,6 +153,7 @@ func Constructor(mt *MetaTable, rpc string) {
 		DJ:               decimal.NewFromFloat(1.1).Truncate(1),
 		CP:               decimal.NewFromFloat(1.1).Truncate(1),
 		FC:               decimal.NewFromFloat(1.5).Truncate(1),
+		BY:               decimal.NewFromFloat(1.2).Truncate(1),
 		CGHighRebate:     decimal.NewFromFloat(10.00).Truncate(2),
 		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}

@@ -458,6 +458,7 @@ type MemberRebate struct {
 	DZ               string `db:"dz" json:"dz"`                                 //电游返水
 	CP               string `db:"cp" json:"cp"`                                 //彩票返水
 	FC               string `db:"fc" json:"fc"`                                 //斗鸡返水
+	BY               string `db:"by" json:"by"`                                 //捕鱼返水
 	CgOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //CG官方彩返点
 	CgHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //CG高频彩返点
 	CreatedAt        uint32 `db:"created_at" json:"created_at"`
@@ -473,6 +474,7 @@ type MemberMaxRebate struct {
 	DZ sql.NullFloat64 `db:"dz" json:"dz"` //电游返水
 	CP sql.NullFloat64 `db:"cp" json:"cp"` //彩票返水
 	FC sql.NullFloat64 `db:"fc" json:"fc"` //斗鸡返水
+	BY sql.NullFloat64 `db:"by" json:"by"` //捕鱼返水
 }
 
 type NoticeData struct {

@@ -110,6 +110,7 @@ type MemberListCol struct {
 	DZ               string  `json:"dz" db:"dz"`
 	CP               string  `json:"cp" db:"cp"`
 	FC               string  `json:"fc" db:"fc"`
+	BY               string  `json:"by" db:"by"`
 	CgOfficialRebate string  `json:"cg_official_rebate" db:"cg_official_rebate"` //CG官方彩返点
 	CgHighRebate     string  `json:"cg_high_rebate" db:"cg_high_rebate"`         //CG高频彩返点
 	Lvl              int     `json:"lvl" db:"-"`
@@ -132,6 +133,7 @@ type MemberRebateResult_t struct {
 	DJ decimal.Decimal
 	CP decimal.Decimal
 	FC decimal.Decimal
+	BY decimal.Decimal
 }
 
 func MemberInsert(username, password, remark, maintainName, groupName, agencyType, tester string, createdAt uint32, mr MemberRebate) error {
@@ -529,6 +531,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 			data.D[i].DZ = rb.DZ
 			data.D[i].CP = rb.CP
 			data.D[i].FC = rb.FC
+			data.D[i].BY = rb.BY
 			data.D[i].CgOfficialRebate = rb.CgOfficialRebate
 			data.D[i].CgHighRebate = rb.CgHighRebate
 		}
@@ -1740,6 +1743,7 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 		"dz": mr.DZ,
 		"cp": mr.CP,
 		"fc": mr.FC,
+		"by": mr.BY,
 	}
 	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
 	_, err = tx.Exec(query)
@@ -1824,6 +1828,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
 	res.FC = decimal.NewFromFloat(data.FC.Float64)
+	res.BY = decimal.NewFromFloat(data.BY.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -1832,6 +1837,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
 	res.FC = res.FC.Truncate(1)
+	res.BY = res.BY.Truncate(1)
 
 	return res, nil
 }
@@ -1863,6 +1869,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
 	res.FC = decimal.NewFromFloat(data.FC.Float64)
+	res.BY = decimal.NewFromFloat(data.BY.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -1870,7 +1877,8 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
-	res.FC = res.CP.Truncate(1)
+	res.FC = res.FC.Truncate(1)
+	res.BY = res.BY.Truncate(1)
 
 	return res, nil
 }

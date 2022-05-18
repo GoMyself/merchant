@@ -135,6 +135,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
+	sby := string(ctx.PostArgs().Peek("by"))
 
 	if len(maintainName) == 0 {
 		maintainName = ""
@@ -173,6 +174,11 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 
 	fc, err := decimal.NewFromString(sfc)
 	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+
+	by, err := decimal.NewFromString(sby)
+	if err != nil || by.IsNegative() || by.GreaterThan(vs.BY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
@@ -217,6 +223,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		DZ: dz.StringFixed(1),
 		CP: cp.StringFixed(1),
 		FC: fc.StringFixed(1),
+		BY: by.StringFixed(1),
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
@@ -988,6 +995,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
+	sby := string(ctx.PostArgs().Peek("by"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
@@ -1057,6 +1065,12 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	by, err := decimal.NewFromString(sby) //下级会员捕鱼返水比例
+	if err != nil || by.IsNegative() || by.LessThan(MaxRebate.BY) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+		return
+	}
+
 	if mb.ParentUid != "0" && mb.ParentUid != "" {
 		ParentRebate, err := model.MemberParentRebate(mb.ParentUid)
 		if err != nil {
@@ -1098,6 +1112,11 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
+		//大于上级斗鸡返水比例
+		if ParentRebate.BY.LessThan(by) {
+			helper.Print(ctx, false, helper.RebateOutOfRange)
+			return
+		}
 	}
 
 	recd := g.Record{}
@@ -1127,8 +1146,9 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		QP: qp.StringFixed(1),
 		DJ: dj.StringFixed(1),
 		DZ: dz.StringFixed(1),
-		FC: fc.StringFixed(1),
 		CP: cp.StringFixed(1),
+		FC: fc.StringFixed(1),
+		BY: by.StringFixed(1),
 	}
 
 	// 更新代理
