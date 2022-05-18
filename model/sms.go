@@ -8,21 +8,19 @@ import (
 
 func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 
-	fmt.Println("========> In 1")
 	data := make([]SMSChannel, 0)
 
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_sms")
 
 	query, _, _ := t.Select("id", "name", "alias", "created_at", "txt", "voice", "remark", "created_name").
-		Where(ex).Order(g.C("txt").Desc()).Order(g.C("voice").Desc()).Order(g.C("created_at").Desc()).ToSQL()
+		Where(ex).Order(g.C("created_at").Desc()).Order(g.C("txt").Asc()).Order(g.C("voice").Asc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-	fmt.Println(data)
-	fmt.Println("========> In 2")
+
 	return data, nil
 }
 
