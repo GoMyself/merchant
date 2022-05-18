@@ -63,14 +63,14 @@ func (that *InspectionController) Review(ctx *fasthttp.RequestCtx) {
 
 func (that *InspectionController) History(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.PostArgs().Peek("username"))
-	inspectState := string(ctx.PostArgs().Peek("state"))
-	billNo := string(ctx.PostArgs().Peek("bill_no"))
+	username := string(ctx.QueryArgs().Peek("username"))
+	inspectState := string(ctx.QueryArgs().Peek("state"))
+	billNo := string(ctx.QueryArgs().Peek("bill_no"))
 
-	reviewName := string(ctx.PostArgs().Peek("review_name"))
-	inspectName := string(ctx.PostArgs().Peek("inspect_name"))
-	page := ctx.PostArgs().GetUintOrZero("page")
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	reviewName := string(ctx.QueryArgs().Peek("review_name"))
+	inspectName := string(ctx.QueryArgs().Peek("inspect_name"))
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	ex := g.Ex{}
 	if len(username) != 0 {
 		ex["username"] = username
