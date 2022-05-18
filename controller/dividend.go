@@ -2,22 +2,21 @@ package controller
 
 import (
 	"fmt"
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/shopspring/decimal"
+	"github.com/valyala/fasthttp"
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
 	"strings"
-
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/shopspring/decimal"
-	"github.com/valyala/fasthttp"
 )
 
 type dividendInsertParam struct {
 	Username      string `rule:"alnum" name:"username" min:"5" max:"14" msg:"username error"`
-	Wallet        int    `rule:"digit" name:"wallet" min:"1" max:"2" msg:"wallet error"`
 	Ty            int    `rule:"digit" name:"ty" min:"211" max:"222"  msg:"ty error"`
 	WaterLimit    uint8  `rule:"digit" name:"water_limit" min:"1" max:"2"  msg:"water_limit error"`
-	PlatformID    string `rule:"none" name:"platform_id" default:"0"`
+	Pid           string `rule:"none" name:"pid" default:"0"`    //活动id，仅适用于静态展示页活动，只有发放活动红利是才需要选择
+	PTitle        string `rule:"none" name:"ptitle" default:"0"` //活动名，仅适用于静态展示页活动，只有发放活动红利是才需要选择
 	Amount        string `rule:"digit" name:"amount"  msg:"amount error"`
 	WaterMultiple int64  `rule:"digit" name:"water_multiple" min:"0" max:"1000" default:"0" required:"0"  msg:"water_multiple error"`
 	Remark        string `rule:"filter" name:"remark" min:"1" max:"300"  msg:"remark error"`
@@ -47,11 +46,11 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if param.PlatformID == "7426646715018523638" || //CQ9捕鱼
-		param.PlatformID == "2854123669982643138" || //DS捕鱼
-		param.PlatformID == "934076801660754329" { //DS棋牌
-		helper.Print(ctx, false, helper.PlatIDErr)
-		return
+	if param.Ty == model.TransactionDividend {
+		if param.Pid == "" || !validator.CtypeDigit(param.Pid) {
+			helper.Print(ctx, false, helper.PlatIDErr)
+			return
+		}
 	}
 
 	admin, err := model.AdminToken(ctx)
@@ -60,23 +59,11 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	var (
-		ok bool
-	)
-	amount := decimal.Decimal{}
 	// 仅中心钱包红利支持负数
-	if param.Wallet == 1 {
-		amount, ok = validator.CheckFloatScope(param.Amount, "-20000000.000", "20000000.000")
-		if !ok {
-			helper.Print(ctx, false, helper.AmountErr)
-			return
-		}
-	} else {
-		amount, ok = validator.CheckFloatScope(param.Amount, "0.000", "20000000.000")
-		if !ok {
-			helper.Print(ctx, false, helper.AmountErr)
-			return
-		}
+	amount, ok := validator.CheckFloatScope(param.Amount, "-20000000.000", "20000000.000")
+	if !ok {
+		helper.Print(ctx, false, helper.AmountErr)
+		return
 	}
 
 	waterFlow := decimal.Decimal{}
@@ -119,28 +106,29 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	data := g.Record{
-		"id":          helper.GenId(),
-		"uid":         m.UID,
-		"username":    param.Username,
-		"top_uid":     m.TopUid,
-		"top_name":    m.TopName,
-		"parent_uid":  m.ParentUid,
-		"parent_name": m.ParentName,
-		"wallet":      param.Wallet,
-		"ty":          param.Ty,
-		"water_limit": param.WaterLimit,
-		"water_flow":  waterFlow.String(),
-		"amount":      param.Amount,
-		"remark":      param.Remark,
-		"apply_at":    uint64(ctx.Time().UnixNano() / 1e6),
-		"apply_uid":   admin["id"],
-		"apply_name":  admin["name"],
-		"automatic":   1, //手动发放
-		"state":       model.DividendReviewing,
+		"id":             helper.GenId(),
+		"uid":            m.UID,
+		"username":       param.Username,
+		"top_uid":        m.TopUid,
+		"top_name":       m.TopName,
+		"parent_uid":     m.ParentUid,
+		"parent_name":    m.ParentName,
+		"ty":             param.Ty,
+		"water_limit":    param.WaterLimit,
+		"water_multiple": param.WaterMultiple,
+		"water_flow":     waterFlow.String(),
+		"amount":         param.Amount,
+		"remark":         param.Remark,
+		"apply_at":       uint64(ctx.Time().UnixMilli()),
+		"apply_uid":      admin["id"],
+		"apply_name":     admin["name"],
+		"automatic":      1, //手动发放
+		"state":          model.DividendReviewing,
 	}
 
-	if param.Wallet == 2 {
-		data["platform_id"] = param.PlatformID
+	if param.Ty == model.DividendPromo {
+		data["pid"] = param.Pid
+		data["ptitle"] = param.PTitle
 	}
 
 	err = model.DividendInsert(data)

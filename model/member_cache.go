@@ -7,11 +7,10 @@ import (
 )
 
 type tbl_members_t struct {
-	Zalo     string `redis:"zalo" json:"zalo"`         // 会员名
-	RealName string `redis:"realname" json:"realname"` // 会员名
-	Phone    string `redis:"phone" json:"phone"`       // 会员名
-	Email    string `redis:"email" json:"email"`       // 会员名
-
+	Zalo                string  `redis:"zalo" json:"zalo"`         // 会员名
+	RealName            string  `redis:"realname" json:"realname"` // 会员名
+	Phone               string  `redis:"phone" json:"phone"`       // 会员名
+	Email               string  `redis:"email" json:"email"`       // 会员名
 	Uid                 string  `redis:"uid" json:"uid"`
 	Username            string  `redis:"username" json:"username"`                           // 会员名
 	RealnameHash        string  `redis:"realname_hash" json:"realname_hash"`                 // 真实姓名哈希
