@@ -131,12 +131,16 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.UsernameErr)
 	}
 	//上一次提现成功
+	var cutTime int64
 	lastWithdraw, err := getWithdrawLast(username)
+	fmt.Println(lastWithdraw)
 	if err != nil && err != sql.ErrNoRows {
 		return data, mb, errors.New(helper.DBErr)
 	}
+	if err != sql.ErrNoRows {
+		cutTime = lastWithdraw.CreatedAt
+	}
 
-	cutTime := lastWithdraw.CreatedAt
 	lastInspenction, err := getInspectionLast(username)
 	if cutTime < lastInspenction.InspectAt {
 		cutTime = lastInspenction.InspectAt
@@ -412,24 +416,43 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	return data, nil
 }
 
-func getWithdrawLast(username string) (WithdrawRecord, error) {
+func getWithdrawLast(username string) (Withdraw, error) {
 
-	ex := g.Ex{
-		"username": username,
-		"state":    WithdrawSuccess,
-	}
-	w := WithdrawRecord{}
+	//ex := g.Ex{
+	//	"username": username,
+	//	"state":    WithdrawSuccess,
+	//}
+	//w := WithdrawRecord{}
+	//
+	//query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
+	//fmt.Println(query)
+	//err := meta.MerchantDB.Get(&w, query)
+	//if err != nil && err != sql.ErrNoRows {
+	//	return w, pushLog(err, helper.DBErr)
+	//}
+	//if err == sql.ErrNoRows {
+	//	return w, nil
+	//}
 
-	query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
-	fmt.Println(query)
-	err := meta.MerchantDB.Get(&w, query)
-	if err != nil && err != sql.ErrNoRows {
-		return w, pushLog(err, helper.DBErr)
+	data := Withdraw{}
+
+	query := elastic.NewBoolQuery()
+	query.Filter(elastic.NewTermQuery("state", WithdrawSuccess))
+	query.Filter(elastic.NewTermQuery("username", username))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	_, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_withdraw"), "created_at", 1, 1, withdrawFields, query, nil)
+	if err != nil {
+		return data, pushLog(err, helper.ESErr)
 	}
-	if err == sql.ErrNoRows {
-		return w, nil
+	for _, v := range esResult {
+
+		record := Withdraw{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		data = record
+		return data, nil
 	}
-	return w, nil
+	return data, sql.ErrNoRows
 }
 
 func getInspectionLast(username string) (PromoInspection, error) {
