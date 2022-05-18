@@ -57,14 +57,18 @@ func (*SMSChannelController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if txtState != 1 && txtState != 2 {
-		helper.Print(ctx, false, helper.StateParamErr)
-		return
+	if txtState != 0 {
+		if txtState != 1 && txtState != 2 {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
 	}
 
-	if voiceState != 1 && voiceState != 2 {
-		helper.Print(ctx, false, helper.StateParamErr)
-		return
+	if voiceState != 0 {
+		if voiceState != 1 && voiceState != 2 {
+			helper.Print(ctx, false, helper.StateParamErr)
+			return
+		}
 	}
 
 	err := model.SMSChannelUpdateState(id, txtState, voiceState)
