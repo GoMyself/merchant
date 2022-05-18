@@ -1142,3 +1142,16 @@ type WithdrawRecord struct {
 	State     int     `db:"state"               json:"state"              redis:"state"`      // 371:审核中 372:审核拒绝 373:出款中 374:提款成功 375:出款失败 376:异常订单 377:代付失败
 	CreatedAt int64   `db:"created_at"          json:"created_at"         redis:"created_at"` //
 }
+
+// SMSChannel 短信通道
+type SMSChannel struct {
+	ID          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`                 // 渠道名称
+	Alias       string `db:"alias" json:"alias"`               // 别名
+	Flags       int    `db:"flags" json:"flags"`               // 1=文本 2=语音
+	State       int    `db:"state" json:"state"`               // 二进制 0=关闭(b00)  3=开启(b11)  2=文开语闭(b10)  1=文闭语开(b01)
+	CreatedAt   int64  `db:"created_at" json:"created_at"`     // 创建时间
+	CreatedUID  string `db:"created_uid" json:"created_uid"`   // 创建人 ID
+	CreatedName string `db:"created_name" json:"created_name"` // 创建人名字
+	Remark      string `db:"remark" json:"remark"`             // 备注
+}
