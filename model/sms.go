@@ -33,16 +33,18 @@ func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 
 	rc := g.Record{}
 
+	tm := map[int]int{
+		1: 2,
+		2: 3,
+	}
+
 	if txtState != 0 {
-		rc["txt"] = txtState
+		rc["txt"] = tm[txtState]
 	}
 
 	if voiceState != 0 {
-		rc["voice"] = voiceState
+		rc["voice"] = tm[voiceState]
 	}
-
-	fmt.Println("===========>")
-	fmt.Println(rc)
 
 	query, _, _ := dialect.Update("tbl_sms").Set(rc).Where(ex).ToSQL()
 	fmt.Println(query)
