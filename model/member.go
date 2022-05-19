@@ -1207,9 +1207,9 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 
 	// 总红利
 	dex := g.Ex{"uid": mb.UID,
-		"prefix":         meta.Prefix,
-		"hand_out_state": DividendSuccess,
-		"apply_at":       g.Op{"between": exp.NewRangeVal(mss, mse)},
+		"prefix":   meta.Prefix,
+		"state":    DividendReviewPass,
+		"apply_at": g.Op{"between": exp.NewRangeVal(mss, mse)},
 	}
 	query, _, _ = dialect.From("tbl_member_dividend").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("dividend")).Where(dex).ToSQL()

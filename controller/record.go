@@ -156,7 +156,7 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 			}
 
 			if len(cashTypes) > 0 {
-				ex["cash_type"] = types
+				ex["cash_type"] = cashTypes
 			}
 		}
 	} else {
