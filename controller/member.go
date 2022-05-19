@@ -800,9 +800,11 @@ func (that *MemberController) RemarkLogList(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
+	fmt.Println("============ Ctl IN")
 	page, _ := strconv.Atoi(sPage)
 	pageSize, _ := strconv.Atoi(sPageSize)
 	data, err := model.MemberRemarkLogList(uid, adminName, startTime, endTime, page, pageSize)
+
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
