@@ -196,7 +196,7 @@ func memberRemarkLogList(startTime, endTime string, page, pageSize int, ex g.Ex)
 			return data, errors.New(helper.QueryTimeRangeErr)
 		}
 
-		ex["create_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 	ex["prefix"] = meta.Prefix
 
