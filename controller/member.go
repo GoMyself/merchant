@@ -136,11 +136,10 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	dz_temp := string(ctx.PostArgs().Peek("dz"))
 	cp_temp := string(ctx.PostArgs().Peek("cp"))
 	fc_temp := string(ctx.PostArgs().Peek("fc"))
-
+	by_temp := string(ctx.PostArgs().Peek("by"))
 	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
 	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
 
-	//fmt.Println("Insert = ", string(ctx.PostBody()))
 	if len(maintainName) == 0 {
 		maintainName = ""
 	}
@@ -180,12 +179,18 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
+
+	by, err := decimal.NewFromString(by_temp)
+	if err != nil || by.IsNegative() || by.GreaterThan(vs.BY) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+
 	cg_high_rebate, err := decimal.NewFromString(cg_high_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGHighRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 	cg_official_rebate, err := decimal.NewFromString(cg_official_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
+	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGOfficialRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
@@ -226,6 +231,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		DZ:               dz.StringFixed(1),
 		CP:               cp.StringFixed(1),
 		FC:               fc.StringFixed(1),
+		BY:               by.StringFixed(1),
 		CgOfficialRebate: cg_official_rebate.StringFixed(2),
 		CgHighRebate:     cg_high_rebate.StringFixed(2),
 	}
@@ -284,19 +290,18 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	/*
-		admin, err := model.AdminToken(ctx)
-		if err != nil {
-			helper.Print(ctx, false, helper.AccessTokenExpires)
-			return
-		}
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
 
-			err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
-			if err != nil {
-				helper.Print(ctx, false, err.Error())
-				return
-			}
-	*/
+	err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
 	err = model.MemberUpdateState(names, params.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -683,9 +688,11 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if len(params.File) < 5 {
-		helper.Print(ctx, false, helper.FileURLErr)
-		return
+	if params.File != "" {
+		if len(params.File) < 5 {
+			helper.Print(ctx, false, helper.FileURLErr)
+			return
+		}
 	}
 
 	if params.Username == "" {
@@ -704,19 +711,18 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	/*
-			admin, err := model.AdminToken(ctx)
-		if err != nil {
-			helper.Print(ctx, false, helper.AccessTokenExpires)
-			return
-		}
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
 
-			err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
-			if err != nil {
-				helper.Print(ctx, false, err.Error())
-				return
-			}
-	*/
+	err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
 	helper.Print(ctx, true, helper.Success)
 }
 
@@ -794,15 +800,17 @@ func (that *MemberController) RemarkLogList(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
+	fmt.Println("============ Ctl IN")
 	page, _ := strconv.Atoi(sPage)
 	pageSize, _ := strconv.Atoi(sPageSize)
 	data, err := model.MemberRemarkLogList(uid, adminName, startTime, endTime, page, pageSize)
+
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, data)
+	helper.Print(ctx, true, data)
 }
 
 func (that *MemberController) UpdatePwd(ctx *fasthttp.RequestCtx) {
@@ -902,6 +910,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	sdz := string(ctx.PostArgs().Peek("dz"))
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
+	sby := string(ctx.PostArgs().Peek("by"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
@@ -971,6 +980,12 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	by, err := decimal.NewFromString(sby) //下级会员捕鱼返水比例
+	if err != nil || by.IsNegative() || by.LessThan(MaxRebate.BY) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+		return
+	}
+
 	if mb.ParentUid != "0" && mb.ParentUid != "" {
 		ParentRebate, err := model.MemberParentRebate(mb.ParentUid)
 		if err != nil {
@@ -1012,6 +1027,11 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
+		//大于上级斗鸡返水比例
+		if ParentRebate.BY.LessThan(by) {
+			helper.Print(ctx, false, helper.RebateOutOfRange)
+			return
+		}
 	}
 
 	recd := g.Record{}
@@ -1041,8 +1061,9 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		QP: qp.StringFixed(1),
 		DJ: dj.StringFixed(1),
 		DZ: dz.StringFixed(1),
-		FC: fc.StringFixed(1),
 		CP: cp.StringFixed(1),
+		FC: fc.StringFixed(1),
+		BY: by.StringFixed(1),
 	}
 
 	// 更新代理

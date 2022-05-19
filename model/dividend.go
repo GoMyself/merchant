@@ -133,6 +133,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 
 	for _, v := range data {
 
+		fmt.Println(v)
 		mb, err := MemberBalance(v.Username)
 		if err != nil {
 			_ = pushLog(err, helper.BalanceErr)
@@ -165,6 +166,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 			r := g.Record{
 				"id":            helper.GenId(),
 				"flag":          "static",
+				"prefix":        meta.Prefix,
 				"uid":           v.UID,           // 会员账号
 				"username":      v.Username,      // 会员名称
 				"level":         v.Level,         // 会员等级
@@ -208,7 +210,9 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 
 		//1、判断金额是否合法
 		if balanceAfter.IsNegative() {
-			return errors.New(fmt.Sprintf("after amount : %s less than 0", balanceAfter.String()))
+			_ = tx.Rollback()
+			_ = pushLog(fmt.Errorf("after amount : %s less than 0", balanceAfter.String()), helper.BalanceErr)
+			continue
 		}
 
 		trans := MemberTransaction{
@@ -225,6 +229,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 		}
 		query, _, _ = dialect.Insert("tbl_balance_transaction").Rows(trans).ToSQL()
 		_, err = tx.Exec(query)
+		fmt.Println(query)
 		if err != nil {
 			_ = tx.Rollback()
 			_ = pushLog(err, helper.DBErr)

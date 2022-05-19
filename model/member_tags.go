@@ -222,7 +222,11 @@ func TagList(name string, flag, all, page, pageSize int) (TagsData, error) {
 		"prefix": meta.Prefix,
 	}
 	if name != "" {
-		ex["name"] = name
+		if strings.Contains(name, " ") {
+			ex["name"] = []string{strings.ReplaceAll(name, " ", "&nbsp;"), name}
+		} else {
+			ex["name"] = name
+		}
 	}
 
 	if flag > 0 {
@@ -231,6 +235,7 @@ func TagList(name string, flag, all, page, pageSize int) (TagsData, error) {
 
 	if page == 1 {
 		query, _, _ := dialect.From("tbl_tags").Select(g.COUNT(1)).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -248,6 +253,7 @@ func TagList(name string, flag, all, page, pageSize int) (TagsData, error) {
 	}
 
 	query, _, _ := dl.ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)

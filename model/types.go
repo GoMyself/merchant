@@ -22,6 +22,7 @@ type MemberPageData struct {
 type Member struct {
 	UID                 string `db:"uid" json:"uid"`
 	Username            string `db:"username" json:"username"`                           //会员名
+	Avatar              string `db:"avatar" json:"avatar"`                               //头像
 	Password            string `db:"password" json:"password"`                           //密码
 	Birth               string `db:"birth" json:"birth"`                                 //生日日期
 	BirthHash           string `db:"birth_hash" json:"birth_hash"`                       //生日日期哈希
@@ -182,7 +183,7 @@ type MemberLoginLog struct {
 	//Prefix   string `db:"prefix" json:"prefix"`
 }
 
-type memberRemarkLogData struct {
+type MemberRemarkLogData struct {
 	S int                `json:"s"`
 	D []MemberRemarksLog `json:"d"`
 	T int64              `json:"t"`
@@ -190,14 +191,14 @@ type memberRemarkLogData struct {
 
 // 用户备注日志
 type MemberRemarksLog struct {
-	ID        string `msg:"id" json:"id"`
-	UID       string `msg:"uid" json:"uid"`
-	Username  string `msg:"username" json:"username"`
-	Msg       string `msg:"msg" json:"msg"`
-	File      string `msg:"file" json:"file"`
-	AdminName string `msg:"admin_name" json:"admin_name"`
-	CreatedAt int64  `msg:"created_at" json:"created_at"`
-	Prefix    string `msg:"prefix" json:"prefix"`
+	ID          string `msg:"id" json:"id" db:"id"`
+	UID         string `msg:"uid" json:"uid" db:"id"`
+	Username    string `msg:"username" json:"username" db:"username"`
+	Msg         string `msg:"msg" json:"msg" db:"msg"`
+	File        string `msg:"file" json:"file" db:"file"`
+	CreatedName string `msg:"created_name" json:"created_name" db:"created_name"`
+	CreatedAt   int64  `msg:"created_at" json:"created_at" db:"created_at"`
+	Prefix      string `msg:"prefix" json:"prefix" db:"prefix"`
 }
 
 // MemberAdjust db structure
@@ -458,6 +459,7 @@ type MemberRebate struct {
 	DZ               string `db:"dz" json:"dz"`                                 //电游返水
 	CP               string `db:"cp" json:"cp"`                                 //彩票返水
 	FC               string `db:"fc" json:"fc"`                                 //斗鸡返水
+	BY               string `db:"by" json:"by"`                                 //捕鱼返水
 	CgOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //CG官方彩返点
 	CgHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //CG高频彩返点
 	CreatedAt        uint32 `db:"created_at" json:"created_at"`
@@ -473,6 +475,7 @@ type MemberMaxRebate struct {
 	DZ sql.NullFloat64 `db:"dz" json:"dz"` //电游返水
 	CP sql.NullFloat64 `db:"cp" json:"cp"` //彩票返水
 	FC sql.NullFloat64 `db:"fc" json:"fc"` //斗鸡返水
+	BY sql.NullFloat64 `db:"by" json:"by"` //捕鱼返水
 }
 
 type NoticeData struct {

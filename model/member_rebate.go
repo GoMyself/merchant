@@ -24,6 +24,10 @@ func MemberRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DJ, _ = decimal.NewFromString(data.DJ)
 	res.DZ, _ = decimal.NewFromString(data.DZ)
 	res.CP, _ = decimal.NewFromString(data.CP)
+	res.FC, _ = decimal.NewFromString(data.FC)
+	res.BY, _ = decimal.NewFromString(data.BY)
+	res.CGOfficialRebate, _ = decimal.NewFromString(data.CgOfficialRebate)
+	res.CGHighRebate, _ = decimal.NewFromString(data.CgHighRebate)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -31,6 +35,10 @@ func MemberRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
+	res.FC = res.CP.Truncate(1)
+	res.BY = res.CP.Truncate(1)
+	res.CGOfficialRebate = res.CP.Truncate(1)
+	res.CGHighRebate = res.CP.Truncate(1)
 
 	return res, nil
 }

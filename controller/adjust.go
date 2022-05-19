@@ -61,9 +61,11 @@ func (that *AdjustController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 校验图片
-	if len(params.Images) < 5 {
-		helper.Print(ctx, false, helper.ImagesURLErr)
-		return
+	if params.Images != "" {
+		if len(params.Images) < 5 {
+			helper.Print(ctx, false, helper.ImagesURLErr)
+			return
+		}
 	}
 	//if params.Images != "" {
 	//	if !validator.CheckUrl(params.Images) {

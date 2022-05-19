@@ -45,9 +45,7 @@ func main() {
 	mt.PullPrefix = cfg.PullPrefix
 	mt.AutoCommission = cfg.AutoCommission
 
-	//mt.Zlog = conn.InitFluentd(cfg.Zlog.Host, cfg.Zlog.Port)
 	mt.MerchantTD = conn.InitTD(cfg.Td.Addr, cfg.Td.MaxIdleConn, cfg.Td.MaxOpenConn)
-
 	mt.MerchantDB = conn.InitDB(cfg.Db.Master.Addr, cfg.Db.Master.MaxIdleConn, cfg.Db.Master.MaxOpenConn)
 	mt.ReportDB = conn.InitDB(cfg.Db.Report.Addr, cfg.Db.Report.MaxIdleConn, cfg.Db.Report.MaxOpenConn)
 	mt.BetDB = conn.InitDB(cfg.Db.Bet.Addr, cfg.Db.Bet.MaxIdleConn, cfg.Db.Bet.MaxOpenConn)
@@ -57,13 +55,12 @@ func main() {
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
 	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
 
-	mt.Program = os.Args[0]
+	bin := strings.Split(os.Args[0], "/")
+	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin
-	//mt.NatsConn = conn.InitNatsIO(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	model.Constructor(mt, cfg.RPC)
 	session.New(mt.MerchantRedis, cfg.Prefix)
-	//tdlog.New(cfg.Nats.Servers, cfg.Nats.Username, cfg.Nats.Password)
 
 	if os.Args[3] == "load" {
 		model.Load()

@@ -306,7 +306,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	//风控管理-流水稽查审核
 	post("/merchant/inspection/review", inspectionCtl.Review)
 	//风控管理-流水稽查记录
-	get("/merchant/inspection/history", inspectionCtl.History)
+	post("/merchant/inspection/history", inspectionCtl.History)
 
 	// 系统管理-日志管理-登录日志
 	get("/merchant/sys/log/login/list", logCtl.AdminLoginLog)
@@ -327,7 +327,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 运营管理-短信通道-列表
 	post("/merchant/sms/list", smsChannelCtl.List)
 	// 运营管理-短信通道-增加
-	//post("/merchant/sms/insert", smsChannelCtl.Insert)
+	post("/merchant/sms/insert", smsChannelCtl.Insert)
 	// 运营管理-短信通道-编辑
 	post("/merchant/sms/update", smsChannelCtl.Update)
 	// 运营管理-短信通道-更新短信通道状态

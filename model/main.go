@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"merchant2/contrib/helper"
-	"merchant2/contrib/tracerr"
+	"runtime"
 	"strings"
 
 	"github.com/hprose/hprose-golang/v3/rpc/core"
@@ -43,6 +43,7 @@ type VenueRebateScale struct {
 	DJ               decimal.Decimal
 	CP               decimal.Decimal
 	FC               decimal.Decimal
+	BY               decimal.Decimal
 	CGOfficialRebate decimal.Decimal
 	CGHighRebate     decimal.Decimal
 }
@@ -152,6 +153,7 @@ func Constructor(mt *MetaTable, rpc string) {
 		DJ:               decimal.NewFromFloat(1.1).Truncate(1),
 		CP:               decimal.NewFromFloat(1.1).Truncate(1),
 		FC:               decimal.NewFromFloat(1.5).Truncate(1),
+		BY:               decimal.NewFromFloat(1.2).Truncate(1),
 		CGHighRebate:     decimal.NewFromFloat(10.00).Truncate(2),
 		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}
@@ -185,19 +187,26 @@ func MurmurHash(str string, seed uint32) uint64 {
 
 func pushLog(err error, code string) error {
 
-	err = tracerr.Wrap(err)
+	_, file, line, _ := runtime.Caller(1)
+	paths := strings.Split(file, "/")
+	l := len(paths)
+	if l > 2 {
+		file = paths[l-2] + "/" + paths[l-1]
+	}
+	path := fmt.Sprintf("%s:%d", file, line)
+
 	ts := time.Now()
 	id := helper.GenId()
 
 	fields := g.Record{
 		"id":       id,
-		"content":  tracerr.SprintSource(err, 2, 2),
+		"content":  err.Error(),
 		"project":  meta.Program,
 		"flags":    code,
-		"filename": err.Error(),
+		"filename": path,
 		"ts":       ts.In(loc).UnixMilli(),
 	}
-
+	fmt.Println(err.Error())
 	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
 	//fmt.Println(query)
 	_, err1 := meta.MerchantTD.Exec(query)

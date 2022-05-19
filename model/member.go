@@ -110,6 +110,7 @@ type MemberListCol struct {
 	DZ               string  `json:"dz" db:"dz"`
 	CP               string  `json:"cp" db:"cp"`
 	FC               string  `json:"fc" db:"fc"`
+	BY               string  `json:"by" db:"by"`
 	CgOfficialRebate string  `json:"cg_official_rebate" db:"cg_official_rebate"` //CG官方彩返点
 	CgHighRebate     string  `json:"cg_high_rebate" db:"cg_high_rebate"`         //CG高频彩返点
 	Lvl              int     `json:"lvl" db:"-"`
@@ -125,13 +126,16 @@ type MemberAggData struct {
 }
 
 type MemberRebateResult_t struct {
-	ZR decimal.Decimal
-	QP decimal.Decimal
-	TY decimal.Decimal
-	DZ decimal.Decimal
-	DJ decimal.Decimal
-	CP decimal.Decimal
-	FC decimal.Decimal
+	ZR               decimal.Decimal
+	QP               decimal.Decimal
+	TY               decimal.Decimal
+	DZ               decimal.Decimal
+	DJ               decimal.Decimal
+	CP               decimal.Decimal
+	FC               decimal.Decimal
+	BY               decimal.Decimal
+	CGOfficialRebate decimal.Decimal
+	CGHighRebate     decimal.Decimal
 }
 
 func MemberInsert(username, password, remark, maintainName, groupName, agencyType, tester string, createdAt uint32, mr MemberRebate) error {
@@ -529,6 +533,7 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 			data.D[i].DZ = rb.DZ
 			data.D[i].CP = rb.CP
 			data.D[i].FC = rb.FC
+			data.D[i].BY = rb.BY
 			data.D[i].CgOfficialRebate = rb.CgOfficialRebate
 			data.D[i].CgHighRebate = rb.CgHighRebate
 		}
@@ -1048,7 +1053,6 @@ func MemberRetryReset(username string, ty uint8, pid string) error {
 	return nil
 }
 
-/*
 // 会员列表 用户日志写入
 func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt int64) error {
 
@@ -1078,26 +1082,44 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 		//	fmt.Println("member write member_remark_log error")
 		//}
 
-		log := MemberRemarksLog{
-			ID:        helper.GenId(),
-			CreatedAt: createdAt,
-			AdminName: adminName,
-			File:      file,
-			Msg:       msg,
-			UID:       member.UID,
-			Username:  username,
-			Prefix:    meta.Prefix,
+		//log := MemberRemarksLog{
+		//	ID:        helper.GenId(),
+		//	CreatedAt: createdAt,
+		//	AdminName: adminName,
+		//	File:      file,
+		//	Msg:       msg,
+		//	UID:       member.UID,
+		//	Username:  username,
+		//	Prefix:    meta.Prefix,
+		//}
+		//err = meta.Zlog.Post(esPrefixIndex("member_remarks_log"), log)
+		//if err != nil {
+		//	fmt.Println("member write member_remarks_log error")
+		//}
+
+		rc := g.Record{
+			"id":           helper.GenId(),
+			"uid":          member.UID,
+			"username":     username,
+			"msg":          msg,
+			"file":         file,
+			"created_name": adminName,
+			"created_at":   createdAt,
+			"prefix":       meta.Prefix,
+			"ts":           time.Now().In(loc).UnixMilli(),
 		}
-		err = meta.Zlog.Post(esPrefixIndex("member_remarks_log"), log)
+
+		query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
+		fmt.Println(query)
+		_, err = meta.MerchantTD.Exec(query)
 		if err != nil {
-			fmt.Println("member write member_remarks_log error")
+			fmt.Println(err.Error())
 		}
 	}
 
 	return nil
 }
 
-*/
 // 会员管理-会员列表-数据概览
 func MemberDataOverview(username, startTime, endTime string) (MemberDataOverviewData, error) {
 
@@ -1186,9 +1208,9 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 
 	// 总红利
 	dex := g.Ex{"uid": mb.UID,
-		"prefix":         meta.Prefix,
-		"hand_out_state": DividendSuccess,
-		"apply_at":       g.Op{"between": exp.NewRangeVal(mss, mse)},
+		"prefix":   meta.Prefix,
+		"state":    DividendReviewPass,
+		"apply_at": g.Op{"between": exp.NewRangeVal(mss, mse)},
 	}
 	query, _, _ = dialect.From("tbl_member_dividend").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("dividend")).Where(dex).ToSQL()
@@ -1740,6 +1762,7 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 		"dz": mr.DZ,
 		"cp": mr.CP,
 		"fc": mr.FC,
+		"by": mr.BY,
 	}
 	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
 	_, err = tx.Exec(query)
@@ -1824,6 +1847,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
 	res.FC = decimal.NewFromFloat(data.FC.Float64)
+	res.BY = decimal.NewFromFloat(data.BY.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -1832,6 +1856,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
 	res.FC = res.FC.Truncate(1)
+	res.BY = res.BY.Truncate(1)
 
 	return res, nil
 }
@@ -1863,6 +1888,7 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
 	res.CP = decimal.NewFromFloat(data.CP.Float64)
 	res.FC = decimal.NewFromFloat(data.FC.Float64)
+	res.BY = decimal.NewFromFloat(data.BY.Float64)
 
 	res.ZR = res.ZR.Truncate(1)
 	res.QP = res.QP.Truncate(1)
@@ -1870,7 +1896,8 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 	res.DJ = res.DJ.Truncate(1)
 	res.DZ = res.DZ.Truncate(1)
 	res.CP = res.CP.Truncate(1)
-	res.FC = res.CP.Truncate(1)
+	res.FC = res.FC.Truncate(1)
+	res.BY = res.BY.Truncate(1)
 
 	return res, nil
 }
