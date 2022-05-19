@@ -55,7 +55,8 @@ func main() {
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
 	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
 
-	mt.Program = os.Args[0]
+	bin := strings.Split(os.Args[0], "/")
+	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin
 
 	model.Constructor(mt, cfg.RPC)
