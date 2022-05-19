@@ -45,9 +45,14 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 
 	fmt.Println("========= Model IN")
 
-	ex := g.Ex{
-		"uid":          uid,
-		"created_name": adminName,
+	ex := g.Ex{}
+
+	if uid != "" {
+		ex["uid"] = uid
+	}
+
+	if adminName != "" {
+		ex["created_name"] = adminName
 	}
 
 	data := MemberRemarkLogData{}
