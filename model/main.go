@@ -206,7 +206,7 @@ func pushLog(err error, code string) error {
 		"filename": path,
 		"ts":       ts.In(loc).UnixMilli(),
 	}
-
+	fmt.Println(err.Error())
 	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
 	//fmt.Println(query)
 	_, err1 := meta.MerchantTD.Exec(query)
