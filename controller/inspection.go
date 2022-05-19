@@ -41,6 +41,11 @@ func (that *InspectionController) Review(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if len(remark) > 100 {
+		helper.Print(ctx, false, helper.ContentLengthErr)
+		return
+	}
+
 	if inspectState == "2" && len(billNo) == 0 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return

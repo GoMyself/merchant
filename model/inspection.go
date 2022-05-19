@@ -113,6 +113,7 @@ type PromoInspection struct {
 	InspectName      string `json:"inspect_name" db:"inspect_name"`
 	Ty               string `json:"ty" db:"ty"`
 	BillNo           string `json:"bill_no" db:"bill_no"`
+	Remark           string `json:"remark" db:"remark"`
 }
 
 type PagePromoInspection struct {
@@ -141,9 +142,9 @@ func InspectionList(username string) (Inspection, Member, error) {
 		cutTime = lastWithdraw.CreatedAt
 	}
 
-	lastInspenction, err := getInspectionLast(username)
-	if cutTime < lastInspenction.InspectAt {
-		cutTime = lastInspenction.InspectAt
+	lastInspection, err := getInspectionLast(username)
+	if cutTime < lastInspection.InspectAt {
+		cutTime = lastInspection.InspectAt
 	}
 
 	//查活动记录
@@ -245,7 +246,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	//查活动对应场馆的流水总和
 	for _, v := range promolist {
-		vaildBetAmount, err := EsPlatValidBet(username, v.Platforms, v.StartAt, now)
+		validBetAmount, err := EsPlatValidBet(username, v.Platforms, v.StartAt, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
@@ -261,8 +262,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 			ReviewName:       v.UpdatedName,
 			FlowMultiple:     fmt.Sprintf(`%d`, recrodMap[v.Id].Multiple),
 			FlowAmount:       fmt.Sprintf(`%f`, recrodMap[v.Id].Flow),
-			FinishedAmount:   vaildBetAmount.StringFixed(4),
-			UnfinishedAmount: vaildBetAmount.Sub(decimal.NewFromFloat(recrodMap[v.Id].Flow)).StringFixed(4),
+			FinishedAmount:   validBetAmount.StringFixed(4),
+			UnfinishedAmount: validBetAmount.Sub(decimal.NewFromFloat(recrodMap[v.Id].Flow)).StringFixed(4),
 			CreatedAt:        v.CreatedAt,
 			Ty:               "3",
 			Pid:              v.Id,
@@ -280,6 +281,23 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 	inspection, mb, err := InspectionList(username)
 	if err != nil {
 		return false, err
+	}
+
+	//有提交订单号的去校验订单号是否这个用户的提款订单
+	if len(billNo) > 0 {
+		ex := g.Ex{
+			"username": username,
+			"id":       billNo,
+		}
+		w := WithdrawRecord{}
+
+		query, _, _ := dialect.From("tbl_withdraw").Select(colWithdrawRecord...).Where(ex).Order(g.C("created_at").Desc()).Limit(1).ToSQL()
+		fmt.Println(query)
+		err := meta.MerchantDB.Get(&w, query)
+		if err != nil {
+			return false, pushLog(err, helper.OrderNotExist)
+		}
+
 	}
 
 	//开启事务
@@ -315,6 +333,7 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 			InspectName:      admin["name"],
 			Ty:               v.Ty,
 			BillNo:           billNo,
+			Remark:           remark,
 		}
 
 		// 插入稽查历史
