@@ -108,6 +108,7 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 	data := g.Record{
 		"id":             helper.GenId(),
 		"uid":            m.UID,
+		"pid":            0,
 		"username":       param.Username,
 		"top_uid":        m.TopUid,
 		"top_name":       m.TopName,
