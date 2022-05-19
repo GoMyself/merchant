@@ -10,44 +10,18 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 
 	"github.com/olivere/elastic/v7"
-	"github.com/wI2L/jettison"
 )
 
 func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSize int) (MemberRemarkLogData, error) {
 
-	//param := map[string]interface{}{
-	//	"uid": uid,
-	//}
-	//
-	//if adminName != "" {
-	//	param["admin_name"] = adminName
-	//}
-	//
-	//rangeParam := make(map[string][]interface{})
-	//if startTime != "" && endTime != "" {
-	//
-	//	startAt, err := helper.TimeToLoc(startTime, loc)
-	//	if err != nil {
-	//		return "", errors.New(helper.TimeTypeErr)
-	//	}
-	//
-	//	endAt, err := helper.TimeToLoc(endTime, loc)
-	//	if err != nil {
-	//		return "", errors.New(helper.TimeTypeErr)
-	//	}
-	//
-	//	if startAt >= endAt {
-	//		return "", errors.New(helper.QueryTimeRangeErr)
-	//	}
-	//
-	//	rangeParam["created_at"] = []interface{}{startAt, endAt}
-	//}
+	ex := g.Ex{}
 
-	fmt.Println("========= Model IN")
+	if uid != "" {
+		ex["uid"] = uid
+	}
 
-	ex := g.Ex{
-		"uid":          uid,
-		"created_name": adminName,
+	if adminName != "" {
+		ex["created_name"] = adminName
 	}
 
 	data := MemberRemarkLogData{}
@@ -80,7 +54,7 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
 
-		fmt.Println("=========", query)
+		fmt.Println(query)
 
 		err := meta.MerchantTD.Get(&data.T, query)
 		if err == sql.ErrNoRows {
@@ -99,7 +73,7 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "created_name", "created_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "created_name", "created_at", "prefix").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
@@ -111,13 +85,6 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	}
 
 	data.S = pageSize
-
-	//result := MemberRemarkLogData{}
-	//
-	//result, err := memberRemarkLogList(startTime, endTime, page, pageSize, ex)
-	//if err != nil {
-	//	return result, err
-	//}
 
 	return data, nil
 }
@@ -237,95 +204,95 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 //	return data, nil
 //}
 
-func memberRemarkLogList(startTime, endTime string, page, pageSize int, ex g.Ex) (MemberRemarkLogData, error) {
+//func memberRemarkLogList(startTime, endTime string, page, pageSize int, ex g.Ex) (MemberRemarkLogData, error) {
+//
+//	data := MemberRemarkLogData{}
+//
+//	if len(ex) == 0 && (startTime == "" || endTime == "") {
+//		return data, errors.New(helper.QueryTermsErr)
+//	}
+//	if startTime != "" && endTime != "" {
+//
+//		startAt, err := helper.TimeToLoc(startTime, loc)
+//		if err != nil {
+//			return data, errors.New(helper.DateTimeErr)
+//		}
+//
+//		endAt, err := helper.TimeToLoc(endTime, loc)
+//		if err != nil {
+//			return data, errors.New(helper.TimeTypeErr)
+//		}
+//
+//		if startAt >= endAt {
+//			return data, errors.New(helper.QueryTimeRangeErr)
+//		}
+//
+//		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+//	}
+//	ex["prefix"] = meta.Prefix
+//
+//	t := dialect.From("member_remarks_log")
+//
+//	if page == 1 {
+//		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+//		err := meta.MerchantTD.Get(&data.T, query)
+//		if err == sql.ErrNoRows {
+//			return data, nil
+//		}
+//
+//		if err != nil {
+//			fmt.Println("Member Remarks Log err = ", err.Error())
+//			fmt.Println("Member Remarks Log query = ", query)
+//			body := fmt.Errorf("%s,[%s]", err.Error(), query)
+//			return data, pushLog(body, helper.DBErr)
+//		}
+//		if data.T == 0 {
+//			return data, nil
+//		}
+//	}
+//
+//	offset := (page - 1) * pageSize
+//	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "created_name", "created_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+//	fmt.Println("Member Remarks Log query = ", query)
+//
+//	err := meta.MerchantTD.Select(&data.D, query)
+//	if err != nil {
+//		fmt.Println("Member Remarks Log err = ", err.Error())
+//		fmt.Println("Member Remarks Log query = ", query)
+//		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+//		return data, pushLog(body, helper.DBErr)
+//	}
+//
+//	data.S = pageSize
+//
+//	return data, nil
+//}
 
-	data := MemberRemarkLogData{}
-
-	if len(ex) == 0 && (startTime == "" || endTime == "") {
-		return data, errors.New(helper.QueryTermsErr)
-	}
-	if startTime != "" && endTime != "" {
-
-		startAt, err := helper.TimeToLoc(startTime, loc)
-		if err != nil {
-			return data, errors.New(helper.DateTimeErr)
-		}
-
-		endAt, err := helper.TimeToLoc(endTime, loc)
-		if err != nil {
-			return data, errors.New(helper.TimeTypeErr)
-		}
-
-		if startAt >= endAt {
-			return data, errors.New(helper.QueryTimeRangeErr)
-		}
-
-		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
-	}
-	ex["prefix"] = meta.Prefix
-
-	t := dialect.From("member_remarks_log")
-
-	if page == 1 {
-		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
-		err := meta.MerchantTD.Get(&data.T, query)
-		if err == sql.ErrNoRows {
-			return data, nil
-		}
-
-		if err != nil {
-			fmt.Println("Member Remarks Log err = ", err.Error())
-			fmt.Println("Member Remarks Log query = ", query)
-			body := fmt.Errorf("%s,[%s]", err.Error(), query)
-			return data, pushLog(body, helper.DBErr)
-		}
-		if data.T == 0 {
-			return data, nil
-		}
-	}
-
-	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "created_name", "created_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
-	fmt.Println("Member Remarks Log query = ", query)
-
-	err := meta.MerchantTD.Select(&data.D, query)
-	if err != nil {
-		fmt.Println("Member Remarks Log err = ", err.Error())
-		fmt.Println("Member Remarks Log query = ", query)
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
-
-	data.S = pageSize
-
-	return data, nil
-}
-
-func memberLoginLogList(esPrefix string, page, pageSize int, param map[string]interface{}, rangeParam map[string][]interface{}) (string, error) {
-
-	fields := []string{"username", "ips", "device", "device_no", "date", "parents"}
-	param["prefix"] = meta.Prefix
-	total, esData, _, err := esSearch(esPrefix+"memberlogin", "date", page, pageSize, fields, param, rangeParam, map[string]string{})
-	if err != nil {
-		return `{"t":0,"d":[]}`, err
-	}
-
-	data := MemberLoginLogData{}
-	data.S = pageSize
-	data.T = total
-	for _, v := range esData {
-		log := MemberLoginLog{}
-		_ = helper.JsonUnmarshal(v.Source, &log)
-		data.D = append(data.D, log)
-	}
-
-	b, err := jettison.Marshal(data)
-	if err != nil {
-		return "", errors.New(helper.FormatErr)
-	}
-
-	return string(b), nil
-}
+//func memberLoginLogList(esPrefix string, page, pageSize int, param map[string]interface{}, rangeParam map[string][]interface{}) (string, error) {
+//
+//	fields := []string{"username", "ips", "device", "device_no", "date", "parents"}
+//	param["prefix"] = meta.Prefix
+//	total, esData, _, err := esSearch(esPrefix+"memberlogin", "date", page, pageSize, fields, param, rangeParam, map[string]string{})
+//	if err != nil {
+//		return `{"t":0,"d":[]}`, err
+//	}
+//
+//	data := MemberLoginLogData{}
+//	data.S = pageSize
+//	data.T = total
+//	for _, v := range esData {
+//		log := MemberLoginLog{}
+//		_ = helper.JsonUnmarshal(v.Source, &log)
+//		data.D = append(data.D, log)
+//	}
+//
+//	b, err := jettison.Marshal(data)
+//	if err != nil {
+//		return "", errors.New(helper.FormatErr)
+//	}
+//
+//	return string(b), nil
+//}
 
 //ES查询转账记录
 func esSearch(index, sortField string, page, pageSize int, fields []string,
