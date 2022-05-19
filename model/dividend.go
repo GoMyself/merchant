@@ -166,6 +166,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 			r := g.Record{
 				"id":            helper.GenId(),
 				"flag":          "static",
+				"prefix":        meta.Prefix,
 				"uid":           v.UID,           // 会员账号
 				"username":      v.Username,      // 会员名称
 				"level":         v.Level,         // 会员等级
