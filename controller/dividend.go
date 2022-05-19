@@ -110,6 +110,7 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 		"uid":            m.UID,
 		"pid":            0,
 		"username":       param.Username,
+		"level":          m.Level,
 		"top_uid":        m.TopUid,
 		"top_name":       m.TopName,
 		"parent_uid":     m.ParentUid,
