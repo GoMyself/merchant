@@ -188,18 +188,22 @@ func (*SMSChannelController) Insert(ctx *fasthttp.RequestCtx) {
 		data.Remark = remark
 	}
 
-	tm := map[int]string{
-		0: "1", // 没有
-		1: "2", // 开启
-		2: "3", // 关闭
-	}
+	//tm := map[int]string{
+	//	0: "1", // 没有
+	//	1: "2", // 开启
+	//	2: "3", // 关闭
+	//}
+	data.Txt = "0"
+	data.Voice = "0"
 
 	if txtState != 0 {
-		data.Txt = tm[2]
+		//data.Txt = tm[2]
+		data.Txt = "2"
 	}
 
 	if voiceState != 0 {
-		data.Voice = tm[2]
+		//data.Voice = tm[2]
+		data.Voice = "2"
 	}
 
 	data.CreatedUid = admin["id"]

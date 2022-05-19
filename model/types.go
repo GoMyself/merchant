@@ -22,6 +22,7 @@ type MemberPageData struct {
 type Member struct {
 	UID                 string `db:"uid" json:"uid"`
 	Username            string `db:"username" json:"username"`                           //会员名
+	Avatar              string `db:"avatar" json:"avatar"`                               //头像
 	Password            string `db:"password" json:"password"`                           //密码
 	Birth               string `db:"birth" json:"birth"`                                 //生日日期
 	BirthHash           string `db:"birth_hash" json:"birth_hash"`                       //生日日期哈希
