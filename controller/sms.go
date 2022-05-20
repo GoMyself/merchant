@@ -122,13 +122,13 @@ func (*SMSChannelController) Update(ctx *fasthttp.RequestCtx) {
 		2: 3,
 	}
 
-	if txtState != 0 && txtState != 2 {
+	if txtState < 0 && txtState > 2 {
 		helper.Print(ctx, false, helper.StateParamErr)
 		return
 	}
 	rc["txt"] = tm[txtState]
 
-	if voiceState != 0 && voiceState != 2 {
+	if voiceState < 0 && voiceState > 2 {
 		helper.Print(ctx, false, helper.StateParamErr)
 		return
 	}
