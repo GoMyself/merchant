@@ -1161,3 +1161,20 @@ type SMSChannel struct {
 	Prefix      string `db:"prefix" json:"prefix"` // 前缀
 	Remark      string `db:"remark" json:"remark"` // 备注
 }
+
+type Link_t struct {
+	ID               string `db:"id" json:"id"`
+	UID              string `db:"uid" json:"uid"`
+	Prefix           string `db:"prefix" json:"prefix"`
+	ZR               string `db:"zr" json:"zr"`                                 //真人返水
+	QP               string `db:"qp" json:"qp"`                                 //棋牌返水
+	TY               string `db:"ty" json:"ty"`                                 //体育返水
+	DJ               string `db:"dj" json:"dj"`                                 //电竞返水
+	DZ               string `db:"dz" json:"dz"`                                 //电子返水
+	CP               string `db:"cp" json:"cp"`                                 //彩票返水
+	FC               string `db:"fc" json:"fc"`                                 //斗鸡返水
+	BY               string `db:"by" json:"by"`                                 //捕鱼返水
+	CGHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //cg高频彩返点
+	CGOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //cg高频彩返点
+	CreatedAt        string `db:"created_at" json:"created_at"`
+}
