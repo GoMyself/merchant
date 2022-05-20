@@ -183,7 +183,7 @@ type MemberLoginLog struct {
 	//Prefix   string `db:"prefix" json:"prefix"`
 }
 
-type memberRemarkLogData struct {
+type MemberRemarkLogData struct {
 	S int                `json:"s"`
 	D []MemberRemarksLog `json:"d"`
 	T int64              `json:"t"`
@@ -191,14 +191,14 @@ type memberRemarkLogData struct {
 
 // 用户备注日志
 type MemberRemarksLog struct {
-	ID        string `msg:"id" json:"id"`
-	UID       string `msg:"uid" json:"uid"`
-	Username  string `msg:"username" json:"username"`
-	Msg       string `msg:"msg" json:"msg"`
-	File      string `msg:"file" json:"file"`
-	AdminName string `msg:"admin_name" json:"admin_name"`
-	CreatedAt int64  `msg:"created_at" json:"created_at"`
-	Prefix    string `msg:"prefix" json:"prefix"`
+	ID          string `msg:"id" json:"id" db:"id"`
+	UID         string `msg:"uid" json:"uid" db:"uid"`
+	Username    string `msg:"username" json:"username" db:"username"`
+	Msg         string `msg:"msg" json:"msg" db:"msg"`
+	File        string `msg:"file" json:"file" db:"file"`
+	CreatedName string `msg:"created_name" json:"created_name" db:"created_name"`
+	CreatedAt   int64  `msg:"created_at" json:"created_at" db:"created_at"`
+	Prefix      string `msg:"prefix" json:"prefix" db:"prefix"`
 }
 
 // MemberAdjust db structure

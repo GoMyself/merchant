@@ -156,7 +156,7 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 			}
 
 			if len(cashTypes) > 0 {
-				ex["cash_type"] = types
+				ex["cash_type"] = cashTypes
 			}
 		}
 	} else {
@@ -524,7 +524,7 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
 	}
 
 	if param.State > 0 {
@@ -585,7 +585,7 @@ func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
 	}
 
 	if param.Ty > 0 {
@@ -668,7 +668,7 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
 	}
 
 	if param.Username != "" {
@@ -732,7 +732,7 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root", ""))
+		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
 	}
 
 	if param.State > 0 {

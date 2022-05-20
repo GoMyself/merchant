@@ -1053,7 +1053,6 @@ func MemberRetryReset(username string, ty uint8, pid string) error {
 	return nil
 }
 
-/*
 // 会员列表 用户日志写入
 func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt int64) error {
 
@@ -1083,26 +1082,44 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 		//	fmt.Println("member write member_remark_log error")
 		//}
 
-		log := MemberRemarksLog{
-			ID:        helper.GenId(),
-			CreatedAt: createdAt,
-			AdminName: adminName,
-			File:      file,
-			Msg:       msg,
-			UID:       member.UID,
-			Username:  username,
-			Prefix:    meta.Prefix,
+		//log := MemberRemarksLog{
+		//	ID:        helper.GenId(),
+		//	CreatedAt: createdAt,
+		//	AdminName: adminName,
+		//	File:      file,
+		//	Msg:       msg,
+		//	UID:       member.UID,
+		//	Username:  username,
+		//	Prefix:    meta.Prefix,
+		//}
+		//err = meta.Zlog.Post(esPrefixIndex("member_remarks_log"), log)
+		//if err != nil {
+		//	fmt.Println("member write member_remarks_log error")
+		//}
+
+		rc := g.Record{
+			"id":           helper.GenId(),
+			"uid":          member.UID,
+			"username":     username,
+			"msg":          msg,
+			"file":         file,
+			"created_name": adminName,
+			"created_at":   createdAt,
+			"prefix":       meta.Prefix,
+			"ts":           time.Now().In(loc).UnixMilli(),
 		}
-		err = meta.Zlog.Post(esPrefixIndex("member_remarks_log"), log)
+
+		query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
+		fmt.Println(query)
+		_, err = meta.MerchantTD.Exec(query)
 		if err != nil {
-			fmt.Println("member write member_remarks_log error")
+			fmt.Println(err.Error())
 		}
 	}
 
 	return nil
 }
 
-*/
 // 会员管理-会员列表-数据概览
 func MemberDataOverview(username, startTime, endTime string) (MemberDataOverviewData, error) {
 
@@ -1191,9 +1208,9 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 
 	// 总红利
 	dex := g.Ex{"uid": mb.UID,
-		"prefix":         meta.Prefix,
-		"hand_out_state": DividendSuccess,
-		"apply_at":       g.Op{"between": exp.NewRangeVal(mss, mse)},
+		"prefix":   meta.Prefix,
+		"state":    DividendReviewPass,
+		"apply_at": g.Op{"between": exp.NewRangeVal(mss, mse)},
 	}
 	query, _, _ = dialect.From("tbl_member_dividend").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("dividend")).Where(dex).ToSQL()

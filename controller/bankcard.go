@@ -101,7 +101,7 @@ func (that *BankcardController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if param.BankID == "" && param.BankAddr == "" && param.bankcardNo == "" {
+	if param.BankID == "" && param.BankAddr == "" {
 		helper.Print(ctx, false, helper.NoDataUpdate)
 		return
 	}

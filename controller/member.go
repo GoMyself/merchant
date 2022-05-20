@@ -290,19 +290,18 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	/*
-		admin, err := model.AdminToken(ctx)
-		if err != nil {
-			helper.Print(ctx, false, helper.AccessTokenExpires)
-			return
-		}
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
 
-			err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
-			if err != nil {
-				helper.Print(ctx, false, err.Error())
-				return
-			}
-	*/
+	err = model.MemberRemarkInsert("", params.Remark, admin["name"], names, ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
 	err = model.MemberUpdateState(names, params.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -689,9 +688,11 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if len(params.File) < 5 {
-		helper.Print(ctx, false, helper.FileURLErr)
-		return
+	if params.File != "" {
+		if len(params.File) < 5 {
+			helper.Print(ctx, false, helper.FileURLErr)
+			return
+		}
 	}
 
 	if params.Username == "" {
@@ -710,19 +711,18 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	/*
-			admin, err := model.AdminToken(ctx)
-		if err != nil {
-			helper.Print(ctx, false, helper.AccessTokenExpires)
-			return
-		}
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
 
-			err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
-			if err != nil {
-				helper.Print(ctx, false, err.Error())
-				return
-			}
-	*/
+	err = model.MemberRemarkInsert(params.File, params.Msg, admin["name"], names, ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
 	helper.Print(ctx, true, helper.Success)
 }
 
@@ -803,12 +803,13 @@ func (that *MemberController) RemarkLogList(ctx *fasthttp.RequestCtx) {
 	page, _ := strconv.Atoi(sPage)
 	pageSize, _ := strconv.Atoi(sPageSize)
 	data, err := model.MemberRemarkLogList(uid, adminName, startTime, endTime, page, pageSize)
+
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, data)
+	helper.Print(ctx, true, data)
 }
 
 func (that *MemberController) UpdatePwd(ctx *fasthttp.RequestCtx) {
