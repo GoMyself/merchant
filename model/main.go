@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog/pkgerrors"
 	"merchant2/contrib/helper"
 	"runtime"
 	"strings"
@@ -25,15 +26,6 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/spaolacci/murmur3"
 )
-
-type log_t struct {
-	ID      string `json:"id" msg:"id"`
-	Project string `json:"project" msg:"project"`
-	Flags   string `json:"flags" msg:"flags"`
-	Fn      string `json:"fn" msg:"fn"`
-	File    string `json:"file" msg:"file"`
-	Content string `json:"content" msg:"content"`
-}
 
 type VenueRebateScale struct {
 	ZR               decimal.Decimal
@@ -200,7 +192,7 @@ func pushLog(err error, code string) error {
 
 	fields := g.Record{
 		"id":       id,
-		"content":  err.Error(),
+		"content":  pkgerrors.MarshalStack(err),
 		"project":  meta.Program,
 		"flags":    code,
 		"filename": path,
@@ -208,10 +200,10 @@ func pushLog(err error, code string) error {
 	}
 	fmt.Println(err.Error())
 	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
-	//fmt.Println(query)
 	_, err1 := meta.MerchantTD.Exec(query)
 	if err1 != nil {
-		fmt.Println("insert SMS = ", err1.Error())
+		fmt.Println("insert SMS = sql ", query)
+		fmt.Println("insert SMS = error ", err1.Error())
 	}
 
 	note := fmt.Sprintf("Hệ thống lỗi %s", id)

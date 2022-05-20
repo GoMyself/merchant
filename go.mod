@@ -12,7 +12,6 @@ require (
 	github.com/buaazp/fasthttprouter v0.1.1
 	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/doug-martin/goqu/v9 v9.18.0
-	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/fluent/fluent-logger-golang v1.9.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-sql-driver/mysql v1.6.0
@@ -28,9 +27,11 @@ require (
 	github.com/olivere/elastic/v7 v7.0.31
 	github.com/panjf2000/ants/v2 v2.4.7
 	github.com/pelletier/go-toml v1.9.4
+	github.com/rs/zerolog v1.26.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
+	github.com/taosdata/driver-go/v2 v2.0.1-0.20220512023129-15f5b9c4b11c
 	github.com/tinylib/msgp v1.1.6
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fastjson v1.6.3
@@ -56,7 +57,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
@@ -76,7 +76,6 @@ require (
 	github.com/prometheus/client_golang v1.12.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/taosdata/driver-go/v2 v2.0.1-0.20220512023129-15f5b9c4b11c // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
