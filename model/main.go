@@ -150,6 +150,8 @@ func Constructor(mt *MetaTable, rpc string) {
 		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}
 
+	pushLog(errors.New("测试测试"), "testing")
+
 	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {
 	//	fmt.Printf("Nats received a message: %s\n", string(m.Data))
 	//})
