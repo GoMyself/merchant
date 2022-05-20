@@ -192,9 +192,10 @@ func pushLog(err error, code string) error {
 	ts := time.Now()
 	id := helper.GenId()
 
+	content := fmt.Sprintf("%v", pkgerrors.MarshalStack(err))
 	fields := g.Record{
 		"id":       id,
-		"content":  pkgerrors.MarshalStack(err),
+		"content":  content,
 		"project":  meta.Program,
 		"flags":    code,
 		"filename": path,
