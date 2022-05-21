@@ -61,10 +61,10 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
 
-	if username == "" && bankcardNo == "" {
-		helper.Print(ctx, false, helper.ParamNull)
-		return
-	}
+	//if username == "" && bankcardNo == "" {
+	//	helper.Print(ctx, false, helper.ParamNull)
+	//	return
+	//}
 
 	if bankcardNo != "" {
 		if !validator.CheckStringDigit(bankcardNo) {
