@@ -608,7 +608,7 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decima
 	terms := make([]elastic.Query, 0)
 	terms = append(terms, elastic.NewTermQuery("username", username))
 	terms = append(terms, elastic.NewRangeQuery("ty").Gte(DividendUpgrade).Lte(DividendRedPacket))
-	terms = append(terms, elastic.NewTermQuery("hand_out_state", DividendSuccess))
+	terms = append(terms, elastic.NewTermQuery("state", DividendReviewPass))
 
 	boolQuery.Must(terms...)
 
@@ -616,13 +616,13 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decima
 	//打印es查询json
 	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
 	resOrder, err := esService.Index(esPrefixIndex("tbl_member_dividend")).
-		Aggregation("hand_out_amount_agg", elastic.NewSumAggregation().Field("hand_out_amount")).Do(ctx)
+		Aggregation("amount_agg", elastic.NewSumAggregation().Field("amount")).Do(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return waterFlow, err
 	}
 
-	handOutAmount, ok := resOrder.Aggregations.Sum("hand_out_amount_agg")
+	handOutAmount, ok := resOrder.Aggregations.Sum("amount_agg")
 	if handOutAmount == nil || !ok {
 		return waterFlow, errors.New("agg error")
 	}
