@@ -30,8 +30,8 @@ type loginLogParam struct {
 	Ip        string `rule:"none" name:"ip"`                                                               //
 	StartTime string `rule:"none" name:"start_time"`                                                       // 查询开始时间
 	EndTime   string `rule:"none" name:"end_time"`                                                         // 查询结束时间
-	Page      int    `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
-	PageSize  int    `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
+	Page      string `rule:"digit" default:"1" min:"1" msg:"page error" name:"page"`                       // 页码
+	PageSize  string `rule:"digit" default:"10" min:"10" max:"200" msg:"page_size error" name:"page_size"` // 页大小
 }
 
 type depositParam struct {
@@ -471,30 +471,36 @@ func (that *RecordController) LoginLog(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
+	if !validator.CheckStringDigit(param.Page) || !validator.CheckStringDigit(param.PageSize) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
 
-	query := elastic.NewBoolQuery().MustNot(elastic.NewTermsQuery("parents.keyword", "root", ""))
-	if param.Username != "" {
-
-		if !validator.CheckUName(param.Username, 5, 14) {
+	ex := g.Ex{}
+	username := param.Username
+	if len(username) > 0 {
+		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("username", param.Username))
+		ex["username"] = username
 	}
 
-	if param.Ip != "" {
+	ex["parent_name"] = g.Op{"neq": "root"}
 
-		_, err := helper.Ip2long(param.Ip)
-		if err != nil {
-			helper.Print(ctx, false, helper.IPErr)
-			return
-		}
-
-		query.Filter(elastic.NewTermQuery("ips", param.Ip))
+	ip := param.Ip
+	if len(ip) > 0 {
+		//param["ips.keyword"] = ip
+		ex["ip"] = ip
 	}
 
-	data, err := model.RecordLoginLog(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	startTime := param.StartTime
+	endTime := param.EndTime
+	p, _ := strconv.Atoi(param.Page)
+	ps, _ := strconv.Atoi(param.PageSize)
+
+	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
