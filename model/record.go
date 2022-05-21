@@ -678,7 +678,7 @@ func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic
 func RecordDividend(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (DividendData, error) {
 
 	data := DividendData{}
-	query.Filter(elastic.NewTermQuery("hand_out_state", DividendSuccess))
+	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
 
 	if startTime != "" && endTime != "" {
 
