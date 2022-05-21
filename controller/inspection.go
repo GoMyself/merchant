@@ -59,7 +59,7 @@ func (that *InspectionController) Review(ctx *fasthttp.RequestCtx) {
 
 	data, err := model.InspectionReview(username, inspectState, billNo, remark, admin)
 	if err != nil {
-		helper.Print(ctx, false, err.Error())
+		helper.Print(ctx, data, err.Error())
 		return
 	}
 

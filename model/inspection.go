@@ -295,7 +295,7 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 		fmt.Println(query)
 		err := meta.MerchantDB.Get(&w, query)
 		if err != nil {
-			return false, pushLog(err, helper.OrderNotExist)
+			return false, errors.New(helper.OrderNotExist)
 		}
 
 	}
