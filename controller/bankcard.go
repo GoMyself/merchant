@@ -59,6 +59,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
+	fmt.Println("===========>")
 	username := string(ctx.PostArgs().Peek("username"))
 	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
 
