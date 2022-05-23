@@ -329,6 +329,7 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 		"bet_amount_agg":       "bet_amount",
 		"net_amount_agg":       "net_amount",
 		"valid_bet_amount_agg": "valid_bet_amount",
+		"rebate_amount":        "rebate_amount",
 	}
 	//查询条件
 	param := map[string]interface{}{
