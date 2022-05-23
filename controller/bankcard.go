@@ -91,6 +91,8 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 		pageSize = 10
 	}
 
+	fmt.Println(page, pageSize)
+
 	// 更新权限信息
 	data, err := model.BankcardList(uint(page), uint(pageSize), username, bankcardNo)
 	if err != nil {
