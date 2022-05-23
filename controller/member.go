@@ -129,68 +129,73 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 	remark := string(ctx.PostArgs().Peek("remark"))
 	tester := string(ctx.PostArgs().Peek("tester"))
 
-	ty_temp := string(ctx.PostArgs().Peek("ty"))
-	zr_temp := string(ctx.PostArgs().Peek("zr"))
-	qp_temp := string(ctx.PostArgs().Peek("qp"))
-	dj_temp := string(ctx.PostArgs().Peek("dj"))
-	dz_temp := string(ctx.PostArgs().Peek("dz"))
-	cp_temp := string(ctx.PostArgs().Peek("cp"))
-	fc_temp := string(ctx.PostArgs().Peek("fc"))
-	by_temp := string(ctx.PostArgs().Peek("by"))
-	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
-	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
+	tyTemp := string(ctx.PostArgs().Peek("ty"))
+	zrTemp := string(ctx.PostArgs().Peek("zr"))
+	qpTemp := string(ctx.PostArgs().Peek("qp"))
+	djTemp := string(ctx.PostArgs().Peek("dj"))
+	dzTemp := string(ctx.PostArgs().Peek("dz"))
+	cpTemp := string(ctx.PostArgs().Peek("cp"))
+	fcTemp := string(ctx.PostArgs().Peek("fc"))
+	byTemp := string(ctx.PostArgs().Peek("by"))
+	cgHighRebateTemp := string(ctx.PostArgs().Peek("cg_high_rebate"))
+	cgOfficialRebateTemp := string(ctx.PostArgs().Peek("cg_official_rebate"))
 
 	if len(maintainName) == 0 {
 		maintainName = ""
 	}
 
 	vs := model.RebateScale()
-	ty, err := decimal.NewFromString(ty_temp)
+	ty, err := decimal.NewFromString(tyTemp)
 	if err != nil || ty.IsNegative() || ty.GreaterThan(vs.TY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	zr, err := decimal.NewFromString(zr_temp)
+	zr, err := decimal.NewFromString(zrTemp)
 	if err != nil || zr.IsNegative() || zr.GreaterThan(vs.ZR) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	qp, err := decimal.NewFromString(qp_temp)
+	qp, err := decimal.NewFromString(qpTemp)
 	if err != nil || qp.IsNegative() || qp.GreaterThan(vs.QP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	dj, err := decimal.NewFromString(dj_temp)
+	dj, err := decimal.NewFromString(djTemp)
 	if err != nil || dj.IsNegative() || dj.GreaterThan(vs.DJ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	dz, err := decimal.NewFromString(dz_temp)
+	dz, err := decimal.NewFromString(dzTemp)
 	if err != nil || dz.IsNegative() || dz.GreaterThan(vs.DZ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	cp, err := decimal.NewFromString(cp_temp)
+	cp, err := decimal.NewFromString(cpTemp)
 	if err != nil || cp.IsNegative() || cp.GreaterThan(vs.CP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	fc, err := decimal.NewFromString(fc_temp)
+	fc, err := decimal.NewFromString(fcTemp)
 	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.FC) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	by, err := decimal.NewFromString(by_temp)
+	by, err := decimal.NewFromString(byTemp)
 	if err != nil || by.IsNegative() || by.GreaterThan(vs.BY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
-	cg_high_rebate, err := decimal.NewFromString(cg_high_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGHighRebate) {
+	nine := decimal.NewFromInt(9.00)
+	cgHighRebate, err := decimal.NewFromString(cgHighRebateTemp)
+	if err != nil || fc.IsNegative() ||
+		cgHighRebate.GreaterThan(vs.CGHighRebate) ||
+		nine.GreaterThan(cgHighRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
-	cg_official_rebate, err := decimal.NewFromString(cg_official_rebate_temp)
-	if err != nil || fc.IsNegative() || fc.GreaterThan(vs.CGOfficialRebate) {
+	cgOfficialRebate, err := decimal.NewFromString(cgOfficialRebateTemp)
+	if err != nil || fc.IsNegative() ||
+		cgOfficialRebate.GreaterThan(vs.CGOfficialRebate) ||
+		nine.GreaterThan(cgOfficialRebate) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
@@ -232,8 +237,8 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		CP:               cp.StringFixed(1),
 		FC:               fc.StringFixed(1),
 		BY:               by.StringFixed(1),
-		CgOfficialRebate: cg_official_rebate.StringFixed(2),
-		CgHighRebate:     cg_high_rebate.StringFixed(2),
+		CgOfficialRebate: cgOfficialRebate.StringFixed(2),
+		CgHighRebate:     cgHighRebate.StringFixed(2),
 	}
 	createdAt := uint32(ctx.Time().Unix())
 
