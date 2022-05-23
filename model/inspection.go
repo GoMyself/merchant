@@ -181,7 +181,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		Username:         username,
 		Level:            fmt.Sprintf(`%d`, mb.Level),
 		TopName:          mb.TopName,
-		Title:            "礼金(升级、生日、每月、红包)",
+		Title:            "红利/礼金",
 		Amount:           "0",
 		RewardAmount:     dividendAmount.StringFixed(4),
 		ReviewName:       "系统自动发送",
