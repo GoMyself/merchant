@@ -162,6 +162,7 @@ func Game(ty, pageSize, page int, params map[string]string) (GameRecordData, err
 		"bet_amount_agg":       "bet_amount",
 		"net_amount_agg":       "net_amount",
 		"valid_bet_amount_agg": "valid_bet_amount",
+		"rebate_amount":        "rebate_amount",
 	}
 
 	if ty == GameTyValid {
