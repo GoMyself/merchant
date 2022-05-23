@@ -162,9 +162,12 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
 
+	fmt.Println("===========> MODEL IN")
+	fmt.Println(ex)
 	var cardList []BankCard
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&cardList, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
@@ -239,7 +242,7 @@ func BankCardExist(ex g.Ex) bool {
 	return err != sql.ErrNoRows
 }
 
-func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
+func BankcardUpdate(bid, bankID, bankAddr, bankcardNo, state string) error {
 
 	data, err := BankCardFindOne(g.Ex{"id": bid})
 	if err != nil {
@@ -253,7 +256,9 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo string) error {
 	ex := g.Ex{
 		"id": bid,
 	}
-	record := g.Record{}
+	record := g.Record{
+		"state": state,
+	}
 	if bankID != "" {
 		record["bank_id"] = bankID
 	}
@@ -301,7 +306,7 @@ func BankcardUpdateCache(username string) {
 	ex := g.Ex{
 		"prefix":   meta.Prefix,
 		"username": username,
-		"state":    "1",
+		//"state":    "1",
 	}
 
 	t := dialect.From("tbl_member_bankcard")

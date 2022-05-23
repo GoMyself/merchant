@@ -679,16 +679,16 @@ func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic
 func RecordDividend(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (DividendData, error) {
 
 	data := DividendData{}
-	query.Filter(elastic.NewTermQuery("hand_out_state", DividendSuccess))
+	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
 
 	if startTime != "" && endTime != "" {
 
-		startAt, err := helper.TimeToLocMs(startTime, loc)
+		startAt, err := helper.TimeToLoc(startTime, loc)
 		if err != nil {
 			return data, errors.New(helper.DateTimeErr)
 		}
 
-		endAt, err := helper.TimeToLocMs(endTime, loc)
+		endAt, err := helper.TimeToLoc(endTime, loc)
 		if err != nil {
 			return data, errors.New(helper.DateTimeErr)
 		}
@@ -697,12 +697,12 @@ func RecordDividend(page, pageSize int, startTime, endTime string, query *elasti
 			return data, errors.New(helper.QueryTimeRangeErr)
 		}
 
-		query.Filter(elastic.NewRangeQuery("apply_at").Gte(startAt).Lte(endAt))
+		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
 	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
 	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_member_dividend"), "apply_at", page, pageSize, dividendFields, query, nil)
+		esPrefixIndex("tbl_member_dividend"), "review_at", page, pageSize, dividendFields, query, nil)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}

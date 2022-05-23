@@ -180,7 +180,8 @@ type MemberLoginLog struct {
 	ParentUID  string `db:"parent_uid" json:"parent_uid"`   // 上级uid
 	ParentName string `db:"parent_name" json:"parent_name"` // 上级代理
 	CreateAt   int    `db:"create_at" json:"create_at"`
-	//Prefix   string `db:"prefix" json:"prefix"`
+	Prefix     string `db:"prefix" json:"prefix"`
+	Ts         string `db:"ts" json:"ts"`
 }
 
 type MemberRemarkLogData struct {

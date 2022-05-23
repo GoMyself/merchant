@@ -20,9 +20,10 @@ type bankcardInsertParam struct {
 //查询银行卡列表参数
 type bankcardUpdateParam struct {
 	BID        string `rule:"digit" name:"bid" msg:"bid error"`
-	bankcardNo string `rule:"none" name:"bankcard_no"`
+	BankcardNo string `rule:"none" name:"bankcard_no"`
 	BankAddr   string `rule:"none" name:"bank_addr"`
 	BankID     string `rule:"digit" name:"bank_id"`
+	State      string `rule:"digit" name:"state"`
 }
 
 type BankcardController struct{}
@@ -58,13 +59,14 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
+	fmt.Println("===========>")
 	username := string(ctx.PostArgs().Peek("username"))
 	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
 
-	if username == "" && bankcardNo == "" {
-		helper.Print(ctx, false, helper.ParamNull)
-		return
-	}
+	//if username == "" && bankcardNo == "" {
+	//	helper.Print(ctx, false, helper.ParamNull)
+	//	return
+	//}
 
 	if bankcardNo != "" {
 		if !validator.CheckStringDigit(bankcardNo) {
@@ -80,6 +82,7 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
+	fmt.Println("===========> CTL IN")
 	// 更新权限信息
 	data, err := model.BankcardList(username, bankcardNo)
 	if err != nil {
@@ -107,7 +110,7 @@ func (that *BankcardController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 更新权限信息
-	err = model.BankcardUpdate(param.BID, param.BankID, param.BankAddr, param.bankcardNo)
+	err = model.BankcardUpdate(param.BID, param.BankID, param.BankAddr, param.BankcardNo, param.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
