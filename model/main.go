@@ -78,7 +78,7 @@ var (
 	colsAdmin                = helper.EnumFields(Admin{})
 	colsMember               = helper.EnumFields(Member{})
 	colsMemberLevel          = helper.EnumFields(MemberLevel{})
-	colsBankcard             = helper.EnumFields(BankCard{})
+	colsBankcard             = helper.EnumFields(BankCard_t{})
 	colsPlatform             = helper.EnumFields(Platform{})
 	colsPlatJson             = helper.EnumFields(platJson{})
 	colsMemberBalance        = helper.EnumFields(MBBalance{})

@@ -38,7 +38,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data := model.BankCard{
+	data := model.BankCard_t{
 		ID:          helper.GenId(),
 		BankID:      param.BankID,
 		Username:    param.Username,
@@ -84,7 +84,7 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
 	fmt.Println("===========> CTL IN")
 	// 更新权限信息
-	data, err := model.BankcardList(username, bankcardNo)
+	data, err := model.BankcardList(1, 1, username, bankcardNo)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

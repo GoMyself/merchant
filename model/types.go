@@ -232,25 +232,6 @@ type MemberAdjust struct {
 	IsRisk        int     `db:"-" json:"is_risk"`
 }
 
-type BankcardData struct {
-	BankCard
-	RealName string `json:"realname" name:"realname"`
-	Bankcard string `json:"bankcard_no" name:"bankcard"`
-}
-
-type BankCard struct {
-	ID           string `db:"id" json:"id"`
-	UID          string `db:"uid" json:"uid"`
-	Username     string `db:"username" json:"username"`
-	BankAddress  string `db:"bank_address" json:"bank_address"`
-	BankID       string `db:"bank_id" json:"bank_id"`
-	BankBranch   string `db:"bank_branch_name" json:"bank_branch_name"`
-	State        int    `db:"state" json:"state"`
-	BankcardHash string `db:"bank_card_hash" json:"bank_card_hash"`
-	CreatedAt    uint64 `db:"created_at" json:"created_at"`
-	Prefix       string `db:"prefix" json:"prefix"`
-}
-
 type DividendData struct {
 	T   int64             `json:"t"`
 	D   []MemberDividend  `json:"d"`

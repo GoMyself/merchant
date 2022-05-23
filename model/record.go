@@ -945,9 +945,9 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 	return result, nil
 }
 
-func bankcardListDBByIDs(ids []string) (map[string]BankCard, error) {
+func bankcardListDBByIDs(ids []string) (map[string]BankCard_t, error) {
 
-	data := make(map[string]BankCard)
+	data := make(map[string]BankCard_t)
 	if len(ids) == 0 {
 		return nil, errors.New(helper.UsernameErr)
 	}
@@ -965,9 +965,9 @@ func bankcardListDBByIDs(ids []string) (map[string]BankCard, error) {
 	return data, nil
 }
 
-func BankcardsList(ex g.Ex) ([]BankCard, string, error) {
+func BankcardsList(ex g.Ex) ([]BankCard_t, string, error) {
 
-	var data []BankCard
+	var data []BankCard_t
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
