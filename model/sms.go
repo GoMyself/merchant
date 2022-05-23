@@ -122,6 +122,9 @@ func SMSChannelToCache() (err error) {
 	for _, v := range data {
 		if v.Txt == "1" {
 			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", v.Name+"|sms"+v.Alias).Result()
+
+			fmt.Println(v.Name + "|sms" + v.Alias)
+
 			if err != nil {
 				return err
 			}
@@ -129,6 +132,9 @@ func SMSChannelToCache() (err error) {
 
 		if v.Voice == "1" {
 			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":voice", v.Name+"|vms"+v.Alias).Result()
+
+			fmt.Println(v.Name + "|vms" + v.Alias)
+
 			if err != nil {
 				return err
 			}
