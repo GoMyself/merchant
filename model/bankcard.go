@@ -183,11 +183,24 @@ func BankcardList(page, pageSize uint, username, bankcard string) (BankcardData,
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
 
-	fmt.Println("===========> MODEL IN")
 	fmt.Println(ex)
 
 	t := dialect.From("tbl_member_bankcard")
-	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
