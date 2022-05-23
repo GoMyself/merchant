@@ -109,7 +109,7 @@ func SMSChannelToCache() (err error) {
 	fmt.Printf("====== %s\n", keyHead)
 
 	ex := g.Or(g.Ex{"txt": "1"}, g.Ex{"voice": "1"})
-	query, _, _ := dialect.From("tbl_sms").Select("alias", "txt", "voice").Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_sms").Select("name", "alias", "txt", "voice").Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&data, query)
 
