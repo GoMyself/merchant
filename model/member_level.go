@@ -52,7 +52,7 @@ func MemberLevelToCache(vip []MemberLevel) {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
-	key := fmt.Sprintf("%s:vip", meta.Prefix)
+	key := fmt.Sprintf("%s:vip:config", meta.Prefix)
 	pipe.Unlink(ctx, key)
 	pipe.Set(ctx, key, string(res), 100*time.Hour)
 	pipe.Persist(ctx, key)
