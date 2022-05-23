@@ -119,8 +119,19 @@ func SMSChannelToCache() (err error) {
 
 	fmt.Printf("====== %v\n", data)
 
+	_, err = meta.MerchantRedis.Del(ctx, keyHead+":text").Result()
+	if err != nil {
+		return err
+	}
+
+	_, err = meta.MerchantRedis.Del(ctx, keyHead+":voice").Result()
+	if err != nil {
+		return err
+	}
+
 	for _, v := range data {
 		if v.Txt == "1" {
+
 			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", v.Name+"|sms"+v.Alias).Result()
 
 			fmt.Println(v.Name + "|sms" + v.Alias)
