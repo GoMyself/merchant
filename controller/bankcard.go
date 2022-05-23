@@ -81,6 +81,7 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
+	fmt.Println("===========> CTL IN")
 	// 更新权限信息
 	data, err := model.BankcardList(username, bankcardNo)
 	if err != nil {
