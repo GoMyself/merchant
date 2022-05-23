@@ -226,33 +226,7 @@ func BankcardList(page, pageSize uint, username, bankcard string) (BankcardData,
 		data.D[i].Bankcard = encRes[v.UID]["bankcard"+v.ID]
 	}
 
-	/*
-		encFields := []string{"realname"}
-
-		for _, v := range data.D {
-			uid = v.UID
-			ids = append(ids, v.ID)
-			encFields = append(encFields, "bankcard"+v.ID)
-		}
-
-		encRes, err := grpc_t.Decrypt(uid, true, encFields)
-		if err != nil {
-			fmt.Println("grpc_t.Decrypt err = ", err)
-			return data, errors.New(helper.GetRPCErr)
-		}
-
-		for _, v := range cardList {
-
-			key := "bankcard" + v.ID
-			val := BankcardData{
-				BankCard: v,
-				RealName: encRes["realname"],
-				Bankcard: encRes[key],
-			}
-
-			data = append(data, val)
-		}
-	*/
+	data.S = pageSize
 	return data, nil
 }
 
