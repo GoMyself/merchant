@@ -8,6 +8,7 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"merchant2/contrib/helper"
+	"strings"
 	"time"
 )
 
@@ -506,8 +507,16 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 
 	terms := make([]elastic.Query, 0)
 	terms = append(terms, elastic.NewTermQuery("name", username))
+	shouldQuery := elastic.NewBoolQuery()
 	if len(pid) > 0 {
-		terms = append(terms, elastic.NewTermQuery("api_type", pid))
+		pids := strings.Split(pid, ",")
+		for _, v := range pids {
+
+			//查询域名,采用模糊匹配
+			shouldQuery.Should(elastic.NewTermQuery("api_type", v))
+		}
+
+		boolQuery.Must(shouldQuery)
 	}
 	terms = append(terms, elastic.NewTermQuery("flag", 1))
 
