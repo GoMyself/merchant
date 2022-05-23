@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"merchant2/contrib/helper"
 	"strconv"
+	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -46,15 +47,13 @@ func MemberLevelToMinio() {
 
 func MemberLevelToCache(vip []MemberLevel) {
 
+	res, _ := helper.JsonMarshal(vip)
+
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
-	pipe.Unlink(ctx, "vip")
-	for _, v := range vip {
-		mp := vipToMap(v)
-		value, _ := helper.JsonMarshal(mp)
-		pipe.HSet(ctx, "vip", v.Level, value)
-	}
 
+	pipe.Unlink(ctx, "vip")
+	pipe.Set(ctx, "vip", string(res), 100*time.Hour)
 	pipe.Persist(ctx, "vip")
 	_, _ = pipe.Exec(ctx)
 
