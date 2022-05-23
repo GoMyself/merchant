@@ -13,6 +13,7 @@ type Sms_t struct {
 	Phone    string `json:"phone" db:"phone"`
 	Code     string `json:"code" db:"code"`
 	IP       string `json:"ip" db:"ip"`
+	Ty       string `json:"ty" db:"ty"`
 	CreateAt string `json:"create_at" db:"create_at"`
 	Flags    string `json:"flags" db:"flags"`
 	Source   string `json:"source" db:"source"`
@@ -48,8 +49,8 @@ func SmsList(page, pageSize uint, username, phone string) (SmsData_t, error) {
 		}
 
 		if err != nil {
-			fmt.Println("SmsList COUNT err = ", err.Error())
-			fmt.Println("SmsList COUNT query = ", query)
+			//fmt.Println("SmsList COUNT err = ", err.Error())
+			//fmt.Println("SmsList COUNT query = ", query)
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
 		}
@@ -61,13 +62,13 @@ func SmsList(page, pageSize uint, username, phone string) (SmsData_t, error) {
 	//.Order(g.C("ts").Desc())
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "username", "ip", "code", "flags", "source", "phone", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "ty", "username", "ip", "code", "flags", "source", "phone", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("SmsList query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
-		fmt.Println("SmsList err = ", err.Error())
-		fmt.Println("SmsList query = ", query)
+		//fmt.Println("SmsList err = ", err.Error())
+		//fmt.Println("SmsList query = ", query)
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
 		return data, pushLog(body, helper.DBErr)
 	}

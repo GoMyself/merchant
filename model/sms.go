@@ -2,14 +2,15 @@ package model
 
 import (
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
 	"merchant2/contrib/helper"
 	"time"
+
+	g "github.com/doug-martin/goqu/v9"
 )
 
 func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 
-	data := make([]SMSChannel, 0)
+	data := []SMSChannel{}
 
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_sms")
