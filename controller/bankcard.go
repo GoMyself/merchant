@@ -38,7 +38,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data := model.BankCard{
+	data := model.BankCard_t{
 		ID:          helper.GenId(),
 		BankID:      param.BankID,
 		Username:    param.Username,
@@ -59,9 +59,11 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 
-	fmt.Println("===========>")
 	username := string(ctx.PostArgs().Peek("username"))
 	bankcardNo := string(ctx.PostArgs().Peek("bank_card"))
+
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 
 	//if username == "" && bankcardNo == "" {
 	//	helper.Print(ctx, false, helper.ParamNull)
@@ -82,9 +84,17 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	fmt.Println("===========> CTL IN")
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 50 {
+		pageSize = 50
+	}
+
+	//fmt.Println(page, pageSize)
+
 	// 更新权限信息
-	data, err := model.BankcardList(username, bankcardNo)
+	data, err := model.BankcardList(uint(page), uint(pageSize), username, bankcardNo)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

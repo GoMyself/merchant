@@ -11,7 +11,28 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func BankcardInsert(realName, bankcardNo string, data BankCard) error {
+type BankcardData struct {
+	D []BankCard_t `json:"d"`
+	T int64        `json:"t"`
+	S uint         `json:"s"`
+}
+
+type BankCard_t struct {
+	ID           string `db:"id" json:"id"`
+	UID          string `db:"uid" json:"uid"`
+	RealName     string `json:"realname"`
+	Bankcard     string `json:"bankcard_no"`
+	Username     string `db:"username" json:"username"`
+	BankAddress  string `db:"bank_address" json:"bank_address"`
+	BankID       string `db:"bank_id" json:"bank_id"`
+	BankBranch   string `db:"bank_branch_name" json:"bank_branch_name"`
+	State        int    `db:"state" json:"state"`
+	BankcardHash string `db:"bank_card_hash" json:"bank_card_hash"`
+	CreatedAt    uint64 `db:"created_at" json:"created_at"`
+	Prefix       string `db:"prefix" json:"prefix"`
+}
+
+func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	encRes := [][]string{}
 
@@ -117,9 +138,10 @@ func BankcardInsert(realName, bankcardNo string, data BankCard) error {
 	return nil
 }
 
-func BankCardFindOne(ex g.Ex) (BankCard, error) {
+func BankCardFindOne(ex g.Ex) (BankCard_t, error) {
 
-	data := BankCard{}
+	data := BankCard_t{}
+
 	ex["prefix"] = meta.Prefix
 
 	t := dialect.From("tbl_member_bankcard")
@@ -135,12 +157,11 @@ func BankCardFindOne(ex g.Ex) (BankCard, error) {
 	return data, nil
 }
 
-func BankcardList(username, bankcard string) ([]BankcardData, error) {
+func BankcardList(page, pageSize uint, username, bankcard string) (BankcardData, error) {
 
 	var (
-		uid  string
 		ids  []string
-		data []BankcardData
+		data BankcardData
 	)
 
 	// h后台查询查询，必须带username或bankcard参数
@@ -148,13 +169,13 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		"prefix": meta.Prefix,
 	}
 	if username != "" {
-		mb, err := MemberFindOne(username)
-		// 判断会员是否存在
-		if err != nil {
-			return data, errors.New(helper.UserNotExist)
-		}
-
-		uid = mb.UID
+		/*
+			mb, err := MemberFindOne(username)
+			// 判断会员是否存在
+			if err != nil {
+				return data, errors.New(helper.UserNotExist)
+			}
+		*/
 		ex["username"] = username
 	}
 	// 银行卡号参数可选
@@ -162,48 +183,50 @@ func BankcardList(username, bankcard string) ([]BankcardData, error) {
 		ex["bank_card_hash"] = fmt.Sprintf("%d", MurmurHash(bankcard, 0))
 	}
 
-	fmt.Println("===========> MODEL IN")
 	fmt.Println(ex)
-	var cardList []BankCard
+
 	t := dialect.From("tbl_member_bankcard")
-	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err := meta.MerchantDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := pageSize * (page - 1)
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Select(&cardList, query)
+	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 
-	length := len(cardList)
-	if length == 0 {
-		return data, nil
-	}
-
 	encFields := []string{"realname"}
 
-	for _, v := range cardList {
-		uid = v.UID
-		ids = append(ids, v.ID)
+	for _, v := range data.D {
+		ids = append(ids, v.UID)
 		encFields = append(encFields, "bankcard"+v.ID)
 	}
 
-	encRes, err := grpc_t.Decrypt(uid, true, encFields)
+	encRes, err := grpc_t.DecryptAll(ids, true, encFields)
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return data, errors.New(helper.GetRPCErr)
 	}
 
-	for _, v := range cardList {
+	for i, v := range data.D {
 
-		key := "bankcard" + v.ID
-		val := BankcardData{
-			BankCard: v,
-			RealName: encRes["realname"],
-			Bankcard: encRes[key],
-		}
-
-		data = append(data, val)
+		data.D[i].RealName = encRes[v.UID]["realname"]
+		data.D[i].Bankcard = encRes[v.UID]["bankcard"+v.ID]
 	}
 
+	data.S = pageSize
 	return data, nil
 }
 
@@ -301,7 +324,7 @@ func BankcardUpdate(bid, bankID, bankAddr, bankcardNo, state string) error {
 
 func BankcardUpdateCache(username string) {
 
-	var data []BankCard
+	var data []BankCard_t
 
 	ex := g.Ex{
 		"prefix":   meta.Prefix,

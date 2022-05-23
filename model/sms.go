@@ -2,14 +2,15 @@ package model
 
 import (
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
 	"merchant2/contrib/helper"
 	"time"
+
+	g "github.com/doug-martin/goqu/v9"
 )
 
 func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 
-	data := make([]SMSChannel, 0)
+	data := []SMSChannel{}
 
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_sms")
@@ -108,7 +109,7 @@ func SMSChannelToCache() (err error) {
 	fmt.Printf("====== %s\n", keyHead)
 
 	ex := g.Or(g.Ex{"txt": "1"}, g.Ex{"voice": "1"})
-	query, _, _ := dialect.From("tbl_sms").Select("alias", "txt", "voice").Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_sms").Select("name", "alias", "txt", "voice").Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&data, query)
 
@@ -118,16 +119,33 @@ func SMSChannelToCache() (err error) {
 
 	fmt.Printf("====== %v\n", data)
 
+	_, err = meta.MerchantRedis.Del(ctx, keyHead+":text").Result()
+	if err != nil {
+		return err
+	}
+
+	_, err = meta.MerchantRedis.Del(ctx, keyHead+":voice").Result()
+	if err != nil {
+		return err
+	}
+
 	for _, v := range data {
 		if v.Txt == "1" {
-			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", "sms"+v.Alias).Result()
+
+			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", v.Name+"|sms"+v.Alias).Result()
+
+			fmt.Println(v.Name + "|sms" + v.Alias)
+
 			if err != nil {
 				return err
 			}
 		}
 
 		if v.Voice == "1" {
-			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":voice", "vms"+v.Alias).Result()
+			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":voice", v.Name+"|vms"+v.Alias).Result()
+
+			fmt.Println(v.Name + "|vms" + v.Alias)
+
 			if err != nil {
 				return err
 			}
