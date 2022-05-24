@@ -166,7 +166,7 @@ func MessageUpdate(id, sendAt string, record g.Record) error {
 }
 
 //MessageReview  站内信审核
-func MessageReview(id string, state int, admin map[string]string) error {
+func MessageReview(id string, state, flag int, admin map[string]string) error {
 
 	ex := g.Ex{
 		"id":     id,
@@ -223,7 +223,11 @@ func MessageReview(id string, state int, admin map[string]string) error {
 
 	// 审核通过
 	if state == 2 {
-		sDelay := data.SendAt - ns
+		sDelay := int64(0)
+		if flag == 1 {
+			sDelay = data.SendAt - ns
+		}
+
 		param := map[string]interface{}{
 			"flag":      "1",                            //发送站内信
 			"msg_id":    data.ID,                        //id

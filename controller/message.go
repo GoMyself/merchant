@@ -251,8 +251,18 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	state := ctx.PostArgs().GetUintOrZero("state")
+	flag := ctx.PostArgs().GetUintOrZero("flag") // 1 定时发送 2立即发送
 	if !validator.CtypeDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	flags := map[int]bool{
+		1: true,
+		2: true,
+	}
+	if _, ok := flags[flag]; !ok {
+		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 
@@ -271,7 +281,7 @@ func (that *MessageController) Review(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.MessageReview(id, state, admin)
+	err = model.MessageReview(id, state, flag, admin)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
