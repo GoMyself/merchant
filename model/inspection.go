@@ -511,9 +511,10 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	if len(pid) > 0 {
 		pids := strings.Split(pid, ",")
 		for _, v := range pids {
-
-			//查询域名,采用模糊匹配
-			shouldQuery.Should(elastic.NewTermQuery("api_type", v))
+			if len(v) <= 20 {
+				//查询域名,采用模糊匹配
+				shouldQuery.Should(elastic.NewTermQuery("api_type", v))
+			}
 		}
 
 		boolQuery.Must(shouldQuery)
