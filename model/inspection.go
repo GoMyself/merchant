@@ -150,7 +150,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	//查活动记录
 	recordList, err := promoRecrodList(username)
-	recrodMap := map[string]PromoRecord{}
+	promoMap := map[string]PromoData{}
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -158,12 +158,15 @@ func InspectionList(username string) (Inspection, Member, error) {
 	var pids []string
 	for _, v := range recordList {
 		pids = append(pids, v.Pid)
-		recrodMap[v.Pid] = v
 	}
 	//参加的活动
 	promolist, err := promoDataList(pids)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
+	}
+
+	for _, v := range promolist {
+		promoMap[v.Id] = v
 	}
 	//上次提现至今的流水
 	totalVaild, err := EsPlatValidBet(username, "", cutTime, now)
@@ -246,8 +249,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 	i++
 
 	//查活动对应场馆的流水总和
-	for _, v := range promolist {
-		validBetAmount, err := EsPlatValidBet(username, v.Platforms, v.StartAt, now)
+	for _, v := range recordList {
+		validBetAmount, err := EsPlatValidBet(username, promoMap[v.Pid].Platforms, promoMap[v.Pid].StartAt, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
@@ -258,18 +261,18 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Level:            fmt.Sprintf(`%d`, mb.Level),
 			TopName:          mb.TopName,
 			Title:            v.Title,
-			Amount:           fmt.Sprintf(`%f`, recrodMap[v.Id].Amount),
-			RewardAmount:     fmt.Sprintf(`%f`, recrodMap[v.Id].Bonus),
-			ReviewName:       v.UpdatedName,
-			FlowMultiple:     fmt.Sprintf(`%d`, recrodMap[v.Id].Multiple),
-			FlowAmount:       fmt.Sprintf(`%f`, recrodMap[v.Id].Flow),
+			Amount:           fmt.Sprintf(`%f`, v.Amount),
+			RewardAmount:     fmt.Sprintf(`%f`, v.Bonus),
+			ReviewName:       promoMap[v.Pid].UpdatedName,
+			FlowMultiple:     fmt.Sprintf(`%d`, v.Multiple),
+			FlowAmount:       fmt.Sprintf(`%f`, v.Flow),
 			FinishedAmount:   validBetAmount.StringFixed(4),
-			UnfinishedAmount: validBetAmount.Sub(decimal.NewFromFloat(recrodMap[v.Id].Flow)).StringFixed(4),
-			CreatedAt:        v.CreatedAt,
+			UnfinishedAmount: validBetAmount.Sub(decimal.NewFromFloat(v.Flow)).StringFixed(4),
+			CreatedAt:        promoMap[v.Pid].CreatedAt,
 			Ty:               "3",
 			Pid:              v.Id,
-			Platforms:        v.Platforms,
-			RecordId:         recrodMap[v.Id].Id,
+			Platforms:        promoMap[v.Pid].Platforms,
+			RecordId:         v.Id,
 		})
 		i++
 	}

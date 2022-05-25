@@ -81,6 +81,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 		"bank_branch_name": data.BankAddress,
 		"bank_card_hash":   fmt.Sprintf("%d", MurmurHash(bankcardNo, 0)),
 		"created_at":       fmt.Sprintf("%d", data.CreatedAt),
+		"state":            data.State,
 	}
 
 	encRes = append(encRes, []string{"bankcard" + data.ID, bankcardNo})
