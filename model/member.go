@@ -1287,6 +1287,60 @@ func MemberFull(id string, field []string) (map[string]string, error) {
 	return recs, nil
 }
 
+func MemberBalanceZero(username, adminID, adminName string) error {
+
+	mb, err := memberInfoCache(username)
+	if err != nil {
+		return err
+	}
+
+	balance := decimal.NewFromFloat(mb.Balance)
+	// 余额大于0，不清零
+	if balance.Cmp(decimal.Zero) > 0 {
+		return nil
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	record := g.Record{
+		"balance": "0.00",
+	}
+	query, _, _ := dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.Uid}).ToSQL()
+	fmt.Println(query)
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	id := helper.GenId()
+	trans := MemberTransaction{
+		AfterAmount:  "0.00",
+		Amount:       balance.Abs().String(),
+		BeforeAmount: balance.String(),
+		BillNo:       id,
+		CreatedAt:    time.Now().UnixMilli(),
+		ID:           id,
+		CashType:     DividendPromo,
+		UID:          mb.Uid,
+		Username:     mb.Username,
+		Prefix:       meta.Prefix,
+	}
+	query, _, _ = dialect.Insert("tbl_balance_transaction").Rows(trans).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	_ = tx.Commit()
+
+	return nil
+}
+
 //根据 uid数组，redis批量获取用户余额
 func MemberBalance(username string) (MBBalance, error) {
 
