@@ -1138,14 +1138,14 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 
 	if param.Username != "" {
 		if !validator.CheckUName(param.Username, 5, 14) {
-			helper.Print(ctx, false, helper.ParamErr)
+			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 	}
 
 	if param.ParentName != "" {
 		if !validator.CheckUName(param.ParentName, 5, 14) {
-			helper.Print(ctx, false, helper.ParamErr)
+			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 	}
