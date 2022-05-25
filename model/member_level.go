@@ -51,6 +51,19 @@ func MemberLevelToCache(vip []MemberLevel) {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
+	timesKey := fmt.Sprintf("%s:vip:withdraw:maxtimes", meta.Prefix)
+	amountKey := fmt.Sprintf("%s:vip:withdraw:maxamount", meta.Prefix)
+	pipe.Unlink(ctx, timesKey)
+	pipe.Unlink(ctx, amountKey)
+	for _, v := range vip {
+		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawCount)
+		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawMax)
+	}
+	pipe.Set(ctx, timesKey, string(res), 100*time.Hour)
+	pipe.Persist(ctx, timesKey)
+	pipe.Set(ctx, amountKey, string(res), 100*time.Hour)
+	pipe.Persist(ctx, amountKey)
+
 	key := fmt.Sprintf("%s:vip:config", meta.Prefix)
 	pipe.Unlink(ctx, key)
 	pipe.Set(ctx, key, string(res), 100*time.Hour)
