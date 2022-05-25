@@ -263,6 +263,20 @@ const (
 	TransactionEVOPromote            = 622 //推广(EVO)
 	TransactionEVOJackpot            = 623 //头奖(EVO)
 	TransactionCommissionDraw        = 624 //佣金提取
+	TransactionSettledBetCancel      = 625 //投注取消(已结算注单)
+	TransactionCancelledBetRollback  = 626 //已取消注单回滚
+	TransactionSBOReturnStake        = 627 //SBO ReturnStake
+	TransactionBetNSettleWin         = 628 //电子投付赢
+	TransactionBetNSettleLose        = 629 //电子投付输
+	TransactionAdjustPlus            = 630 //场馆调整加
+	TransactionAdjustDiv             = 631 //场馆调整减
+	TransactionCQ9TakeAll            = 632 //CQ9捕鱼转入
+	TransactionCQ9Refund             = 633 //CQ9游戏转出
+	TransactionCQ9RollIn             = 634 //CQ9捕鱼转出
+	TransactionCQ9RollOut            = 635 //CQ9捕鱼转入
+	TransactionBetNSettleWinCancel   = 636 //投付赢取消
+	TransactionBetNSettleLoseCancel  = 637 //投付赢取消
+	TransactionSetBalanceZero        = 638 //中心钱包余额冲正
 )
 
 const (

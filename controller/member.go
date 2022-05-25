@@ -901,6 +901,22 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, data[field])
 }
 
+func (that *MemberController) SetBalanceZero(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.QueryArgs().Peek("username"))
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+	}
+
+	err = model.MemberBalanceZero(username, admin["id"], admin["name"])
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+	}
+
+	helper.Print(ctx, true, "success")
+}
+
 // UpdateTopMember 修改密码以及返水比例
 func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 

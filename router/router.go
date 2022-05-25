@@ -100,8 +100,6 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	noticeCtl := new(controller.NoticeController)
 	//转账，游戏，账变记录
 	recordCtl := new(controller.RecordController)
-	// 佣金
-	commissionCtl := new(controller.CommissionController)
 	//内容管理
 	msgCtl := new(controller.MessageController)
 	//验证码管理
@@ -190,6 +188,8 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/member/full", memberCtl.Full)
 	// 跳线转代
 	post("/merchant/member/transfer", memberTransferCtl.Transfer)
+	// 钱包余额冲正
+	get("/merchant/member/clear", memberCtl.SetBalanceZero)
 
 	// 代理管理-代理列表
 	post("/merchant/agency/list", memberCtl.Agency)
@@ -332,6 +332,7 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	post("/merchant/sms/update", smsChannelCtl.Update)
 	// 运营管理-短信通道-更新短信通道状态
 	post("/merchant/sms/update/state", smsChannelCtl.UpdateState)
+	get("/merchant/member/sms/list", smsCtl.List)
 	// 运营管理-短信通道-删除
 	//get("/merchant/sms/delete", smsChannelCtl.Delete)
 
@@ -342,8 +343,6 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	get("/merchant/record/transaction", recordCtl.Transaction)
 	// 记录管理-平台转帐
 	post("/merchant/record/transfer", recordCtl.Transfer)
-
-	get("/merchant/member/sms/list", smsCtl.List)
 	// 会员管理-会员列表-有效投注查询
 	// 会员管理-投注管理
 	// 会员管理-投注管理-会员游戏记录详情列表
@@ -351,24 +350,6 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	// 会员列表->输赢信息->场馆合并
 	// 会员列表->输赢信息->日期合并
 	post("/merchant/record/game", recordCtl.RecordGame)
-
-	//总代佣金列表
-	get("/merchant/commission/list", commissionCtl.TopList)
-	// 发放总代佣金
-	post("/merchant/commission/ration", commissionCtl.Ration)
-	// 代理管理-佣金记录-列表
-	post("/merchant/commission/record/list", commissionCtl.RecordList)
-	// 代理管理-佣金记录-审核
-	post("/merchant/commission/record/review", commissionCtl.RecordReview)
-
-	// 添加佣金方案
-	post("/merchant/commission/plan/insert", commissionCtl.PlanInsert)
-	// 更新佣金方案
-	post("/merchant/commission/plan/update", commissionCtl.PlanUpdate)
-	// 佣金方案列表
-	post("/merchant/commission/plan/list", commissionCtl.PlanList)
-	// 佣金方案详情
-	get("/merchant/commission/plan/detail", commissionCtl.PlanDetail)
 
 	//运营管理-站内消息-添加
 	post("/merchant/message/insert", msgCtl.Insert)
