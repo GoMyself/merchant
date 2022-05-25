@@ -178,75 +178,83 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装红利的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "红利/礼金",
-		Amount:           "0",
-		RewardAmount:     dividendAmount.StringFixed(4),
-		ReviewName:       "系统自动发送",
-		FlowMultiple:     "1",
-		FlowAmount:       dividendAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "2",
-		Pid:              "0",
-	})
-	i++
+	if dividendAmount.Cmp(decimal.Zero) == 1 {
+		//组装红利的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "红利/礼金",
+			Amount:           "0.0000",
+			RewardAmount:     dividendAmount.StringFixed(4),
+			ReviewName:       "系统自动发送",
+			FlowMultiple:     "1",
+			FlowAmount:       dividendAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "2",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查调整
 	adjustAmount, err := EsAdjust(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装vip礼金的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "调整（分数调整和输赢调整）",
-		Amount:           "0",
-		RewardAmount:     adjustAmount.StringFixed(4),
-		ReviewName:       "",
-		FlowMultiple:     "1",
-		FlowAmount:       adjustAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "4",
-		Pid:              "0",
-	})
-	i++
+	if adjustAmount.Cmp(decimal.Zero) == 1 {
+
+		//组装vip礼金的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "调整（分数调整和输赢调整）",
+			Amount:           "0.0000",
+			RewardAmount:     adjustAmount.StringFixed(4),
+			ReviewName:       "",
+			FlowMultiple:     "1",
+			FlowAmount:       adjustAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "4",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查存款
 	depostAmount, err := EsDepost(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装存款的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "存款",
-		Amount:           depostAmount.StringFixed(4),
-		RewardAmount:     "0",
-		ReviewName:       "无",
-		FlowMultiple:     "1",
-		FlowAmount:       depostAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "1",
-		Pid:              "0",
-	})
-	i++
+
+	if depostAmount.Cmp(decimal.Zero) == 1 {
+		//组装存款的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "存款",
+			Amount:           depostAmount.StringFixed(4),
+			RewardAmount:     "0.0000",
+			ReviewName:       "无",
+			FlowMultiple:     "1",
+			FlowAmount:       depostAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "1",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查活动对应场馆的流水总和
 	for _, v := range recordList {
@@ -270,13 +278,13 @@ func InspectionList(username string) (Inspection, Member, error) {
 			UnfinishedAmount: decimal.NewFromFloat(v.Flow).Sub(validBetAmount).StringFixed(4),
 			CreatedAt:        v.CreatedAt,
 			Ty:               "3",
-			Pid:              v.Id,
+			Pid:              v.Pid,
 			Platforms:        promoMap[v.Pid].Platforms,
 			RecordId:         v.Id,
 		})
 		i++
 	}
-	data.T = int64(i)
+	data.T = int64(i) - 1
 	return data, mb, nil
 }
 
@@ -353,9 +361,13 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 				"id": v.RecordId,
 			}
 			record := g.Record{
-				"state": inspectState,
+				"inspect_at":    time.Now().Unix(),
+				"inspect_uid":   admin["id"],
+				"inspect_name":  admin["name"],
+				"inspect_state": inspectState,
 			}
 			query, _, _ := dialect.Update("tbl_promo_record").Set(record).Where(ex).ToSQL()
+			fmt.Println(query)
 			_, err = tx.Exec(query)
 			if err != nil {
 				_ = tx.Rollback()
@@ -372,24 +384,23 @@ func InspectionHistory(ex g.Ex, page, pageSize int) (PagePromoInspection, error)
 
 	var data PagePromoInspection
 	t := dialect.From("tbl_promo_inspection")
-	if page == 1 {
-		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
-		fmt.Println("总代佣金:sql:", query)
-		err := meta.MerchantDB.Get(&data.T, query)
-		if err != nil {
-			return data, pushLog(err, helper.DBErr)
-		}
 
-		if data.T == 0 {
-			return data, nil
-		}
+	query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+	fmt.Println("稽查历史:sql:", query)
+	err := meta.MerchantDB.Get(&data.T, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	if data.T == 0 {
+		return data, nil
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(colsPromoInspection...).Where(ex).
+	query, _, _ = t.Select(colsPromoInspection...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("review_at").Desc()).ToSQL()
 	fmt.Println("稽查历史:sql:", query)
-	err := meta.MerchantDB.Select(&data.D, query)
+	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
