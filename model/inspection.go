@@ -178,75 +178,83 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装红利的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "红利/礼金",
-		Amount:           "0.0000",
-		RewardAmount:     dividendAmount.StringFixed(4),
-		ReviewName:       "系统自动发送",
-		FlowMultiple:     "1",
-		FlowAmount:       dividendAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "2",
-		Pid:              "0",
-	})
-	i++
+	if dividendAmount.Cmp(decimal.Zero) == 1 {
+		//组装红利的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "红利/礼金",
+			Amount:           "0.0000",
+			RewardAmount:     dividendAmount.StringFixed(4),
+			ReviewName:       "系统自动发送",
+			FlowMultiple:     "1",
+			FlowAmount:       dividendAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "2",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查调整
 	adjustAmount, err := EsAdjust(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装vip礼金的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "调整（分数调整和输赢调整）",
-		Amount:           "0.0000",
-		RewardAmount:     adjustAmount.StringFixed(4),
-		ReviewName:       "",
-		FlowMultiple:     "1",
-		FlowAmount:       adjustAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "4",
-		Pid:              "0",
-	})
-	i++
+	if adjustAmount.Cmp(decimal.Zero) == 1 {
+
+		//组装vip礼金的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "调整（分数调整和输赢调整）",
+			Amount:           "0.0000",
+			RewardAmount:     adjustAmount.StringFixed(4),
+			ReviewName:       "",
+			FlowMultiple:     "1",
+			FlowAmount:       adjustAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "4",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查存款
 	depostAmount, err := EsDepost(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	//组装存款的流水稽查
-	data.D = append(data.D, InspectionData{
-		No:               fmt.Sprintf(`%d`, i),
-		Username:         username,
-		Level:            fmt.Sprintf(`%d`, mb.Level),
-		TopName:          mb.TopName,
-		Title:            "存款",
-		Amount:           depostAmount.StringFixed(4),
-		RewardAmount:     "0.0000",
-		ReviewName:       "无",
-		FlowMultiple:     "1",
-		FlowAmount:       depostAmount.StringFixed(4),
-		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
-		CreatedAt:        0,
-		Ty:               "1",
-		Pid:              "0",
-	})
-	i++
+
+	if depostAmount.Cmp(decimal.Zero) == 1 {
+		//组装存款的流水稽查
+		data.D = append(data.D, InspectionData{
+			No:               fmt.Sprintf(`%d`, i),
+			Username:         username,
+			Level:            fmt.Sprintf(`%d`, mb.Level),
+			TopName:          mb.TopName,
+			Title:            "存款",
+			Amount:           depostAmount.StringFixed(4),
+			RewardAmount:     "0.0000",
+			ReviewName:       "无",
+			FlowMultiple:     "1",
+			FlowAmount:       depostAmount.StringFixed(4),
+			FinishedAmount:   totalVaild.StringFixed(4),
+			UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
+			CreatedAt:        0,
+			Ty:               "1",
+			Pid:              "0",
+		})
+		i++
+	}
 
 	//查活动对应场馆的流水总和
 	for _, v := range recordList {
@@ -276,7 +284,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		})
 		i++
 	}
-	data.T = int64(i)
+	data.T = int64(i) - 1
 	return data, mb, nil
 }
 
