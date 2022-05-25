@@ -135,7 +135,7 @@ func noticeRefreshToCache() error {
 		"state":  2, //开启的
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("tbl_notices").Select(colsNotice...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_notices").Select(colsNotice...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	err := meta.MerchantDB.Select(&notices, query)
 	if err != nil {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)

@@ -5,6 +5,7 @@ import (
 	"merchant2/contrib/helper"
 	"merchant2/contrib/validator"
 	"merchant2/model"
+	"strconv"
 
 	"github.com/valyala/fasthttp"
 )
@@ -15,6 +16,7 @@ type bankcardInsertParam struct {
 	bankcardNo  string `rule:"digitString" name:"bankcard_no" min:"6" max:"20" msg:"bankcard no error"`
 	BankAddress string `rule:"none" name:"bank_addr"`
 	Realname    string `rule:"none" name:"realname"`
+	State       string `rule:"digit" name:"state"`
 }
 
 //查询银行卡列表参数
@@ -38,6 +40,12 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	state, err := strconv.Atoi(param.State)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
 	data := model.BankCard_t{
 		ID:          helper.GenId(),
 		BankID:      param.BankID,
@@ -45,6 +53,7 @@ func (that *BankcardController) Insert(ctx *fasthttp.RequestCtx) {
 		BankBranch:  param.BankAddress,
 		BankAddress: param.BankAddress,
 		CreatedAt:   uint64(ctx.Time().Unix()),
+		State:       state,
 	}
 
 	// 更新权限信息

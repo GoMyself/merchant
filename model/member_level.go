@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"merchant2/contrib/helper"
-	"strconv"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -63,18 +62,18 @@ func MemberLevelToCache(vip []MemberLevel) {
 
 func VIPUpdate(vid string, record g.Record) error {
 
-	vip, err := MemberLevelFindOne(g.Ex{"id": vid})
-	if err != nil {
-		return err
-	}
+	//vip, err := MemberLevelFindOne(g.Ex{"id": vid})
+	//if err != nil {
+	//	return err
+	//}
 
 	query, _, _ := dialect.Update("tbl_member_level").Set(record).Where(g.Ex{"id": vid}).ToSQL()
-	_, err = meta.MerchantDB.Exec(query)
+	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	_ = vipRefreshCache(vip.Level)
+	//_ = vipRefreshCache(vip.Level)
 	MemberLevelToMinio()
 
 	return nil
@@ -89,7 +88,7 @@ func VIPInsert(data MemberLevel) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	_ = vipRefreshCache(data.Level)
+	//_ = vipRefreshCache(data.Level)
 	MemberLevelToMinio()
 
 	return nil
@@ -148,49 +147,49 @@ func VipRecord(page, pageSize uint, startTime, endTime string, ex g.Ex) (MemberL
 }
 
 // 刷新vip redis缓存
-func vipRefreshCache(level int) error {
+//func vipRefreshCache(level int) error {
+//
+//	// 因为没有删除的操作，所以这边不处理error=sql.ErrNoRows情况
+//	vip, err := MemberLevelFindOne(g.Ex{"level": level})
+//	if err != nil {
+//		return err
+//	}
+//
+//	pipe := meta.MerchantRedis.TxPipeline()
+//	defer pipe.Close()
+//
+//	mp := vipToMap(vip)
+//	value, _ := helper.JsonMarshal(mp)
+//
+//	pipe.HDel(ctx, "vip", fmt.Sprintf("%d", vip.Level))
+//	pipe.HSet(ctx, "vip", vip.Level, value)
+//	pipe.Persist(ctx, "vip")
+//
+//	_, err = pipe.Exec(ctx)
+//	if err != nil {
+//		return pushLog(err, helper.RedisErr)
+//	}
+//
+//	return nil
+//}
 
-	// 因为没有删除的操作，所以这边不处理error=sql.ErrNoRows情况
-	vip, err := MemberLevelFindOne(g.Ex{"level": level})
-	if err != nil {
-		return err
-	}
-
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
-
-	mp := vipToMap(vip)
-	value, _ := helper.JsonMarshal(mp)
-
-	pipe.HDel(ctx, "vip", fmt.Sprintf("%d", vip.Level))
-	pipe.HSet(ctx, "vip", vip.Level, value)
-	pipe.Persist(ctx, "vip")
-
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
-	}
-
-	return nil
-}
-
-func vipToMap(vip MemberLevel) map[string]string {
-
-	return map[string]string{
-		"id":                 vip.ID,
-		"level":              fmt.Sprintf("%d", vip.Level),
-		"level_name":         vip.LevelName,
-		"recharge_num":       fmt.Sprintf("%d", vip.RechargeNum),
-		"upgrade_deposit":    fmt.Sprintf("%d", vip.UpgradeDeposit),
-		"upgrade_record":     fmt.Sprintf("%d", vip.UpgradeRecord),
-		"relegation_flowing": fmt.Sprintf("%d", vip.RelegationFlowing),
-		"upgrade_gift":       fmt.Sprintf("%d", vip.UpgradeGift),
-		"birth_gift":         fmt.Sprintf("%d", vip.BirthGift),
-		"withdraw_count":     fmt.Sprintf("%d", vip.WithdrawCount),
-		"withdraw_max":       strconv.FormatFloat(vip.WithdrawMax, 'f', -1, 64),
-		"early_month_packet": fmt.Sprintf("%d", vip.EarlyMonthPacket),
-		"late_month_packet":  fmt.Sprintf("%d", vip.LateMonthPacket),
-		"created_at":         fmt.Sprintf("%d", vip.CreateAt),
-		"updated_at":         fmt.Sprintf("%d", vip.UpdatedAt),
-	}
-}
+//func vipToMap(vip MemberLevel) map[string]string {
+//
+//	return map[string]string{
+//		"id":                 vip.ID,
+//		"level":              fmt.Sprintf("%d", vip.Level),
+//		"level_name":         vip.LevelName,
+//		"recharge_num":       fmt.Sprintf("%d", vip.RechargeNum),
+//		"upgrade_deposit":    fmt.Sprintf("%d", vip.UpgradeDeposit),
+//		"upgrade_record":     fmt.Sprintf("%d", vip.UpgradeRecord),
+//		"relegation_flowing": fmt.Sprintf("%d", vip.RelegationFlowing),
+//		"upgrade_gift":       fmt.Sprintf("%d", vip.UpgradeGift),
+//		"birth_gift":         fmt.Sprintf("%d", vip.BirthGift),
+//		"withdraw_count":     fmt.Sprintf("%d", vip.WithdrawCount),
+//		"withdraw_max":       strconv.FormatFloat(vip.WithdrawMax, 'f', -1, 64),
+//		"early_month_packet": fmt.Sprintf("%d", vip.EarlyMonthPacket),
+//		"late_month_packet":  fmt.Sprintf("%d", vip.LateMonthPacket),
+//		"created_at":         fmt.Sprintf("%d", vip.CreateAt),
+//		"updated_at":         fmt.Sprintf("%d", vip.UpdatedAt),
+//	}
+//}

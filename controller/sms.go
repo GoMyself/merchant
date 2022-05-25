@@ -105,7 +105,7 @@ func (*SMSChannelController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if alias != "" {
-		if !validator.CheckStringAlpha(alias) || len(alias) < 4 {
+		if !validator.CheckStringAlpha(alias) || len(alias) < 3 {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
