@@ -59,9 +59,7 @@ func MemberLevelToCache(vip []MemberLevel) {
 		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawCount)
 		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawMax)
 	}
-	pipe.Set(ctx, timesKey, string(res), 100*time.Hour)
 	pipe.Persist(ctx, timesKey)
-	pipe.Set(ctx, amountKey, string(res), 100*time.Hour)
 	pipe.Persist(ctx, amountKey)
 
 	key := fmt.Sprintf("%s:vip:config", meta.Prefix)
