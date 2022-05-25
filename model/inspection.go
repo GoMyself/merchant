@@ -185,7 +185,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		Level:            fmt.Sprintf(`%d`, mb.Level),
 		TopName:          mb.TopName,
 		Title:            "红利/礼金",
-		Amount:           "0",
+		Amount:           "0.0000",
 		RewardAmount:     dividendAmount.StringFixed(4),
 		ReviewName:       "系统自动发送",
 		FlowMultiple:     "1",
@@ -210,7 +210,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		Level:            fmt.Sprintf(`%d`, mb.Level),
 		TopName:          mb.TopName,
 		Title:            "调整（分数调整和输赢调整）",
-		Amount:           "0",
+		Amount:           "0.0000",
 		RewardAmount:     adjustAmount.StringFixed(4),
 		ReviewName:       "",
 		FlowMultiple:     "1",
@@ -236,7 +236,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		TopName:          mb.TopName,
 		Title:            "存款",
 		Amount:           depostAmount.StringFixed(4),
-		RewardAmount:     "0",
+		RewardAmount:     "0.0000",
 		ReviewName:       "无",
 		FlowMultiple:     "1",
 		FlowAmount:       depostAmount.StringFixed(4),
@@ -376,24 +376,23 @@ func InspectionHistory(ex g.Ex, page, pageSize int) (PagePromoInspection, error)
 
 	var data PagePromoInspection
 	t := dialect.From("tbl_promo_inspection")
-	if page == 1 {
-		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
-		fmt.Println("总代佣金:sql:", query)
-		err := meta.MerchantDB.Get(&data.T, query)
-		if err != nil {
-			return data, pushLog(err, helper.DBErr)
-		}
 
-		if data.T == 0 {
-			return data, nil
-		}
+	query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+	fmt.Println("稽查历史:sql:", query)
+	err := meta.MerchantDB.Get(&data.T, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	if data.T == 0 {
+		return data, nil
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(colsPromoInspection...).Where(ex).
+	query, _, _ = t.Select(colsPromoInspection...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("review_at").Desc()).ToSQL()
 	fmt.Println("稽查历史:sql:", query)
-	err := meta.MerchantDB.Select(&data.D, query)
+	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
