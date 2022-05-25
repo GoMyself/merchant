@@ -57,7 +57,7 @@ func MemberLevelToCache(vip []MemberLevel) {
 	pipe.Unlink(ctx, amountKey)
 	for _, v := range vip {
 		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawCount)
-		pipe.HSet(ctx, timesKey, v.Level, v.WithdrawMax)
+		pipe.HSet(ctx, amountKey, v.Level, v.WithdrawMax)
 	}
 	pipe.Persist(ctx, timesKey)
 	pipe.Persist(ctx, amountKey)
