@@ -270,7 +270,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 			UnfinishedAmount: decimal.NewFromFloat(v.Flow).Sub(validBetAmount).StringFixed(4),
 			CreatedAt:        v.CreatedAt,
 			Ty:               "3",
-			Pid:              v.Id,
+			Pid:              v.Pid,
 			Platforms:        promoMap[v.Pid].Platforms,
 			RecordId:         v.Id,
 		})
@@ -353,9 +353,13 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 				"id": v.RecordId,
 			}
 			record := g.Record{
-				"state": inspectState,
+				"inspect_at":    time.Now().Unix(),
+				"inspect_uid":   admin["id"],
+				"inspect_name":  admin["name"],
+				"inspect_state": inspectState,
 			}
 			query, _, _ := dialect.Update("tbl_promo_record").Set(record).Where(ex).ToSQL()
+			fmt.Println(query)
 			_, err = tx.Exec(query)
 			if err != nil {
 				_ = tx.Rollback()
