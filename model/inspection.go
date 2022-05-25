@@ -35,7 +35,7 @@ type PromoRecord struct {
 	Flow         float64 `json:"flow" db:"flow"`
 	Multiple     int     `json:"multiple" db:"multiple"`
 	State        int     `json:"state" db:"state"`
-	CreatedAt    int     `json:"created_at" db:"created_at"`
+	CreatedAt    int64   `json:"created_at" db:"created_at"`
 	ReviewAt     int     `json:"review_at" db:"review_at"`
 	ReviewUid    int     `json:"review_uid" db:"review_uid"`
 	ReviewName   string  `json:"review_name" db:"review_name"`
@@ -191,7 +191,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		FlowMultiple:     "1",
 		FlowAmount:       dividendAmount.StringFixed(4),
 		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: totalVaild.Sub(dividendAmount).StringFixed(4),
+		UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
 		CreatedAt:        0,
 		Ty:               "2",
 		Pid:              "0",
@@ -216,7 +216,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		FlowMultiple:     "1",
 		FlowAmount:       adjustAmount.StringFixed(4),
 		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: totalVaild.Sub(adjustAmount).StringFixed(4),
+		UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
 		CreatedAt:        0,
 		Ty:               "4",
 		Pid:              "0",
@@ -241,7 +241,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		FlowMultiple:     "1",
 		FlowAmount:       depostAmount.StringFixed(4),
 		FinishedAmount:   totalVaild.StringFixed(4),
-		UnfinishedAmount: totalVaild.Sub(depostAmount).StringFixed(4),
+		UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
 		CreatedAt:        0,
 		Ty:               "1",
 		Pid:              "0",
@@ -267,8 +267,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 			FlowMultiple:     fmt.Sprintf(`%d`, v.Multiple),
 			FlowAmount:       fmt.Sprintf(`%f`, v.Flow),
 			FinishedAmount:   validBetAmount.StringFixed(4),
-			UnfinishedAmount: validBetAmount.Sub(decimal.NewFromFloat(v.Flow)).StringFixed(4),
-			CreatedAt:        promoMap[v.Pid].CreatedAt,
+			UnfinishedAmount: decimal.NewFromFloat(v.Flow).Sub(validBetAmount).StringFixed(4),
+			CreatedAt:        v.CreatedAt,
 			Ty:               "3",
 			Pid:              v.Id,
 			Platforms:        promoMap[v.Pid].Platforms,
