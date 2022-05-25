@@ -712,9 +712,10 @@ func RecordDividend(page, pageSize int, startTime, endTime string, query *elasti
 	data.T = t
 	for _, v := range esResult {
 
-		record := MemberDividend{}
+		record := Dividend{}
+		fmt.Println(string(v.Source))
 		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
+		fmt.Println(record)
 		data.D = append(data.D, record)
 		names = append(names, record.ParentName)
 	}

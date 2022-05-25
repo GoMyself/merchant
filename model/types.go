@@ -234,8 +234,36 @@ type MemberAdjust struct {
 
 type DividendData struct {
 	T   int64             `json:"t"`
-	D   []MemberDividend  `json:"d"`
+	D   []Dividend        `json:"d"`
 	Agg map[string]string `json:"agg"`
+}
+
+type Dividend struct {
+	ID           string  `db:"id" json:"id"`
+	UID          string  `db:"uid" json:"uid"`
+	Prefix       string  `db:"prefix" json:"prefix"`
+	Ty           int64   `db:"ty" json:"ty"`
+	Level        string  `db:"level" json:"level"`
+	WaterLimit   int64   `db:"water_limit" json:"water_limit"`
+	PID          string  `db:"pid" json:"pid"`
+	PTitle       string  `db:"ptitle" json:"ptitle"`
+	Username     string  `db:"username" json:"username"`
+	TopUid       string  `db:"top_uid" json:"top_uid"`         //总代uid
+	TopName      string  `db:"top_name" json:"top_name"`       //总代代理
+	ParentUid    string  `db:"parent_uid" json:"parent_uid"`   //上级uid
+	ParentName   string  `db:"parent_name" json:"parent_name"` //上级代理
+	Amount       float64 `db:"amount" json:"amount"`
+	WaterFlow    float64 `db:"water_flow" json:"water_flow"`
+	State        int64   `db:"state" json:"state"`
+	Automatic    int64   `db:"automatic" json:"automatic"`
+	Remark       string  `db:"remark" json:"remark"`
+	ReviewRemark string  `db:"review_remark" json:"review_remark"`
+	ApplyAt      int64   `db:"apply_at" json:"apply_at"`
+	ApplyUid     string  `db:"apply_uid" json:"apply_uid"`
+	ApplyName    string  `db:"apply_name" json:"apply_name"`
+	ReviewAt     int64   `db:"review_at" json:"review_at"`
+	ReviewUid    string  `db:"review_uid" json:"review_uid"`
+	ReviewName   string  `db:"review_name" json:"review_name"`
 }
 
 type MemberDividend struct {
