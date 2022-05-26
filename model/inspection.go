@@ -586,7 +586,7 @@ func EsDepost(username string, startAt, endAt int64) (decimal.Decimal, error) {
 	boolQuery.Filter(filters...)
 
 	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("name", username))
+	terms = append(terms, elastic.NewTermQuery("username", username))
 	terms = append(terms, elastic.NewTermQuery("state", DepositSuccess))
 
 	boolQuery.Must(terms...)
