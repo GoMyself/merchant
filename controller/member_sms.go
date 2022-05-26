@@ -32,21 +32,21 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	//	}
 	//}
 
-	// 手机号校验
-	if phone != "" {
-		if !helper.CtypeDigit(phone) {
-			helper.Print(ctx, false, helper.PhoneFMTErr)
-			return
-		}
-	}
-
-	if state == "" {
-		helper.Print(ctx, false, helper.UsernameErr)
-		return
-	}
+	//// 手机号校验
+	//if phone != "" {
+	//	if !helper.CtypeDigit(phone) {
+	//		helper.Print(ctx, false, helper.PhoneFMTErr)
+	//		return
+	//	}
+	//}
+	//
+	//if state == "" {
+	//	helper.Print(ctx, false, helper.PhoneFMTErr)
+	//	return
+	//}
 
 	if startTime == "" || endTime == "" {
-		helper.Print(ctx, false, helper.UsernameErr)
+		helper.Print(ctx, false, helper.PhoneFMTErr)
 		return
 	}
 

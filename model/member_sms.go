@@ -42,7 +42,10 @@ func SmsList(page, pageSize uint, start, end, username, phone, state string) (Sm
 		ex["phone"] = phone
 	}
 
-	ex["state"] = state
+	if state != "" {
+		ex["state"] = state
+	}
+
 	ex["prefix"] = meta.Prefix
 
 	if start != "" && end != "" {
