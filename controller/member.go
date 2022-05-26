@@ -905,9 +905,20 @@ func (that *MemberController) SetBalanceZero(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	remark := string(ctx.PostArgs().Peek("remark"))
+	if !validator.CheckUName(username, 5, 14) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	if remark == "" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
 	admin, err := model.AdminToken(ctx)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
+		return
 	}
 
 	err = model.MemberBalanceZero(username, remark, admin["id"], admin["name"])
