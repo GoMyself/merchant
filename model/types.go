@@ -234,6 +234,12 @@ type MemberAdjust struct {
 
 type DividendData struct {
 	T   int64             `json:"t"`
+	D   []MemberDividend  `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type DividendEsData struct {
+	T   int64             `json:"t"`
 	D   []Dividend        `json:"d"`
 	Agg map[string]string `json:"agg"`
 }

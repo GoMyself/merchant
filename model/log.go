@@ -54,7 +54,7 @@ func AdminLoginLog(start, end string, page, pageSize int, query *elastic.BoolQue
 // 系统日志
 func SystemLog(start, end string, page, pageSize int, query *elastic.BoolQuery) (SystemLogData, error) {
 
-	//data := SystemLogData{}
+	data := SystemLogData{}
 	//
 	//if start != "" && end != "" {
 	//
