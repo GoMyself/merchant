@@ -12,9 +12,8 @@ type SmsRecordController struct{}
 // List 验证码列表
 func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
-	var size uint = 10
-
 	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	username := string(ctx.QueryArgs().Peek("username"))
 	phone := string(ctx.QueryArgs().Peek("phone"))
 	state := string(ctx.QueryArgs().Peek("state"))
@@ -23,6 +22,12 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
 	if page < 1 {
 		page = 1
+	}
+	if pageSize > 50 {
+		pageSize = 50
+	}
+	if pageSize < 20 {
+		pageSize = 20
 	}
 	// 会员名校验
 	//if username != "" {
@@ -50,7 +55,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data, err := model.SmsList(uint(page), size, startTime, endTime, username, phone, state)
+	data, err := model.SmsList(uint(page), uint(pageSize), startTime, endTime, username, phone, state)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
