@@ -1092,14 +1092,16 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	}
 
 	mr := model.MemberRebate{
-		TY: ty.StringFixed(1),
-		ZR: zr.StringFixed(1),
-		QP: qp.StringFixed(1),
-		DJ: dj.StringFixed(1),
-		DZ: dz.StringFixed(1),
-		CP: cp.StringFixed(1),
-		FC: fc.StringFixed(1),
-		BY: by.StringFixed(1),
+		TY:               ty.StringFixed(1),
+		ZR:               zr.StringFixed(1),
+		QP:               qp.StringFixed(1),
+		DJ:               dj.StringFixed(1),
+		DZ:               dz.StringFixed(1),
+		CP:               cp.StringFixed(1),
+		FC:               fc.StringFixed(1),
+		BY:               by.StringFixed(1),
+		CgHighRebate:     cgHighRebate.StringFixed(2),
+		CgOfficialRebate: cgOfficialRebate.StringFixed(2),
 	}
 
 	// 更新代理

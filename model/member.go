@@ -1809,14 +1809,16 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 	}
 
 	recd := g.Record{
-		"ty": mr.TY,
-		"zr": mr.ZR,
-		"qp": mr.QP,
-		"dj": mr.DJ,
-		"dz": mr.DZ,
-		"cp": mr.CP,
-		"fc": mr.FC,
-		"by": mr.BY,
+		"ty":                 mr.TY,
+		"zr":                 mr.ZR,
+		"qp":                 mr.QP,
+		"dj":                 mr.DJ,
+		"dz":                 mr.DZ,
+		"cp":                 mr.CP,
+		"fc":                 mr.FC,
+		"by":                 mr.BY,
+		"cg_high_rebate":     mr.CgHighRebate,
+		"cg_official_rebate": mr.CgOfficialRebate,
 	}
 	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
 	_, err = tx.Exec(query)
