@@ -12,7 +12,7 @@ type SmsRecordController struct{}
 // List 验证码列表
 func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 
-	var size uint = 50
+	var size uint = 10
 
 	page := ctx.QueryArgs().GetUintOrZero("page")
 	username := string(ctx.QueryArgs().Peek("username"))
@@ -41,6 +41,11 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if state == "" {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
