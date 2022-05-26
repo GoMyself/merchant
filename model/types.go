@@ -481,14 +481,16 @@ type MemberRebate struct {
 }
 
 type MemberMaxRebate struct {
-	ZR sql.NullFloat64 `db:"zr" json:"zr"` //真人返水
-	QP sql.NullFloat64 `db:"qp" json:"qp"` //棋牌返水
-	TY sql.NullFloat64 `db:"ty" json:"ty"` //体育返水
-	DJ sql.NullFloat64 `db:"dj" json:"dj"` //电竞返水
-	DZ sql.NullFloat64 `db:"dz" json:"dz"` //电游返水
-	CP sql.NullFloat64 `db:"cp" json:"cp"` //彩票返水
-	FC sql.NullFloat64 `db:"fc" json:"fc"` //斗鸡返水
-	BY sql.NullFloat64 `db:"by" json:"by"` //捕鱼返水
+	ZR               sql.NullFloat64 `db:"zr" json:"zr"`                                 //真人返水
+	QP               sql.NullFloat64 `db:"qp" json:"qp"`                                 //棋牌返水
+	TY               sql.NullFloat64 `db:"ty" json:"ty"`                                 //体育返水
+	DJ               sql.NullFloat64 `db:"dj" json:"dj"`                                 //电竞返水
+	DZ               sql.NullFloat64 `db:"dz" json:"dz"`                                 //电游返水
+	CP               sql.NullFloat64 `db:"cp" json:"cp"`                                 //彩票返水
+	FC               sql.NullFloat64 `db:"fc" json:"fc"`                                 //斗鸡返水
+	BY               sql.NullFloat64 `db:"by" json:"by"`                                 //捕鱼返水
+	CgHighRebate     sql.NullFloat64 `db:"cg_high_rebate" json:"cg_high_rebate"`         //高频彩返点
+	CgOfficialRebate sql.NullFloat64 `db:"cg_official_rebate" json:"cg_official_rebate"` //官方彩返点
 }
 
 type NoticeData struct {

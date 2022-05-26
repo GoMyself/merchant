@@ -1888,29 +1888,25 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("ty").As("ty"),
 		g.MAX("cp").As("cp"),
 		g.MAX("fc").As("fc"),
+		g.MAX("by").As("by"),
+		g.MAX("cg_high_rebate").As("cg_high_rebate"),
+		g.MAX("cg_official_rebate").As("cg_official_rebate"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
 		return res, pushLog(err, helper.DBErr)
 	}
 
-	res.ZR = decimal.NewFromFloat(data.ZR.Float64)
-	res.QP = decimal.NewFromFloat(data.QP.Float64)
-	res.TY = decimal.NewFromFloat(data.TY.Float64)
-	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
-	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
-	res.CP = decimal.NewFromFloat(data.CP.Float64)
-	res.FC = decimal.NewFromFloat(data.FC.Float64)
-	res.BY = decimal.NewFromFloat(data.BY.Float64)
-
-	res.ZR = res.ZR.Truncate(1)
-	res.QP = res.QP.Truncate(1)
-	res.TY = res.TY.Truncate(1)
-	res.DJ = res.DJ.Truncate(1)
-	res.DZ = res.DZ.Truncate(1)
-	res.CP = res.CP.Truncate(1)
-	res.FC = res.FC.Truncate(1)
-	res.BY = res.BY.Truncate(1)
+	res.ZR = decimal.NewFromFloat(data.ZR.Float64).Truncate(1)
+	res.QP = decimal.NewFromFloat(data.QP.Float64).Truncate(1)
+	res.TY = decimal.NewFromFloat(data.TY.Float64).Truncate(1)
+	res.DJ = decimal.NewFromFloat(data.DJ.Float64).Truncate(1)
+	res.DZ = decimal.NewFromFloat(data.DZ.Float64).Truncate(1)
+	res.CP = decimal.NewFromFloat(data.CP.Float64).Truncate(1)
+	res.FC = decimal.NewFromFloat(data.FC.Float64).Truncate(1)
+	res.BY = decimal.NewFromFloat(data.BY.Float64).Truncate(1)
+	res.CGHighRebate = decimal.NewFromFloat(data.CgHighRebate.Float64).Truncate(2)
+	res.CGOfficialRebate = decimal.NewFromFloat(data.CgOfficialRebate.Float64).Truncate(2)
 
 	return res, nil
 }
@@ -1929,29 +1925,25 @@ func MemberParentRebate(uid string) (MemberRebateResult_t, error) {
 		g.C("ty").As("ty"),
 		g.C("cp").As("cp"),
 		g.C("fc").As("fc"),
+		g.C("by").As("by"),
+		g.MAX("cg_high_rebate").As("cg_high_rebate"),
+		g.MAX("cg_official_rebate").As("cg_official_rebate"),
 	).Where(g.Ex{"uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil {
 		return res, pushLog(err, helper.DBErr)
 	}
 
-	res.ZR = decimal.NewFromFloat(data.ZR.Float64)
-	res.QP = decimal.NewFromFloat(data.QP.Float64)
-	res.TY = decimal.NewFromFloat(data.TY.Float64)
-	res.DJ = decimal.NewFromFloat(data.DJ.Float64)
-	res.DZ = decimal.NewFromFloat(data.DZ.Float64)
-	res.CP = decimal.NewFromFloat(data.CP.Float64)
-	res.FC = decimal.NewFromFloat(data.FC.Float64)
-	res.BY = decimal.NewFromFloat(data.BY.Float64)
-
-	res.ZR = res.ZR.Truncate(1)
-	res.QP = res.QP.Truncate(1)
-	res.TY = res.TY.Truncate(1)
-	res.DJ = res.DJ.Truncate(1)
-	res.DZ = res.DZ.Truncate(1)
-	res.CP = res.CP.Truncate(1)
-	res.FC = res.FC.Truncate(1)
-	res.BY = res.BY.Truncate(1)
+	res.ZR = decimal.NewFromFloat(data.ZR.Float64).Truncate(1)
+	res.QP = decimal.NewFromFloat(data.QP.Float64).Truncate(1)
+	res.TY = decimal.NewFromFloat(data.TY.Float64).Truncate(1)
+	res.DJ = decimal.NewFromFloat(data.DJ.Float64).Truncate(1)
+	res.DZ = decimal.NewFromFloat(data.DZ.Float64).Truncate(1)
+	res.CP = decimal.NewFromFloat(data.CP.Float64).Truncate(1)
+	res.FC = decimal.NewFromFloat(data.FC.Float64).Truncate(1)
+	res.BY = decimal.NewFromFloat(data.BY.Float64).Truncate(1)
+	res.CGHighRebate = decimal.NewFromFloat(data.CgHighRebate.Float64).Truncate(2)
+	res.CGOfficialRebate = decimal.NewFromFloat(data.CgOfficialRebate.Float64).Truncate(2)
 
 	return res, nil
 }

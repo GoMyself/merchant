@@ -931,6 +931,8 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	scp := string(ctx.PostArgs().Peek("cp"))
 	sfc := string(ctx.PostArgs().Peek("fc"))
 	sby := string(ctx.PostArgs().Peek("by"))
+	cgHighRebateTemp := string(ctx.PostArgs().Peek("cg_high_rebate"))
+	cgOfficialRebateTemp := string(ctx.PostArgs().Peek("cg_official_rebate"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
@@ -952,58 +954,72 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	MaxRebate, err := model.MemberMaxRebateFindOne(mb.UID)
+	maxRebate, err := model.MemberMaxRebateFindOne(mb.UID)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
 	ty, err := decimal.NewFromString(sty) //下级会员体育返水比例
-	if err != nil || ty.IsNegative() || ty.LessThan(MaxRebate.TY) {
+	if err != nil || ty.IsNegative() || ty.LessThan(maxRebate.TY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	zr, err := decimal.NewFromString(szr) //下级会员真人返水比例
-	if err != nil || zr.IsNegative() || zr.LessThan(MaxRebate.ZR) {
+	if err != nil || zr.IsNegative() || zr.LessThan(maxRebate.ZR) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	qp, err := decimal.NewFromString(sqp) //下级会员棋牌返水比例
-	if err != nil || qp.IsNegative() || qp.LessThan(MaxRebate.QP) {
+	if err != nil || qp.IsNegative() || qp.LessThan(maxRebate.QP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	dj, err := decimal.NewFromString(sdj) //下级会员电竞返水比例
-	if err != nil || dj.IsNegative() || dj.LessThan(MaxRebate.DJ) {
+	if err != nil || dj.IsNegative() || dj.LessThan(maxRebate.DJ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	dz, err := decimal.NewFromString(sdz) //下级会员电子返水比例
-	if err != nil || dz.IsNegative() || dz.LessThan(MaxRebate.DZ) {
+	if err != nil || dz.IsNegative() || dz.LessThan(maxRebate.DZ) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	cp, err := decimal.NewFromString(scp) //下级会员彩票返水比例
-	if err != nil || cp.IsNegative() || cp.LessThan(MaxRebate.CP) {
+	if err != nil || cp.IsNegative() || cp.LessThan(maxRebate.CP) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	fc, err := decimal.NewFromString(sfc) //下级会员斗鸡返水比例
-	if err != nil || fc.IsNegative() || fc.LessThan(MaxRebate.FC) {
+	if err != nil || fc.IsNegative() || fc.LessThan(maxRebate.FC) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	by, err := decimal.NewFromString(sby) //下级会员捕鱼返水比例
-	if err != nil || by.IsNegative() || by.LessThan(MaxRebate.BY) {
+	if err != nil || by.IsNegative() || by.LessThan(maxRebate.BY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
+	}
+
+	nine := decimal.NewFromInt(9.00)
+	cgHighRebate, err := decimal.NewFromString(cgHighRebateTemp)
+	if err != nil || fc.IsNegative() ||
+		cgHighRebate.GreaterThan(maxRebate.CGHighRebate) ||
+		nine.GreaterThan(cgHighRebate) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
+	}
+	cgOfficialRebate, err := decimal.NewFromString(cgOfficialRebateTemp)
+	if err != nil || fc.IsNegative() ||
+		cgOfficialRebate.GreaterThan(maxRebate.CGOfficialRebate) ||
+		nine.GreaterThan(cgOfficialRebate) {
+		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
 	if mb.ParentUid != "0" && mb.ParentUid != "" {
