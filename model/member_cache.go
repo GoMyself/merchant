@@ -47,10 +47,10 @@ type tbl_members_t struct {
 	WithdrawPwd         string  `db:"withdraw_pwd" json:"withdraw_pwd"`                   // 取款密码
 	Level               int64   `db:"level" json:"level"`                                 // 用户等级
 	MaintainName        string  `db:"maintain_name" json:"maintain_name"`                 // 维护人
-	LastUpDownAt        int64   `db:"last_up_down_at" json:"last_up_down_at"`             // 最后升级降级时间
-	AgencyType          int64   `db:"agency_type" json:"agency_type"`                     // 代理类型 391团队代理 393普通代理
-	GroupName           string  `db:"group_name" json:"group_name"`                       // 团队名称 仅agency_type=391有
-	Address             string  `db:"address" json:"address"`                             // 收货地址
+	//LastUpDownAt        int64   `db:"last_up_down_at" json:"last_up_down_at"`             // 最后升级降级时间
+	AgencyType int64  `db:"agency_type" json:"agency_type"` // 代理类型 391团队代理 393普通代理
+	GroupName  string `db:"group_name" json:"group_name"`   // 团队名称 仅agency_type=391有
+	Address    string `db:"address" json:"address"`         // 收货地址
 }
 
 func memberInfoCache(username string) (tbl_members_t, error) {
@@ -58,7 +58,7 @@ func memberInfoCache(username string) (tbl_members_t, error) {
 	m := tbl_members_t{}
 
 	t := dialect.From("tbl_members")
-	query, _, _ := t.Select("uid", "username", "realname_hash", "email_hash", "phone_hash", "zalo_hash", "regip", "reg_device", "created_at", "last_login_ip", "last_login_at", "source_id", "first_deposit_at", "first_bet_at", "first_bet_amount", "first_deposit_amount", "second_deposit_at", "second_deposit_amount", "top_uid", "top_name", "parent_uid", "parent_name", "bankcard_total", "last_login_device", "last_login_source", "remarks", "balance", "lock_amount", "commission", "state", "withdraw_pwd", "level", "maintain_name", "last_up_down_at", "agency_type", "group_name", "address").Where(g.Ex{"username": username, "prefix": meta.Prefix}).Limit(1).ToSQL()
+	query, _, _ := t.Select("uid", "username", "realname_hash", "email_hash", "phone_hash", "zalo_hash", "regip", "reg_device", "created_at", "last_login_ip", "last_login_at", "source_id", "first_deposit_at", "first_bet_at", "first_bet_amount", "first_deposit_amount", "second_deposit_at", "second_deposit_amount", "top_uid", "top_name", "parent_uid", "parent_name", "bankcard_total", "last_login_device", "last_login_source", "remarks", "balance", "lock_amount", "commission", "state", "withdraw_pwd", "level", "maintain_name", "agency_type", "group_name", "address").Where(g.Ex{"username": username, "prefix": meta.Prefix}).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&m, query)
 	if err != nil && err != sql.ErrNoRows {
 
