@@ -419,9 +419,18 @@ type adminLoginLogBase struct {
 	Prefix    string `msg:"prefix" json:"prefix"`
 }
 
+//type adminLoginLog struct {
+//	Id string `msg:"_id" json:"id"`
+//	adminLoginLogBase
+//}
+
 type adminLoginLog struct {
-	Id string `msg:"_id" json:"id"`
-	adminLoginLogBase
+	UID       string `msg:"uid" json:"id"`
+	Name      string `msg:"name" json:"name"`
+	IP        string `msg:"ip" json:"ip"`
+	Device    string `msg:"device" json:"device"`
+	CreatedAt uint32 `msg:"created_at" json:"create_at"`
+	Prefix    string `msg:"prefix" json:"prefix"`
 }
 
 // 后台用户登录记录
