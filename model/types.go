@@ -102,6 +102,7 @@ type MemberTransaction struct {
 	UID          string `db:"uid"`           //用户ID
 	Username     string `db:"username"`      //用户名
 	Prefix       string `db:"prefix"`        //站点前缀
+	Remark       string `db:"remark"`        //备注
 }
 
 //场馆转账表

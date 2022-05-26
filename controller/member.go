@@ -903,13 +903,14 @@ func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 
 func (that *MemberController) SetBalanceZero(ctx *fasthttp.RequestCtx) {
 
-	username := string(ctx.QueryArgs().Peek("username"))
+	username := string(ctx.PostArgs().Peek("username"))
+	remark := string(ctx.PostArgs().Peek("remark"))
 	admin, err := model.AdminToken(ctx)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 	}
 
-	err = model.MemberBalanceZero(username, admin["id"], admin["name"])
+	err = model.MemberBalanceZero(username, remark, admin["id"], admin["name"])
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 	}

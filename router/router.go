@@ -189,7 +189,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 跳线转代
 	post("/merchant/member/transfer", memberTransferCtl.Transfer)
 	// 钱包余额冲正
-	get("/merchant/member/clear", memberCtl.SetBalanceZero)
+	post("/merchant/member/clear", memberCtl.SetBalanceZero)
 
 	// 代理管理-代理列表
 	post("/merchant/agency/list", memberCtl.Agency)

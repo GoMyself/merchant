@@ -1287,7 +1287,7 @@ func MemberFull(id string, field []string) (map[string]string, error) {
 	return recs, nil
 }
 
-func MemberBalanceZero(username, adminID, adminName string) error {
+func MemberBalanceZero(username, remark, adminID, adminName string) error {
 
 	mb, err := memberInfoCache(username)
 	if err != nil {
@@ -1328,6 +1328,7 @@ func MemberBalanceZero(username, adminID, adminName string) error {
 		UID:          mb.Uid,
 		Username:     mb.Username,
 		Prefix:       meta.Prefix,
+		Remark:       remark,
 	}
 	query, _, _ = dialect.Insert("tbl_balance_transaction").Rows(trans).ToSQL()
 	_, err = tx.Exec(query)
