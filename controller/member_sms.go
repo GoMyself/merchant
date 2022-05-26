@@ -17,6 +17,9 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	page := ctx.QueryArgs().GetUintOrZero("page")
 	username := string(ctx.QueryArgs().Peek("username"))
 	phone := string(ctx.QueryArgs().Peek("phone"))
+	state := string(ctx.QueryArgs().Peek("state"))
+	startTime := string(ctx.QueryArgs().Peek("start_time"))
+	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
 	if page < 1 {
 		page = 1
@@ -37,7 +40,12 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	data, err := model.SmsList(uint(page), size, username, phone)
+	if state == "" {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	data, err := model.SmsList(uint(page), size, startTime, endTime, username, phone, state)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
