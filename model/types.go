@@ -238,6 +238,28 @@ type DividendData struct {
 	Agg map[string]string `json:"agg"`
 }
 
+type DividendEsData struct {
+	T   int64             `json:"t"`
+	D   []Dividend        `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type Dividend struct {
+	ID         string  `db:"id" json:"id"`
+	UID        string  `db:"uid" json:"uid"`
+	Prefix     string  `db:"prefix" json:"prefix"`
+	Ty         int     `db:"ty" json:"ty"`
+	Username   string  `db:"username" json:"username"`
+	TopUid     string  `db:"top_uid" json:"top_uid"`         //总代uid
+	TopName    string  `db:"top_name" json:"top_name"`       //总代代理
+	ParentUid  string  `db:"parent_uid" json:"parent_uid"`   //上级uid
+	ParentName string  `db:"parent_name" json:"parent_name"` //上级代理
+	Amount     float64 `db:"amount" json:"amount"`
+	ReviewAt   uint64  `db:"review_at" json:"review_at"`
+	ReviewUid  string  `db:"review_uid" json:"review_uid"`
+	ReviewName string  `db:"review_name" json:"review_name"`
+}
+
 type MemberDividend struct {
 	ID            string  `db:"id" json:"id"`
 	UID           string  `db:"uid" json:"uid"`
@@ -397,9 +419,18 @@ type adminLoginLogBase struct {
 	Prefix    string `msg:"prefix" json:"prefix"`
 }
 
+//type adminLoginLog struct {
+//	Id string `msg:"_id" json:"id"`
+//	adminLoginLogBase
+//}
+
 type adminLoginLog struct {
-	Id string `msg:"_id" json:"id"`
-	adminLoginLogBase
+	UID       string `msg:"uid" json:"id"`
+	Name      string `msg:"name" json:"name"`
+	IP        string `msg:"ip" json:"ip"`
+	Device    string `msg:"device" json:"device"`
+	CreatedAt uint32 `msg:"created_at" json:"create_at"`
+	Prefix    string `msg:"prefix" json:"prefix"`
 }
 
 // 后台用户登录记录

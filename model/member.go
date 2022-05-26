@@ -1223,10 +1223,10 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	rex := g.Ex{
 		"uid":        mb.UID,
 		"prefix":     meta.Prefix,
-		"cash_type":  TransactionRebate,
+		"cash_type":  []int{TransactionRebate, TransactionSubRebate},
 		"created_at": g.Op{"between": exp.NewRangeVal(ss*1000, se*1000)},
 	}
-	query, _, _ = dialect.From("tbl_commission_transaction").
+	query, _, _ = dialect.From("tbl_balance_transaction").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("rebate")).Where(rex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Get(&data.Rebate, query)

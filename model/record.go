@@ -677,9 +677,9 @@ func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic
 	return data, nil
 }
 
-func RecordDividend(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (DividendData, error) {
+func RecordDividend(page, pageSize int, startTime, endTime string, query *elastic.BoolQuery) (DividendEsData, error) {
 
-	data := DividendData{}
+	data := DividendEsData{}
 	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
 
 	if startTime != "" && endTime != "" {
@@ -712,9 +712,11 @@ func RecordDividend(page, pageSize int, startTime, endTime string, query *elasti
 	data.T = t
 	for _, v := range esResult {
 
-		record := MemberDividend{}
+		record := Dividend{}
+		//fmt.Println(string(v.Source))
 		_ = helper.JsonUnmarshal(v.Source, &record)
 		record.ID = v.Id
+		//fmt.Println(record)
 		data.D = append(data.D, record)
 		names = append(names, record.ParentName)
 	}

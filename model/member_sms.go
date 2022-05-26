@@ -2,7 +2,9 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/doug-martin/goqu/v9/exp"
 	"merchant2/contrib/helper"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -27,7 +29,7 @@ type SmsData_t struct {
 	S uint    `json:"s"`
 }
 
-func SmsList(page, pageSize uint, username, phone string) (SmsData_t, error) {
+func SmsList(page, pageSize uint, start, end, username, phone, state string) (SmsData_t, error) {
 
 	ex := g.Ex{}
 	data := SmsData_t{}
@@ -38,6 +40,27 @@ func SmsList(page, pageSize uint, username, phone string) (SmsData_t, error) {
 	}
 	if phone != "" {
 		ex["phone"] = phone
+	}
+
+	if state != "" {
+		ex["state"] = state
+	}
+
+	ex["prefix"] = meta.Prefix
+
+	if start != "" && end != "" {
+
+		startAt, err := helper.TimeToLoc(start, loc)
+		if err != nil {
+			return data, errors.New(helper.DateTimeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(end, loc)
+		if err != nil {
+			return data, errors.New(helper.DateTimeErr)
+		}
+
+		ex["create_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 
 	t := dialect.From("sms_log")
