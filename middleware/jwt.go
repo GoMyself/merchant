@@ -57,17 +57,17 @@ func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 	//	}
 	//}
 
-	//gid := fastjson.GetString(data, "group_id")
-	//if path != "/merchant/admin/login" && path != "/merchant/admin/logout" {
-	//
-	//	permission := model.PrivCheck(path, gid)
-	//	if permission != nil {
-	//		fmt.Println("path = ", path)
-	//		fmt.Println("gid = ", gid)
-	//		fmt.Println("permission = ", permission)
-	//		return errors.New(`{"status":false,"data":"permission denied"}`)
-	//	}
-	//}
+	gid := fastjson.GetString(data, "group_id")
+	if path != "/merchant/admin/login" && path != "/merchant/admin/logout" {
+
+		permission := model.PrivCheck(path, gid)
+		if permission != nil {
+			fmt.Println("path = ", path)
+			fmt.Println("gid = ", gid)
+			fmt.Println("permission = ", permission)
+			return errors.New(`{"status":false,"data":"permission denied"}`)
+		}
+	}
 
 	if path == "/merchant/admin/logout" {
 		ctx.SetUserValue("token", data)
