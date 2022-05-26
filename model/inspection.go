@@ -514,7 +514,7 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	}
 
 	if endAt > 0 {
-		rg.Lt(endAt)
+		rg.Lt(endAt * 1000)
 	}
 
 	filters = append(filters, rg)
