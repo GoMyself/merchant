@@ -271,7 +271,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Title:            v.Title,
 			Amount:           fmt.Sprintf(`%f`, v.Amount),
 			RewardAmount:     fmt.Sprintf(`%f`, v.Bonus),
-			ReviewName:       promoMap[v.Pid].UpdatedName,
+			ReviewName:       v.ReviewName,
 			FlowMultiple:     fmt.Sprintf(`%d`, v.Multiple),
 			FlowAmount:       fmt.Sprintf(`%f`, v.Flow),
 			FinishedAmount:   validBetAmount.StringFixed(4),
