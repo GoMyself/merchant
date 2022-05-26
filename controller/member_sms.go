@@ -46,7 +46,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	//}
 
 	if startTime == "" || endTime == "" {
-		helper.Print(ctx, false, helper.PhoneFMTErr)
+		helper.Print(ctx, false, helper.DateTimeErr)
 		return
 	}
 
