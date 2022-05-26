@@ -63,6 +63,8 @@ type Member struct {
 	GroupName           string `db:"group_name" json:"group_name"`                       //团队名称
 	AgencyType          int64  `db:"agency_type" json:"agency_type"`                     //391团队代理 393普通代理
 	Address             string `db:"address" json:"address"`                             //收货地址
+	LastWithdrawAt      uint32 `db:"last_withdraw_at" json:"last_withdraw_at"`           //上次提现时间
+
 }
 
 // MemberPlatform 会员场馆表

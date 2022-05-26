@@ -134,14 +134,15 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	//上一次提现成功
 	var cutTime int64
-	lastWithdraw, err := getWithdrawLast(username)
-	fmt.Println(lastWithdraw)
-	if err != nil && err != sql.ErrNoRows {
-		return data, mb, errors.New(helper.DBErr)
-	}
-	if err != sql.ErrNoRows {
-		cutTime = lastWithdraw.CreatedAt
-	}
+	//lastWithdraw, err := getWithdrawLast(username)
+	//fmt.Println(lastWithdraw)
+	//if err != nil && err != sql.ErrNoRows {
+	//	return data, mb, errors.New(helper.DBErr)
+	//}
+	//if err != sql.ErrNoRows {
+	//	cutTime = lastWithdraw.CreatedAt
+	//}
+	cutTime = int64(mb.LastWithdrawAt)
 
 	lastInspection, err := getInspectionLast(username)
 	if cutTime < lastInspection.InspectAt {
