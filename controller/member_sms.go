@@ -25,12 +25,12 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 		page = 1
 	}
 	// 会员名校验
-	if username != "" {
-		if !helper.CtypeAlnum(username) {
-			helper.Print(ctx, false, helper.UsernameErr)
-			return
-		}
-	}
+	//if username != "" {
+	//	if !helper.CtypeAlnum(username) {
+	//		helper.Print(ctx, false, helper.UsernameErr)
+	//		return
+	//	}
+	//}
 
 	// 手机号校验
 	if phone != "" {
