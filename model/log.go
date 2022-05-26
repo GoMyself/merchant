@@ -54,45 +54,45 @@ func AdminLoginLog(start, end string, page, pageSize int, query *elastic.BoolQue
 // 系统日志
 func SystemLog(start, end string, page, pageSize int, query *elastic.BoolQuery) (SystemLogData, error) {
 
-	data := SystemLogData{}
-
-	if start != "" && end != "" {
-
-		startAt, err := helper.TimeToLoc(start, loc)
-		if err != nil {
-			return data, errors.New(helper.DateTimeErr)
-		}
-
-		endAt, err := helper.TimeToLoc(end, loc)
-		if err != nil {
-			return data, errors.New(helper.DateTimeErr)
-		}
-
-		query.Filter(
-			elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt),
-		)
-	}
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-
-	fields := []string{"uid", "name", "title", "ip", "content", "created_at", "prefix"}
-	total, result, _, err := EsQuerySearch(esPrefixIndex("system_log"), "@timestamp", page, pageSize, fields, query, nil)
-	if err != nil {
-		return data, err
-	}
-
-	data.T = total
-	data.S = pageSize
-
-	for _, v := range result {
-
-		log := systemLog{}
-		if err = helper.JsonUnmarshal(v.Source, &log); err != nil {
-			return data, errors.New(helper.FormatErr)
-		}
-
-		log.Id = v.Id
-		data.D = append(data.D, log)
-	}
+	//data := SystemLogData{}
+	//
+	//if start != "" && end != "" {
+	//
+	//	startAt, err := helper.TimeToLoc(start, loc)
+	//	if err != nil {
+	//		return data, errors.New(helper.DateTimeErr)
+	//	}
+	//
+	//	endAt, err := helper.TimeToLoc(end, loc)
+	//	if err != nil {
+	//		return data, errors.New(helper.DateTimeErr)
+	//	}
+	//
+	//	query.Filter(
+	//		elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt),
+	//	)
+	//}
+	//query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	//
+	//fields := []string{"uid", "name", "title", "ip", "content", "created_at", "prefix"}
+	//total, result, _, err := EsQuerySearch(esPrefixIndex("system_log"), "@timestamp", page, pageSize, fields, query, nil)
+	//if err != nil {
+	//	return data, err
+	//}
+	//
+	//data.T = total
+	//data.S = pageSize
+	//
+	//for _, v := range result {
+	//
+	//	log := systemLog{}
+	//	if err = helper.JsonUnmarshal(v.Source, &log); err != nil {
+	//		return data, errors.New(helper.FormatErr)
+	//	}
+	//
+	//	log.Id = v.Id
+	//	data.D = append(data.D, log)
+	//}
 
 	return data, nil
 }
