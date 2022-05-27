@@ -6,6 +6,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/olivere/elastic/v7"
 	"github.com/wI2L/jettison"
 	"merchant2/contrib/helper"
 	"time"
@@ -373,6 +374,37 @@ func MessageDelete(id, msgID string) error {
 		param["id"] = msgID
 	}
 	_, _ = BeanPut("message", param, 0)
+
+	return nil
+}
+
+// 发送站内信
+func messageSend(msgID, title, subTitle, content, sendName, prefix string, isTop, isVip, ty int, names []string) error {
+
+	data := MessageEs{
+		MsgID:    msgID,
+		Title:    title,
+		SubTitle: subTitle,
+		Content:  content,
+		IsTop:    isTop,
+		IsVip:    isVip,
+		IsRead:   0,
+		Ty:       ty,
+		SendName: sendName,
+		SendAt:   time.Now().Unix(),
+		Prefix:   prefix,
+	}
+	bulkRequest := meta.ES.Bulk().Index(meta.EsPrefix + "messages")
+	for _, v := range names {
+		data.Username = v
+		doc := elastic.NewBulkIndexRequest().Id(helper.GenId()).Doc(data)
+		bulkRequest = bulkRequest.Add(doc)
+	}
+
+	_, err := bulkRequest.Refresh("wait_for").Do(ctx)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
