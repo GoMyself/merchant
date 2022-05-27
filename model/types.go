@@ -1183,6 +1183,7 @@ type SMSChannel struct {
 type Link_t struct {
 	ID               string `db:"id" json:"id"`
 	UID              string `db:"uid" json:"uid"`
+	Username         string `db:"username" json:"username"`
 	Prefix           string `db:"prefix" json:"prefix"`
 	ZR               string `db:"zr" json:"zr"`                                 //真人返水
 	QP               string `db:"qp" json:"qp"`                                 //棋牌返水

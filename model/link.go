@@ -49,7 +49,7 @@ func LinkLoad() {
 
 			bcs := make(map[string]map[string]Link_t)
 			for _, v := range data {
-				key := "lk:" + v.UID
+				key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.Username)
 				bcs[key] = map[string]Link_t{
 					"$" + v.ID: v,
 				}
