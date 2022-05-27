@@ -270,7 +270,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 	if len(usernames) > 0 {
 		for k, v := range usernames {
 			title := "Quý Khách Của P3 Thân Mến"
-			content := "  Khuyến Mãi Đã Được Tặng Vào Tài Khoản Của Bạn,Vui Lòng KIểm Tra Ngay,Nếu Bạn Có Bất Cứ Thắc Mắc Vấn Đề Gì Vui Lòng Liên Hệ CSKH Để Biết Thêm Chi Tiết .\n【P3】Chúc Bạn Cược Đâu Thắng Đó !!\n"
+			content := "Khuyến Mãi Đã Được Tặng Vào Tài Khoản Của Bạn,Vui Lòng KIểm Tra Ngay,Nếu Bạn Có Bất Cứ Thắc Mắc Vấn Đề Gì Vui Lòng Liên Hệ CSKH Để Biết Thêm Chi Tiết .\n【P3】Chúc Bạn Cược Đâu Thắng Đó !!"
 			err = messageSend(pids[k], title, "", content, "system", meta.Prefix, 0, 0, 2, []string{v})
 			if err != nil {
 				_ = pushLog(err, helper.ESErr)
