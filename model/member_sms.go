@@ -29,7 +29,7 @@ type SmsData_t struct {
 	S uint    `json:"s"`
 }
 
-func SmsList(page, pageSize uint, start, end, username, phone, state string) (SmsData_t, error) {
+func SmsList(page, pageSize uint, start, end, username, phone, state, ty string) (SmsData_t, error) {
 
 	ex := g.Ex{}
 	data := SmsData_t{}
@@ -44,6 +44,10 @@ func SmsList(page, pageSize uint, start, end, username, phone, state string) (Sm
 
 	if state != "" {
 		ex["state"] = state
+	}
+
+	if ty != "" {
+		ex["ty"] = ty
 	}
 
 	ex["prefix"] = meta.Prefix
