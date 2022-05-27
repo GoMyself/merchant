@@ -194,8 +194,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("tbl_members query = ", query)
-		fmt.Println("tbl_members err = ", err.Error())
+		//fmt.Println("tbl_members query = ", query)
+		//fmt.Println("tbl_members err = ", err.Error())
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -203,8 +203,8 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("tbl_member_rebate_info query = ", query)
-		fmt.Println("tbl_member_rebate_info err = ", err.Error())
+		//fmt.Println("tbl_member_rebate_info query = ", query)
+		//fmt.Println("tbl_member_rebate_info err = ", err.Error())
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -212,7 +212,7 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("MemberClosureInsert err = ", err.Error())
+		//fmt.Println("MemberClosureInsert err = ", err.Error())
 		return pushLog(fmt.Errorf("sql : %s, error : %s", treeNode, err.Error()), helper.DBErr)
 	}
 
@@ -222,6 +222,7 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		return pushLog(err, helper.DBErr)
 	}
 
+	MemberRebateUpdateCache(mr)
 	_, err = session.Set([]byte(m.Username), m.UID)
 	if err != nil {
 		return errors.New(helper.SessionErr)
@@ -875,6 +876,8 @@ func MemberRebateSelect(ids []string) (map[string]MemberRebate, error) {
 // 更新用户信息
 func MemberUpdate(username, adminID string, param map[string]string, tagsId []string) error {
 
+	var phoneHash string
+
 	mb, err := MemberFindOne(username)
 	if err != nil {
 		return err
@@ -904,7 +907,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 	if _, ok := param["phone"]; ok {
 
-		phoneHash := fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
+		phoneHash = fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
 		if memberBindCheck(g.Ex{"phone_hash": phoneHash}) {
 			return errors.New(helper.PhoneExist)
 		}
@@ -1027,6 +1030,10 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	err = tx.Commit()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
+	}
+
+	if _, ok := param["phone"]; ok {
+		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Err()
 	}
 
 	return nil
@@ -1845,7 +1852,7 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
-
+	MemberRebateUpdateCache(mr)
 	return nil
 }
 

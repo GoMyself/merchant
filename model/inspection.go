@@ -263,6 +263,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
+		uf := decimal.NewFromFloat(v.Flow).Sub(validBetAmount)
+		if uf.Cmp(decimal.Zero) == -1 {
+			uf = decimal.Zero
+		}
 		//组装活动的流水稽查
 		data.D = append(data.D, InspectionData{
 			No:               fmt.Sprintf(`%d`, i),
@@ -270,13 +274,13 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Level:            fmt.Sprintf(`%d`, mb.Level),
 			TopName:          mb.TopName,
 			Title:            v.Title,
-			Amount:           fmt.Sprintf(`%f`, v.Amount),
-			RewardAmount:     fmt.Sprintf(`%f`, v.Bonus),
+			Amount:           fmt.Sprintf(`%.4f`, v.Amount),
+			RewardAmount:     fmt.Sprintf(`%.4f`, v.Bonus),
 			ReviewName:       v.ReviewName,
 			FlowMultiple:     fmt.Sprintf(`%d`, v.Multiple),
-			FlowAmount:       fmt.Sprintf(`%f`, v.Flow),
+			FlowAmount:       fmt.Sprintf(`%.4f`, v.Flow),
 			FinishedAmount:   validBetAmount.StringFixed(4),
-			UnfinishedAmount: decimal.NewFromFloat(v.Flow).Sub(validBetAmount).StringFixed(4),
+			UnfinishedAmount: uf.StringFixed(4),
 			CreatedAt:        v.CreatedAt,
 			Ty:               "3",
 			Pid:              v.Pid,
@@ -514,7 +518,7 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	}
 
 	if endAt > 0 {
-		rg.Lt(endAt)
+		rg.Lt(endAt * 1000)
 	}
 
 	filters = append(filters, rg)
@@ -582,7 +586,7 @@ func EsDepost(username string, startAt, endAt int64) (decimal.Decimal, error) {
 	boolQuery.Filter(filters...)
 
 	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("name", username))
+	terms = append(terms, elastic.NewTermQuery("username", username))
 	terms = append(terms, elastic.NewTermQuery("state", DepositSuccess))
 
 	boolQuery.Must(terms...)

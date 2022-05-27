@@ -69,7 +69,7 @@ func (that *LogController) AdminLoginLog(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 
 	if params.Name != "" {
-		ex["name"] = params.Name
+		ex["username"] = params.Name
 	}
 
 	if params.StartTime == "" || params.EndTime == "" {

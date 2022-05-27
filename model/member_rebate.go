@@ -1,10 +1,27 @@
 package model
 
 import (
+	"fmt"
+	"merchant2/contrib/helper"
+
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/shopspring/decimal"
-	"merchant2/contrib/helper"
 )
+
+func MemberRebateUpdateCache(mr MemberRebate) error {
+
+	key := fmt.Sprintf("%s:m:rebate:%s", meta.Prefix, mr.UID)
+	vals := []interface{}{"zr", mr.ZR, "qp", mr.QP, "ty", mr.TY, "dj", mr.DJ, "dz", mr.DZ, "cp", mr.CP, "fc", mr.FC, "by", mr.BY, "cg_high_rebate", mr.CgHighRebate, "cg_official_rebate", mr.CgOfficialRebate}
+
+	pipe := meta.MerchantRedis.Pipeline()
+	pipe.Unlink(ctx, key)
+	pipe.HMSet(ctx, key, vals...)
+	pipe.Persist(ctx, key)
+	_, err := pipe.Exec(ctx)
+	pipe.Close()
+
+	return err
+}
 
 func MemberRebateFindOne(uid string) (MemberRebateResult_t, error) {
 

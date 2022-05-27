@@ -428,12 +428,11 @@ type adminLoginLogBase struct {
 //}
 
 type adminLoginLog struct {
-	UID       string `msg:"uid" json:"id"`
-	Name      string `msg:"name" json:"name"`
-	IP        string `msg:"ip" json:"ip"`
-	Device    string `msg:"device" json:"device"`
-	CreatedAt uint32 `msg:"created_at" json:"create_at"`
-	Prefix    string `msg:"prefix" json:"prefix"`
+	UserName string `db:"username" json:"username"`
+	IP       string `db:"ip" json:"ip"`
+	DeviceNo string `db:"device_no" json:"device_no"`
+	CreateAt uint32 `db:"create_at" json:"create_at"`
+	Prefix   string `db:"prefix" json:"prefix"`
 }
 
 // 后台用户登录记录
