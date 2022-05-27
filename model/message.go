@@ -225,7 +225,8 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 	// 审核通过
 	if state == 2 {
 		sDelay := int64(0)
-		if flag == 1 {
+		// 1 定时发送 2立即发送
+		if flag == 2 {
 			sDelay = data.SendAt - ns
 		}
 
