@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/beanstalkd/go-beanstalk"
 	"github.com/valyala/fasthttp"
 	"time"
@@ -8,6 +9,7 @@ import (
 
 func BeanPut(name string, param map[string]interface{}, delay int) (string, error) {
 
+	fmt.Printf("BeanPut topic: %s, param : %#v, delay : %d\n", name, param, delay)
 	m := &fasthttp.Args{}
 	for k, v := range param {
 		if _, ok := v.(string); ok {

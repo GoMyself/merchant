@@ -247,7 +247,8 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 		} else {
 			param["level"] = data.Level
 		}
-		_, _ = BeanPut("message", param, int(sDelay))
+		topic := fmt.Sprintf("%s_message", meta.Prefix)
+		_, _ = BeanPut(topic, param, int(sDelay))
 	}
 
 	return nil
