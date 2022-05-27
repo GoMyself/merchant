@@ -431,7 +431,7 @@ type adminLoginLog struct {
 	UID       string `msg:"uid" json:"id"`
 	UserName  string `msg:"username" json:"username"`
 	IP        string `msg:"ip" json:"ip"`
-	Device    string `msg:"device" json:"device"`
+	DeviceNo  string `msg:"device_no" json:"device_no"`
 	CreatedAt uint32 `msg:"created_at" json:"create_at"`
 	Prefix    string `msg:"prefix" json:"prefix"`
 }
