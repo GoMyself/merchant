@@ -594,8 +594,12 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.PhoneFMTErr)
 			return
 		}
+		if phone[0:1] != "0" {
+			param["phone"] = "0" + phone
+		} else {
+			param["phone"] = phone
+		}
 
-		param["phone"] = phone
 	}
 
 	if email != "" {
@@ -935,16 +939,17 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	password := string(ctx.PostArgs().Peek("password"))
 	remarks := string(ctx.PostArgs().Peek("remarks"))
-	sty := string(ctx.PostArgs().Peek("ty"))
-	szr := string(ctx.PostArgs().Peek("zr"))
-	sqp := string(ctx.PostArgs().Peek("qp"))
-	sdj := string(ctx.PostArgs().Peek("dj"))
-	sdz := string(ctx.PostArgs().Peek("dz"))
-	scp := string(ctx.PostArgs().Peek("cp"))
-	sfc := string(ctx.PostArgs().Peek("fc"))
-	sby := string(ctx.PostArgs().Peek("by"))
-	cgHighRebateTemp := string(ctx.PostArgs().Peek("cg_high_rebate"))
-	cgOfficialRebateTemp := string(ctx.PostArgs().Peek("cg_official_rebate"))
+	ty_temp := string(ctx.PostArgs().Peek("ty"))
+	zr_temp := string(ctx.PostArgs().Peek("zr"))
+	qp_temp := string(ctx.PostArgs().Peek("qp"))
+	dj_temp := string(ctx.PostArgs().Peek("dj"))
+	dz_temp := string(ctx.PostArgs().Peek("dz"))
+	cp_temp := string(ctx.PostArgs().Peek("cp"))
+	fc_temp := string(ctx.PostArgs().Peek("fc"))
+	by_temp := string(ctx.PostArgs().Peek("by"))
+	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
+	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
+
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
@@ -972,65 +977,83 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ty, err := decimal.NewFromString(sty) //下级会员体育返水比例
+	ty, err := decimal.NewFromString(ty_temp) //下级会员体育返水比例
 	if err != nil || ty.IsNegative() || ty.LessThan(maxRebate.TY) {
+
+		fmt.Println("sty = ", ty_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	zr, err := decimal.NewFromString(szr) //下级会员真人返水比例
+	zr, err := decimal.NewFromString(zr_temp) //下级会员真人返水比例
 	if err != nil || zr.IsNegative() || zr.LessThan(maxRebate.ZR) {
+
+		fmt.Println("szr = ", zr_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	qp, err := decimal.NewFromString(sqp) //下级会员棋牌返水比例
+	qp, err := decimal.NewFromString(qp_temp) //下级会员棋牌返水比例
 	if err != nil || qp.IsNegative() || qp.LessThan(maxRebate.QP) {
+
+		fmt.Println("sqp = ", qp_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	dj, err := decimal.NewFromString(sdj) //下级会员电竞返水比例
+	dj, err := decimal.NewFromString(dj_temp) //下级会员电竞返水比例
 	if err != nil || dj.IsNegative() || dj.LessThan(maxRebate.DJ) {
+
+		fmt.Println("sdj = ", dj_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	dz, err := decimal.NewFromString(sdz) //下级会员电子返水比例
+	dz, err := decimal.NewFromString(dz_temp) //下级会员电子返水比例
 	if err != nil || dz.IsNegative() || dz.LessThan(maxRebate.DZ) {
+
+		fmt.Println("sdz = ", dz_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	cp, err := decimal.NewFromString(scp) //下级会员彩票返水比例
+	cp, err := decimal.NewFromString(cp_temp) //下级会员彩票返水比例
 	if err != nil || cp.IsNegative() || cp.LessThan(maxRebate.CP) {
+
+		fmt.Println("scp = ", cp_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	fc, err := decimal.NewFromString(sfc) //下级会员斗鸡返水比例
+	fc, err := decimal.NewFromString(fc_temp) //下级会员斗鸡返水比例
 	if err != nil || fc.IsNegative() || fc.LessThan(maxRebate.FC) {
+		fmt.Println("sfc = ", fc_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	by, err := decimal.NewFromString(sby) //下级会员捕鱼返水比例
+	by, err := decimal.NewFromString(by_temp) //下级会员捕鱼返水比例
 	if err != nil || by.IsNegative() || by.LessThan(maxRebate.BY) {
+
+		fmt.Println("sby = ", by_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	nine := decimal.NewFromInt(9.00)
-	cgHighRebate, err := decimal.NewFromString(cgHighRebateTemp)
-	if err != nil || fc.IsNegative() ||
-		cgHighRebate.GreaterThan(maxRebate.CGHighRebate) ||
-		nine.GreaterThan(cgHighRebate) {
+	cgHighRebate, err := decimal.NewFromString(cg_high_rebate_temp)
+	if err != nil || fc.IsNegative() || cgHighRebate.GreaterThan(maxRebate.CGHighRebate) || nine.GreaterThan(cgHighRebate) {
+
+		fmt.Println("cgHighRebateTemp = ", cg_high_rebate_temp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
-	cgOfficialRebate, err := decimal.NewFromString(cgOfficialRebateTemp)
+	cgOfficialRebate, err := decimal.NewFromString(cg_official_rebate_temp)
 	if err != nil || fc.IsNegative() ||
 		cgOfficialRebate.GreaterThan(maxRebate.CGOfficialRebate) ||
 		nine.GreaterThan(cgOfficialRebate) {
+
+		fmt.Println("cgOfficialRebateTemp = ", cg_official_rebate_temp)
+
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 

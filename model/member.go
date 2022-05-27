@@ -1033,7 +1033,12 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	}
 
 	if _, ok := param["phone"]; ok {
-		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Err()
+
+		//fmt.Println("update phone = ", param["phone"])
+		//fmt.Println("update phoneHash = ", phoneHash)
+
+		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Val()
+		//fmt.Println("CF.ADD phoneExist v = ", v)
 	}
 
 	return nil
