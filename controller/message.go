@@ -317,6 +317,28 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 	helper.PrintJson(ctx, true, s)
 }
 
+// 已发系统站内信站内信列表
+func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
+
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	startTime := string(ctx.QueryArgs().Peek("start_time"))
+	endTime := string(ctx.QueryArgs().Peek("end_time"))
+	if page == 0 {
+		page = 1
+	}
+	if pageSize < 10 {
+		pageSize = 10
+	}
+	s, err := model.MessageSystemList(startTime, endTime, page, pageSize)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.PrintJson(ctx, true, s)
+}
+
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 

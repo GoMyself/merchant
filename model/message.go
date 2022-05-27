@@ -276,7 +276,54 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 		"prefix": meta.Prefix,
 		"msg_id": id,
 	}
-	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", page, pageSize, fields, param, map[string][]interface{}{}, map[string]string{})
+	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", false, page, pageSize, fields, param, map[string][]interface{}{}, map[string]string{})
+	if err != nil {
+		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
+	}
+
+	data := MessageEsData{}
+	data.S = pageSize
+	data.T = total
+	for _, v := range esData {
+		msg := MessageEs{}
+		msg.ID = v.Id
+		_ = helper.JsonUnmarshal(v.Source, &msg)
+		data.D = append(data.D, msg)
+	}
+
+	b, err := jettison.Marshal(data)
+	if err != nil {
+		return "", errors.New(helper.FormatErr)
+	}
+
+	return string(b), nil
+}
+
+//MessageSystemList  已发站系统内信列表
+func MessageSystemList(startTime, endTime string, page, pageSize int) (string, error) {
+
+	startAt, err := helper.TimeToLoc(startTime, loc) // 毫秒级时间戳
+	if err != nil {
+		return `{"t":0,"d":[]}`, errors.New(helper.DateTimeErr)
+	}
+	endAt, err := helper.TimeToLoc(endTime, loc) // 毫秒级时间戳
+	if err != nil {
+		return `{"t":0,"d":[]}`, errors.New(helper.DateTimeErr)
+	}
+
+	if startAt >= endAt {
+		return `{"t":0,"d":[]}`, errors.New(helper.QueryTimeRangeErr)
+	}
+
+	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "is_read", "send_name", "send_at", "prefix"}
+	param := map[string]interface{}{
+		"prefix":    meta.Prefix,
+		"send_name": "system",
+	}
+	rangeParam := map[string][]interface{}{
+		"bet_time": {startAt, endAt},
+	}
+	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", false, page, pageSize, fields, param, rangeParam, map[string]string{})
 	if err != nil {
 		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
 	}

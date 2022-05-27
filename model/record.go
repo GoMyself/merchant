@@ -177,7 +177,7 @@ func Game(ty, pageSize, page int, params map[string]string) (GameRecordData, err
 			"bet_time": {startAt, endAt},
 		}
 
-		data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), "bet_time", page, pageSize, param, rangeParam, aggParam)
+		data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), "bet_time", false, page, pageSize, param, rangeParam, aggParam)
 		if err != nil {
 			return data, err
 		}
@@ -230,7 +230,7 @@ func Game(ty, pageSize, page int, params map[string]string) (GameRecordData, err
 	if ty == GameMemberWinOrLose {
 
 		param["name"] = params["username"]
-		data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), rangeField, page, pageSize, param, rangeParam, aggParam)
+		data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), rangeField, false, page, pageSize, param, rangeParam, aggParam)
 		if err != nil {
 			return data, err
 		}
@@ -300,7 +300,7 @@ func Game(ty, pageSize, page int, params map[string]string) (GameRecordData, err
 		param["top_name"] = params["top_name"]
 	}
 
-	data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), rangeField, page, pageSize, param, rangeParam, aggParam)
+	data, err = recordGameESQuery(pullPrefixIndex("tbl_game_record"), rangeField, false, page, pageSize, param, rangeParam, aggParam)
 	if err != nil {
 		return data, err
 	}
@@ -527,11 +527,11 @@ func groupByEs(page, pageSize int, other map[string]string, param map[string]int
 	return result, nil
 }
 
-func recordGameESQuery(index, sortField string, page, pageSize int,
+func recordGameESQuery(index, sortField string, ascending bool, page, pageSize int,
 	param map[string]interface{}, rangeParam map[string][]interface{}, aggField map[string]string) (GameRecordData, error) {
 
 	data := GameRecordData{Agg: map[string]string{}}
-	total, esData, aggData, err := esSearch(index, sortField, page, pageSize, gameRecordFields, param, rangeParam, aggField)
+	total, esData, aggData, err := esSearch(index, sortField, ascending, page, pageSize, gameRecordFields, param, rangeParam, aggField)
 	if err != nil {
 		return data, err
 	}
