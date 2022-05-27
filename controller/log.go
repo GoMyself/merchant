@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/olivere/elastic/v7"
 	"github.com/valyala/fasthttp"
@@ -61,9 +60,7 @@ type systemLogParam struct {
 func (that *LogController) AdminLoginLog(ctx *fasthttp.RequestCtx) {
 
 	params := adminLoginParam{}
-	fmt.Println("<==========>")
 	err := validator.Bind(ctx, &params)
-	fmt.Println(err)
 	if err != nil {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
@@ -72,7 +69,7 @@ func (that *LogController) AdminLoginLog(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 
 	if params.Name != "" {
-		ex["name"] = params.Name
+		ex["username"] = params.Name
 	}
 
 	if params.StartTime == "" || params.EndTime == "" {
