@@ -876,6 +876,8 @@ func MemberRebateSelect(ids []string) (map[string]MemberRebate, error) {
 // 更新用户信息
 func MemberUpdate(username, adminID string, param map[string]string, tagsId []string) error {
 
+	var phoneHash string
+
 	mb, err := MemberFindOne(username)
 	if err != nil {
 		return err
@@ -905,7 +907,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 	if _, ok := param["phone"]; ok {
 
-		phoneHash := fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
+		phoneHash = fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
 		if memberBindCheck(g.Ex{"phone_hash": phoneHash}) {
 			return errors.New(helper.PhoneExist)
 		}
@@ -1031,7 +1033,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	}
 
 	if _, ok := param["phone"]; ok {
-		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", param["phone"]).Err()
+		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Err()
 	}
 
 	return nil
