@@ -429,7 +429,7 @@ type adminLoginLogBase struct {
 
 type adminLoginLog struct {
 	UID       string `msg:"uid" json:"id"`
-	Name      string `msg:"name" json:"name"`
+	UserName  string `msg:"username" json:"username"`
 	IP        string `msg:"ip" json:"ip"`
 	Device    string `msg:"device" json:"device"`
 	CreatedAt uint32 `msg:"created_at" json:"create_at"`
