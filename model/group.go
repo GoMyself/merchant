@@ -4,11 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
-	"strings"
-
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
+	"merchant2/contrib/helper"
+	"strings"
 )
 
 type Group struct {
@@ -85,11 +84,14 @@ func GroupRefresh() error {
 
 		id := fmt.Sprintf("GM%d", val.Gid)
 		pipe.Unlink(ctx, id)
-		data := strings.Split(val.Permission, ",")
-		for _, v := range data {
-			pipe.HSet(ctx, id, v, "1")
+		// 只保存开启状态的分组
+		if val.State == 1 {
+			data := strings.Split(val.Permission, ",")
+			for _, v := range data {
+				pipe.HSet(ctx, id, v, "1")
+			}
+			pipe.Persist(ctx, id)
 		}
-		pipe.Persist(ctx, id)
 		//pipe.HSet(ctx, "GroupMap", id, ","+val.Permission+",") // 暂停
 	}
 	_, err = pipe.Exec(ctx)
