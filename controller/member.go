@@ -1126,17 +1126,22 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		recd["remarks"] = remarks
 	}
 
-	mr := model.MemberRebate{
-		TY:               ty.StringFixed(1),
-		ZR:               zr.StringFixed(1),
-		QP:               qp.StringFixed(1),
-		DJ:               dj.StringFixed(1),
-		DZ:               dz.StringFixed(1),
-		CP:               cp.StringFixed(1),
-		FC:               fc.StringFixed(1),
-		BY:               by.StringFixed(1),
-		CgHighRebate:     cgHighRebate.StringFixed(2),
-		CgOfficialRebate: cgOfficialRebate.StringFixed(2),
+	mr := model.MemberRebateResult_t{
+		TY:               ty,
+		ZR:               zr,
+		QP:               qp,
+		DJ:               dj,
+		DZ:               dz,
+		CP:               cp,
+		FC:               fc,
+		BY:               by,
+		CGHighRebate:     cgHighRebate,
+		CGOfficialRebate: cgOfficialRebate,
+	}
+
+	if ok := model.MemberRebateCmp(mb.UID, mr); !ok {
+		helper.Print(ctx, false, err.Error())
+		return
 	}
 
 	// 更新代理

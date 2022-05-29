@@ -222,7 +222,7 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 		return pushLog(err, helper.DBErr)
 	}
 
-	MemberRebateUpdateCache(mr)
+	MemberRebateUpdateCache2(uid, mr)
 	_, err = session.Set([]byte(m.Username), m.UID)
 	if err != nil {
 		return errors.New(helper.SessionErr)
@@ -1306,7 +1306,10 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		return err
 	}
 
-	balance := decimal.NewFromFloat(mb.Balance)
+	balance, err := decimal.NewFromString(mb.Balance)
+	if err != nil {
+		return err
+	}
 	// 余额大于0，不清零
 	if balance.Cmp(decimal.Zero) > 0 {
 		return nil
@@ -1320,7 +1323,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 	record := g.Record{
 		"balance": "0.00",
 	}
-	query, _, _ := dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.Uid}).ToSQL()
+	query, _, _ := dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -1337,7 +1340,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		CreatedAt:    time.Now().UnixMilli(),
 		ID:           id,
 		CashType:     DividendPromo,
-		UID:          mb.Uid,
+		UID:          mb.UID,
 		Username:     mb.Username,
 		Prefix:       meta.Prefix,
 		Remark:       remark,
@@ -1800,7 +1803,7 @@ func memberPlatformBalance(username string) []PlatBalance {
 	return p
 }
 
-func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) error {
+func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebateResult_t) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -1822,16 +1825,16 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 	}
 
 	recd := g.Record{
-		"ty":                 mr.TY,
-		"zr":                 mr.ZR,
-		"qp":                 mr.QP,
-		"dj":                 mr.DJ,
-		"dz":                 mr.DZ,
-		"cp":                 mr.CP,
-		"fc":                 mr.FC,
-		"by":                 mr.BY,
-		"cg_high_rebate":     mr.CgHighRebate,
-		"cg_official_rebate": mr.CgOfficialRebate,
+		"ty":                 mr.TY.StringFixed(1),
+		"zr":                 mr.ZR.StringFixed(1),
+		"qp":                 mr.QP.StringFixed(1),
+		"dj":                 mr.DJ.StringFixed(1),
+		"dz":                 mr.DZ.StringFixed(1),
+		"cp":                 mr.CP.StringFixed(1),
+		"fc":                 mr.FC.StringFixed(1),
+		"by":                 mr.BY.StringFixed(1),
+		"cg_high_rebate":     mr.CGHighRebate.StringFixed(2),
+		"cg_official_rebate": mr.CGOfficialRebate.StringFixed(2),
 	}
 	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
 	_, err = tx.Exec(query)
@@ -1857,7 +1860,7 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebate) er
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
-	MemberRebateUpdateCache(mr)
+	MemberRebateUpdateCache1(uid, mr)
 	return nil
 }
 
