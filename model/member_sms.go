@@ -11,16 +11,17 @@ import (
 )
 
 type Sms_t struct {
-	Username string `json:"username" db:"username"`
-	Phone    string `json:"phone" db:"phone"`
-	State    string `json:"state" db:"state"`
-	Code     string `json:"code" db:"code"`
-	IP       string `json:"ip" db:"ip"`
-	Ty       string `json:"ty" db:"ty"`
-	CreateAt string `json:"create_at" db:"create_at"`
-	Flags    string `json:"flags" db:"flags"`
-	Source   string `json:"source" db:"source"`
-	ID       string `json:"id" db:"id"`
+	Username  string `json:"username" db:"username"`
+	Phone     string `json:"phone" db:"phone"`
+	State     string `json:"state" db:"state"`
+	Code      string `json:"code" db:"code"`
+	IP        string `json:"ip" db:"ip"`
+	Ty        string `json:"ty" db:"ty"`
+	CreateAt  string `json:"create_at" db:"create_at"`
+	UpdatedAt string `json:"updated_at" db:"updated_at"`
+	Flags     string `json:"flags" db:"flags"`
+	Source    string `json:"source" db:"source"`
+	ID        string `json:"id" db:"id"`
 }
 
 type SmsData_t struct {
@@ -90,7 +91,7 @@ func SmsList(page, pageSize uint, start, end, username, phone, state, ty string)
 	//.Order(g.C("ts").Desc())
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "phone", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "phone", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	//fmt.Println("SmsList query = ", query)
 
 	err := meta.MerchantTD.Select(&data.D, query)
