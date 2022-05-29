@@ -1140,7 +1140,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	}
 
 	if ok := model.MemberRebateCmp(mb.UID, mr); !ok {
-		helper.Print(ctx, false, err.Error())
+		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 

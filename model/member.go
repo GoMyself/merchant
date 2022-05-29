@@ -231,6 +231,55 @@ func MemberInsert(username, password, remark, maintainName, groupName, agencyTyp
 	return nil
 }
 
+func MemberFindByUid(uid string) (Member, error) {
+
+	m := Member{}
+
+	t := dialect.From("tbl_members")
+	query, _, _ := t.Select(colsMember...).Where(g.Ex{"uid": uid}).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&m, query)
+	if err != nil && err != sql.ErrNoRows {
+		return m, pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return m, errors.New(helper.UsernameErr)
+	}
+
+	return m, nil
+}
+
+func MemberUpdateCache(uid, username string) error {
+
+	var (
+		err error
+		dst Member
+	)
+
+	if helper.CtypeDigit(uid) {
+		dst, err = MemberFindByUid(uid)
+		if err != nil {
+			return err
+		}
+	} else {
+		dst, err = MemberFindOne(username)
+		if err != nil {
+			return err
+		}
+	}
+
+	key := meta.Prefix + ":member:" + dst.Username
+	fields := []interface{}{"uid", dst.UID, "username", dst.Username, "password", dst.Password, "birth", dst.Birth, "birth_hash", dst.BirthHash, "realname_hash", dst.RealnameHash, "email_hash", dst.EmailHash, "phone_hash", dst.PhoneHash, "zalo_hash", dst.ZaloHash, "prefix", dst.Prefix, "tester", dst.Tester, "withdraw_pwd", dst.WithdrawPwd, "regip", dst.Regip, "reg_device", dst.RegDevice, "reg_url", dst.RegUrl, "created_at", dst.CreatedAt, "last_login_ip", dst.LastLoginIp, "last_login_at", dst.LastLoginAt, "source_id", dst.SourceId, "first_deposit_at", dst.FirstDepositAt, "first_deposit_amount", dst.FirstDepositAmount, "first_bet_at", dst.FirstBetAt, "first_bet_amount", dst.FirstBetAmount, "", dst.SecondDepositAt, "", dst.SecondDepositAmount, "top_uid", dst.TopUid, "top_name", dst.TopName, "parent_uid", dst.ParentUid, "parent_name", dst.ParentName, "bankcard_total", dst.BankcardTotal, "last_login_device", dst.LastLoginDevice, "last_login_source", dst.LastLoginSource, "remarks", dst.Remarks, "state", dst.State, "level", dst.Level, "balance", dst.Balance, "lock_amount", dst.LockAmount, "commission", dst.Commission, "group_name", dst.GroupName, "agency_type", dst.AgencyType, "address", dst.Address, "avatar", dst.Avatar}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	pipe.Del(ctx, key)
+	pipe.HMSet(ctx, key, fields...)
+	pipe.Persist(ctx, key)
+	pipe.Exec(ctx)
+	pipe.Close()
+	return nil
+}
+
 /**
  * @Description: Transfer 会员列表-帐户信息
  * @Author: parker
@@ -308,18 +357,23 @@ func MemberUpdateState(sliceName []string, state int8) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	// 更新用户redis state
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
+	/*
+		// 更新用户redis state
+		pipe := meta.MerchantRedis.TxPipeline()
+		defer pipe.Close()
 
-	for k := range sliceName {
-		pipe.HSet(ctx, sliceName[k], "state", state)
-		pipe.Persist(ctx, sliceName[k])
-	}
+		for _, v := range sliceName {
+			pipe.HSet(ctx, sliceName[v], "state", state)
+			pipe.Persist(ctx, sliceName[v])
+		}
 
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+	*/
+	for _, v := range sliceName {
+		MemberUpdateCache("", v)
 	}
 
 	return nil
@@ -985,6 +1039,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 		if err != nil {
 			return pushLog(err, helper.DBErr)
 		}
+		MemberUpdateCache(uid, "")
 	}
 
 	// 删除该用户的所有标签
@@ -1273,6 +1328,7 @@ func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) err
 		return pushLog(err, helper.DBErr)
 	}
 
+	MemberUpdateCache("", username)
 	return nil
 }
 
@@ -1324,7 +1380,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		"balance": "0.00",
 	}
 	query, _, _ := dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
-	fmt.Println(query)
+	//fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -1353,7 +1409,8 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 	}
 
 	_ = tx.Commit()
-
+	//fmt.Println(query)
+	MemberUpdateCache(mb.UID, "")
 	return nil
 }
 
@@ -1822,6 +1879,8 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebateResu
 			_ = tx.Rollback()
 			return pushLog(err, helper.DBErr)
 		}
+
+		MemberUpdateCache(uid, "")
 	}
 
 	recd := g.Record{
@@ -1889,6 +1948,7 @@ func MemberUpdateMaintainName(uid, maintainName string) error {
 		return pushLog(err, helper.DBErr)
 	}
 
+	MemberUpdateCache(uid, "")
 	return nil
 }
 
