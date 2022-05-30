@@ -11,7 +11,7 @@ import (
 )
 
 type bankcardInsertParam struct {
-	Username    string `rule:"uname" name:"username" min:"4" max:"9" msg:"1031"`
+	Username    string `rule:"uname" name:"username" min:"4" max:"20" msg:"username"`
 	BankID      string `rule:"digit" name:"bank_id" msg:"bank id error"`
 	bankcardNo  string `rule:"digitString" name:"bankcard_no" min:"6" max:"20" msg:"bankcard no error"`
 	BankAddress string `rule:"none" name:"bank_addr"`

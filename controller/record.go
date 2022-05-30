@@ -367,8 +367,7 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 			return
 		}
 	}
-	bmin, _ := decimal.NewFromString(betMin)
-	bmax, _ := decimal.NewFromString(betMax)
+
 	param := map[string]string{
 		"uid":         uid,
 		"pid":         pid,
@@ -388,8 +387,8 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 	}
 
 	if betMax != "" && betMin != "" && betMax != "0" && betMin != "0" {
-		param["bet_min"] = bmin.Div(decimal.NewFromInt(1000)).StringFixed(3)
-		param["bet_max"] = bmax.Div(decimal.NewFromInt(1000)).StringFixed(3)
+		param["bet_min"] = betMin
+		param["bet_max"] = betMax
 	}
 
 	if ty < model.GameMemberTransferGroup {
