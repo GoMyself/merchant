@@ -98,8 +98,6 @@ var (
 	colsTransaction          = helper.EnumFields(Transaction{})
 	colsCommPlan             = helper.EnumFields(CommissionPlan{})
 	colsCommissionTransfer   = helper.EnumFields(CommissionTransfer{})
-	colsCommPlanDetail       = helper.EnumFields(CommissionDetail{})
-	colsTblCommissions       = helper.EnumFields(Commissions{})
 	colsMemberRebate         = helper.EnumFields(MemberRebate{})
 	colsMemberInfo           = helper.EnumFields(memberInfo{})
 	colLevelRecord           = helper.EnumFields(MemberLevelRecord{})
@@ -116,8 +114,6 @@ var (
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
 	withdrawFields           = []string{"id", "parent_name", "prefix", "bid", "flag", "finance_type", "oid", "uid", "level", "parent_uid", "agency_type", "username", "pid", "amount", "state", "automatic", "created_at", "confirm_at", "confirm_uid", "review_remark", "withdraw_at", "confirm_name", "withdraw_uid", "withdraw_name", "withdraw_remark", "bank_name", "card_name", "card_no"}
-	loginLogFields           = []string{"username", "ip", "ips", "device", "device_no", "date", "serial", "agency", "parents"}
-	smsLogFields             = []string{"username", "ip", "create_at", "code", "phone", "phone_hash"}
 )
 
 func Constructor(mt *MetaTable, rpc string) {
