@@ -28,7 +28,10 @@ func transferRebateRateCheck(mb, destMb model.Member) error {
 		src.QP.GreaterThan(dest.QP) || //棋牌返水比例
 		src.DJ.GreaterThan(dest.DJ) || //电竞返水比例
 		src.DZ.GreaterThan(dest.DZ) || //电子返水比例
-		src.CP.GreaterThan(dest.CP) { //彩票返水比例
+		src.CP.GreaterThan(dest.CP) || //彩票返水比例
+		src.BY.GreaterThan(dest.BY) || //捕鱼返水比例
+		src.CGHighRebate.GreaterThan(dest.CGHighRebate) || //cg彩票高频彩返点比例
+		src.CGOfficialRebate.GreaterThan(dest.CGOfficialRebate) { //cg彩票官方彩返点比例
 		return errors.New(helper.RebateOutOfRange)
 	}
 
