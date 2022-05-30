@@ -133,6 +133,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 	meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
 
 	BankcardUpdateCache(data.Username)
+	MemberUpdateCache("", data.Username)
 
 	//fmt.Println("BankcardInsert CF.ADD = ", err)
 
