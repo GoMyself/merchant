@@ -79,16 +79,15 @@ func AppUpgradeLoadCache() {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
-	pipe.Unlink(ctx, "upgrade:ios")
-	pipe.Unlink(ctx, "upgrade:android")
 	for _, v := range data {
-		key := "upgrade:" + v.Platform
+		key := fmt.Sprintf("%s:upgrade:%s", meta.Prefix, v.Platform)
 		bytes, err := helper.JsonMarshal(&v)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
+		pipe.Unlink(ctx, key)
 		pipe.Set(ctx, key, string(bytes), 100*time.Hour)
 		pipe.Persist(ctx, key)
 	}
