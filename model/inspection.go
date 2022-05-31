@@ -134,14 +134,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	//上一次提现成功
 	var cutTime int64
-	//lastWithdraw, err := getWithdrawLast(username)
-	//fmt.Println(lastWithdraw)
-	//if err != nil && err != sql.ErrNoRows {
-	//	return data, mb, errors.New(helper.DBErr)
-	//}
-	//if err != sql.ErrNoRows {
-	//	cutTime = lastWithdraw.CreatedAt
-	//}
+
 	cutTime = int64(mb.LastWithdrawAt)
 
 	lastInspection, err := getInspectionLast(username)
@@ -184,6 +177,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 			dividendAmount := decimal.NewFromFloat(v.Amount)
 			flow := decimal.NewFromFloat(v.WaterFlow)
 			//组装红利的流水稽查
+			uf := flow.Sub(totalVaild)
+			if uf.Cmp(decimal.Zero) < 0 {
+				uf = decimal.Zero
+			}
 			data.D = append(data.D, InspectionData{
 				No:               fmt.Sprintf(`%d`, i),
 				Username:         username,
@@ -196,7 +193,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				FlowMultiple:     fmt.Sprintf(`%d`, v.WaterMultiple),
 				FlowAmount:       flow.StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
-				UnfinishedAmount: flow.Sub(totalVaild).StringFixed(4),
+				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        int64(v.ReviewAt),
 				Ty:               "2",
 				Pid:              "0",
@@ -215,6 +212,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 			adjustAmount := decimal.NewFromFloat(v.Amount)
 			multi := decimal.NewFromInt(int64(v.TurnoverMulti))
 			//组装vip礼金的流水稽查
+			uf := adjustAmount.Mul(multi).Sub(totalVaild)
+			if uf.Cmp(decimal.Zero) < 0 {
+				uf = decimal.Zero
+			}
 			data.D = append(data.D, InspectionData{
 				No:               fmt.Sprintf(`%d`, i),
 				Username:         username,
@@ -227,7 +228,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				FlowMultiple:     fmt.Sprintf(`%d`, v.TurnoverMulti),
 				FlowAmount:       adjustAmount.Mul(multi).StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
-				UnfinishedAmount: adjustAmount.Mul(multi).Sub(totalVaild).StringFixed(4),
+				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
 				Pid:              "0",
@@ -244,6 +245,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	if depostAmount.Cmp(decimal.Zero) == 1 {
 		//组装存款的流水稽查
+		uf := depostAmount.Sub(totalVaild)
+		if uf.Cmp(decimal.Zero) < 0 {
+			uf = decimal.Zero
+		}
 		data.D = append(data.D, InspectionData{
 			No:               fmt.Sprintf(`%d`, i),
 			Username:         username,
@@ -256,7 +261,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 			FlowMultiple:     "1",
 			FlowAmount:       depostAmount.StringFixed(4),
 			FinishedAmount:   totalVaild.StringFixed(4),
-			UnfinishedAmount: depostAmount.Sub(totalVaild).StringFixed(4),
+			UnfinishedAmount: uf.StringFixed(4),
 			CreatedAt:        0,
 			Ty:               "1",
 			Pid:              "0",
