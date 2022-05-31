@@ -10,7 +10,8 @@ import (
 
 func PrivList() (string, error) {
 
-	val, err := meta.MerchantRedis.Get(ctx, "PrivAll").Result()
+	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
+	val, err := meta.MerchantRedis.Get(ctx, privAllKey).Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
 	}
@@ -20,12 +21,13 @@ func PrivList() (string, error) {
 
 func PrivCheck(uri, gid string) error {
 
-	privId, err := meta.MerchantRedis.HGet(ctx, "PrivMap", uri).Result()
+	key := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
+	privId, err := meta.MerchantRedis.HGet(ctx, key, uri).Result()
 	if err != nil {
 		return err
 	}
 
-	id := fmt.Sprintf("GM%s", gid)
+	id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, gid)
 	exists := meta.MerchantRedis.HExists(ctx, id, privId).Val()
 	if !exists {
 		return errors.New("404")
@@ -57,73 +59,76 @@ func PrivRefresh() error {
 	}
 
 	pipe := meta.MerchantRedis.TxPipeline()
-	pipe.Unlink(ctx, "PrivAll", "PrivMap")
-	pipe.Set(ctx, "PrivAll", string(recs), 0)
+
+	privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
+	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
+	pipe.Unlink(ctx, privAllKey, privMapKey)
+	pipe.Set(ctx, privAllKey, string(recs), 0)
 
 	for _, val := range records {
 		id := fmt.Sprintf("%d", val.ID)
-		pipe.HSet(ctx, "PrivMap", val.Module, id)
+		pipe.HSet(ctx, privMapKey, val.Module, id)
 	}
-	pipe.Persist(ctx, "PrivAll")
-	pipe.Persist(ctx, "PrivMap")
+	pipe.Persist(ctx, privAllKey)
+	pipe.Persist(ctx, privMapKey)
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
 
-	err = PrivLevelCache(records)
-	if err != nil {
-		return err
-	}
+	//err = PrivLevelCache(records)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }
 
-//PrivLevelCache 处理权限分级保存至 redis
-func PrivLevelCache(values []Priv) error {
+////PrivLevelCache 处理权限分级保存至 redis
+//func PrivLevelCache(values []Priv) error {
+//
+//	data := make(map[string]*PrivTree)
+//	privFormatByPid(0, "", values, data)
+//
+//	pipe := meta.MerchantRedis.TxPipeline()
+//	pipe.Unlink(ctx, "priv_tree")
+//	// 去除前两级 存入redis hash
+//	for i, v := range data {
+//		if v.Parent == nil || v.Parent.Parent == nil {
+//			continue
+//		}
+//		pipe.HSet(ctx, "priv_tree", i, v)
+//	}
+//
+//	pipe.Persist(ctx, "priv_tree")
+//
+//	_, err := pipe.Exec(ctx)
+//	if err != nil {
+//		fmt.Println(err)
+//		return pushLog(err, helper.RedisErr)
+//	}
+//
+//	return nil
+//}
 
-	data := make(map[string]*PrivTree)
-	privFormatByPid(0, "", values, data)
-
-	pipe := meta.MerchantRedis.TxPipeline()
-	pipe.Unlink(ctx, "priv_tree")
-	// 去除前两级 存入redis hash
-	for i, v := range data {
-		if v.Parent == nil || v.Parent.Parent == nil {
-			continue
-		}
-		pipe.HSet(ctx, "priv_tree", i, v)
-	}
-
-	pipe.Persist(ctx, "priv_tree")
-
-	_, err := pipe.Exec(ctx)
-	if err != nil {
-		fmt.Println(err)
-		return pushLog(err, helper.RedisErr)
-	}
-
-	return nil
-}
-
-func privFormatByPid(pid int64, index string, privs []Priv, data map[string]*PrivTree) {
-
-	for i, v := range privs {
-		if pid == v.Pid {
-			data[v.Module] = &PrivTree{
-				Priv:   &privs[i],
-				Parent: nil,
-			}
-
-			if d, ok := data[index]; ok {
-				data[v.Module].Parent = d
-			}
-			// 获取子级
-			privFormatByPid(v.ID, v.Module, privs, data)
-		}
-	}
-}
+//func privFormatByPid(pid int64, index string, privs []Priv, data map[string]*PrivTree) {
+//
+//	for i, v := range privs {
+//		if pid == v.Pid {
+//			data[v.Module] = &PrivTree{
+//				Priv:   &privs[i],
+//				Parent: nil,
+//			}
+//
+//			if d, ok := data[index]; ok {
+//				data[v.Module].Parent = d
+//			}
+//			// 获取子级
+//			privFormatByPid(v.ID, v.Module, privs, data)
+//		}
+//	}
+//}
 
 func (c *PrivTree) MarshalBinary() ([]byte, error) {
 	return helper.JsonMarshal(c)

@@ -76,13 +76,14 @@ func GroupRefresh() error {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
-	pipe.Unlink(ctx, "GroupAll")
-	pipe.Set(ctx, "GroupAll", string(recs), 0)
-	pipe.Persist(ctx, "GroupAll")
+	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
+	pipe.Unlink(ctx, key)
+	pipe.Set(ctx, key, string(recs), 0)
+	pipe.Persist(ctx, key)
 
 	for _, val := range records {
 
-		id := fmt.Sprintf("GM%d", val.Gid)
+		id := fmt.Sprintf("%s:priv:GM%d", meta.Prefix, val.Gid)
 		pipe.Unlink(ctx, id)
 		// 只保存开启状态的分组
 		if val.State == 1 {
@@ -164,7 +165,8 @@ func GroupInsert(pid string, data Group) error {
 
 func GroupList() (string, error) {
 
-	val, err := meta.MerchantRedis.Get(ctx, "GroupAll").Result()
+	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
+	val, err := meta.MerchantRedis.Get(ctx, key).Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
 	}
