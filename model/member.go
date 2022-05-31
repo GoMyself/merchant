@@ -1975,6 +1975,21 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("cg_official_rebate").As("cg_official_rebate"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
+	if err == sql.ErrNoRows {
+
+		res.ZR = decimal.NewFromInt(0).Truncate(1)
+		res.QP = decimal.NewFromInt(0).Truncate(1)
+		res.TY = decimal.NewFromInt(0).Truncate(1)
+		res.DJ = decimal.NewFromInt(0).Truncate(1)
+		res.DZ = decimal.NewFromInt(0).Truncate(1)
+		res.CP = decimal.NewFromInt(0).Truncate(1)
+		res.FC = decimal.NewFromInt(0).Truncate(1)
+		res.BY = decimal.NewFromInt(0).Truncate(1)
+		res.CGHighRebate = decimal.NewFromFloat(9.00).Truncate(2)
+		res.CGOfficialRebate = decimal.NewFromFloat(9.00).Truncate(2)
+
+		return res, nil
+	}
 	if err != nil {
 		return res, pushLog(err, helper.DBErr)
 	}

@@ -130,10 +130,11 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 		return errors.New(helper.UpdateRPCErr)
 	}
 
-	meta.MerchantRedis.Do(ctx, "CF.ADD", "bankcard_exist", bankcardNo).Err()
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	_ = meta.MerchantRedis.Do(ctx, "CF.ADD", key, bankcardNo).Err()
 
 	BankcardUpdateCache(data.Username)
-	MemberUpdateCache("", data.Username)
+	_ = MemberUpdateCache("", data.Username)
 
 	//fmt.Println("BankcardInsert CF.ADD = ", err)
 
@@ -235,16 +236,19 @@ func BankcardList(page, pageSize uint, username, bankcard string) (BankcardData,
 func BankCardExistRedis(bankcardNo string) error {
 
 	pipe := meta.MerchantRedis.Pipeline()
-	ex1_temp := pipe.Do(ctx, "CF.EXISTS", "bankcard_exist", bankcardNo)
-	ex2_temp := pipe.Do(ctx, "CF.EXISTS", "bankcard_blacklist", bankcardNo)
+	defer pipe.Close()
+
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	ex1Temp := pipe.Do(ctx, "CF.EXISTS", key, bankcardNo)
+	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	ex2Temp := pipe.Do(ctx, "CF.EXISTS", key, bankcardNo)
 	_, err := pipe.Exec(ctx)
-	pipe.Close()
 	if err != nil {
 		return errors.New(helper.RedisErr)
 	}
 
-	ex1 := ex1_temp.Val()
-	ex2 := ex2_temp.Val()
+	ex1 := ex1Temp.Val()
+	ex2 := ex2Temp.Val()
 
 	if v, ok := ex1.(int64); ok && v == 1 {
 		return errors.New(helper.BankCardExistErr)
@@ -443,12 +447,13 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	pipe := meta.MerchantRedis.Pipeline()
+	defer pipe.Close()
 
-	//pipe.Do(ctx, "JSON.DEL", key, path)
-	pipe.Do(ctx, "CF.DEL", "bankcard_exist", encRes["enckey"])
-	pipe.Do(ctx, "CF.ADD", "bankcard_blacklist", encRes["enckey"])
-	pipe.Exec(ctx)
-	pipe.Close()
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	pipe.Do(ctx, "CF.DEL", key, encRes["enckey"])
+	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	pipe.Do(ctx, "CF.ADD", key, encRes["enckey"])
+	_, _ = pipe.Exec(ctx)
 
 	//key := "cbc:" + data.Username
 	//path := fmt.Sprintf(".$%s", data.ID)

@@ -99,14 +99,14 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 	}
 
 	switch ty {
-	case 1:
-		key = "device_blacklist"
+	case TyDevice:
+		key = fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
 	case TyIP:
-		key = "ip_blacklist"
+		key = fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
 	case TyPhone:
-		key = "phone_blacklist"
+		key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 	case TyBankcard:
-		key = "bankcard_blacklist"
+		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	}
 
 	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
@@ -116,11 +116,9 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		"prefix":         meta.Prefix,
 		"bank_card_hash": valueHash,
 	}
-
 	recs := g.Record{
 		"state": "3",
 	}
-
 	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -212,40 +210,44 @@ func BlacklistLoadCache(ty int) error {
 	}
 
 	pipe := meta.MerchantRedis.Pipeline()
+	defer pipe.Close()
+
 	if ty != 0 {
 		key := ""
 		switch ty {
-		case 1:
-			key = "device_blacklist"
+		case TyDevice:
+			key = fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
 		case TyIP:
-			key = "ip_blacklist"
+			key = fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
 		case TyPhone:
-			key = "phone_blacklist"
+			key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 		case TyBankcard:
-			key = "bankcard_blacklist"
+			key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 		}
 		pipe.Unlink(ctx, key)
 	} else {
-		pipe.Unlink(ctx, "phone_blacklist", "bankcard_blacklist", "ip_blacklist")
+		pipe.Unlink(ctx, fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix),
+			fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix),
+			fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix),
+			fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix))
 	}
 	for _, v := range data {
 		key := ""
 		switch v.Ty {
-		case 1:
-			key = "device_blacklist"
+		case TyDevice:
+			key = fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
 		case TyIP:
-			key = "ip_blacklist"
+			key = fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
 		case TyPhone:
-			key = "phone_blacklist"
+			key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 		case TyBankcard:
-			key = "bankcard_blacklist"
+			key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 		}
 
 		pipe.Do(ctx, "CF.ADD", key, v.Value)
 	}
 
-	pipe.Exec(ctx)
-	pipe.Close()
+	_, _ = pipe.Exec(ctx)
 
 	return nil
 }
