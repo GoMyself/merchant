@@ -212,36 +212,38 @@ func BlacklistLoadCache(ty int) error {
 	pipe := meta.MerchantRedis.Pipeline()
 	defer pipe.Close()
 
+	deviceKey := fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
+	ipKey := fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
+	phoneKey := fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
+	bankcardKey := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+
 	if ty != 0 {
 		key := ""
 		switch ty {
 		case TyDevice:
-			key = fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
+			key = deviceKey
 		case TyIP:
-			key = fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
+			key = ipKey
 		case TyPhone:
-			key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
+			key = phoneKey
 		case TyBankcard:
-			key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+			key = bankcardKey
 		}
 		pipe.Unlink(ctx, key)
 	} else {
-		pipe.Unlink(ctx, fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix),
-			fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix),
-			fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix),
-			fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix))
+		pipe.Unlink(ctx, deviceKey, ipKey, phoneKey, bankcardKey)
 	}
 	for _, v := range data {
 		key := ""
 		switch v.Ty {
 		case TyDevice:
-			key = fmt.Sprintf("%s:merchant:device_blacklist", meta.Prefix)
+			key = deviceKey
 		case TyIP:
-			key = fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
+			key = ipKey
 		case TyPhone:
-			key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
+			key = phoneKey
 		case TyBankcard:
-			key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+			key = bankcardKey
 		}
 
 		pipe.Do(ctx, "CF.ADD", key, v.Value)
