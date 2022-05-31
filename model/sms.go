@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"merchant2/contrib/helper"
 	"time"
@@ -10,16 +11,14 @@ import (
 
 func SMSChannelList(ex g.Ex) ([]SMSChannel, error) {
 
-	data := []SMSChannel{}
-
+	var data []SMSChannel
 	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_sms")
-
 	query, _, _ := t.Select("id", "name", "alias", "created_at", "txt", "voice", "remark", "created_name").
 		Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 
