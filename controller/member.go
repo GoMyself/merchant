@@ -499,7 +499,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 
 	var press = exp.NewExpressionList(exp.AndType, g.C("uid").Eq(g.C("top_uid")))
 	if username != "" {
-		if !validator.CheckUName(username, 5, 14) {
+		if !validator.CheckUName(username, 5, 14) && username != "root" {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
