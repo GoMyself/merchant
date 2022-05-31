@@ -213,7 +213,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if adjustData.T > 0 {
 		for _, v := range adjustData.D {
 			adjustAmount := decimal.NewFromFloat(v.Amount)
-			flowAmount := decimal.NewFromInt(int64(v.TurnoverMulti))
+			multi := decimal.NewFromInt(int64(v.TurnoverMulti))
 			//组装vip礼金的流水稽查
 			data.D = append(data.D, InspectionData{
 				No:               fmt.Sprintf(`%d`, i),
@@ -225,9 +225,9 @@ func InspectionList(username string) (Inspection, Member, error) {
 				RewardAmount:     adjustAmount.StringFixed(4),
 				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.TurnoverMulti),
-				FlowAmount:       adjustAmount.Mul(flowAmount).StringFixed(4),
+				FlowAmount:       adjustAmount.Mul(multi).StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
-				UnfinishedAmount: flowAmount.Sub(totalVaild).StringFixed(4),
+				UnfinishedAmount: adjustAmount.Mul(multi).Sub(totalVaild).StringFixed(4),
 				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
 				Pid:              "0",
