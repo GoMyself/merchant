@@ -13,8 +13,15 @@ import (
 )
 
 type Inspection struct {
-	T int64            `json:"t"`
-	D []InspectionData `json:"d"`
+	T   int64            `json:"t"`
+	D   []InspectionData `json:"d"`
+	Agg AggInspection    `json:"agg"`
+}
+
+type AggInspection struct {
+	FlowAmount       string `json:"flow_amount"`
+	VaildAmount      string `json:"vaild_amount"`
+	UnFishFlowAmount string `json:"un_fish_flow_amount"`
 }
 
 type PromoRecord struct {
@@ -172,6 +179,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
+	var needFlowAmount decimal.Decimal
+
 	if dividendData.T > 0 {
 		for _, v := range dividendData.D {
 			dividendAmount := decimal.NewFromFloat(v.Amount)
@@ -198,6 +207,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				Ty:               "2",
 				Pid:              "0",
 			})
+			needFlowAmount = needFlowAmount.Add(flow)
 			i++
 		}
 	}
@@ -233,6 +243,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 				Ty:               "4",
 				Pid:              "0",
 			})
+			needFlowAmount = needFlowAmount.Add(adjustAmount.Mul(multi))
+
 			i++
 		}
 	}
@@ -266,6 +278,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Ty:               "1",
 			Pid:              "0",
 		})
+		needFlowAmount = needFlowAmount.Add(depostAmount)
+
 		i++
 	}
 
@@ -299,9 +313,21 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Platforms:        promoMap[v.Pid].Platforms,
 			RecordId:         v.Id,
 		})
+		needFlowAmount = needFlowAmount.Add(decimal.NewFromFloat(v.Flow))
+
 		i++
 	}
 	data.T = int64(i) - 1
+	uf := needFlowAmount.Sub(totalVaild)
+	if uf.Cmp(decimal.Zero) < 0 {
+		uf = decimal.Zero
+	}
+	agg := AggInspection{
+		FlowAmount:       needFlowAmount.StringFixed(4),
+		VaildAmount:      totalVaild.StringFixed(4),
+		UnFishFlowAmount: uf.StringFixed(4),
+	}
+	data.Agg = agg
 	return data, mb, nil
 }
 
