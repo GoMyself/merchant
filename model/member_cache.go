@@ -78,31 +78,7 @@ func memberInfoCache(username string) (tbl_members_t, error) {
 	if err = rs.Scan(&m); err != nil {
 		return m, pushLog(rs.Err(), helper.RedisErr)
 	}
-
-	/*
-		pipe := meta.MerchantRedis.TxPipeline()
-
-		exist := pipe.Exists(ctx, username)
-		rs := pipe.HMGet(ctx, username, "uid", "username", "realname_hash", "email_hash", "phone_hash", "zalo_hash", "regip", "reg_device", "created_at", "last_login_ip", "last_login_at", "source_id", "first_deposit_at", "first_bet_at", "first_bet_amount", "first_deposit_amount", "second_deposit_at", "second_deposit_amount", "top_uid", "top_name", "parent_uid", "parent_name", "bankcard_total", "last_login_device", "last_login_source", "remarks", "balance", "lock_amount", "commission", "state", "withdraw_pwd", "level", "maintain_name", "last_up_down_at", "agency_type", "group_name", "address")
-
-		_, err := pipe.Exec(ctx)
-		pipe.Close()
-		if err != nil {
-			fmt.Println("memberInfoCache pipe.Exec err = ", err.Error())
-			return m, errors.New(helper.RedisErr)
-		}
-
-		num, err := exist.Result()
-		if num == 0 {
-			fmt.Println("memberInfoCache exist.Result err = ", err.Error())
-			return m, errors.New(helper.UsernameErr)
-		}
-
-		if err = rs.Scan(&m); err != nil {
-			fmt.Println("memberInfoCache rs.Scan err = ", err.Error())
-			return m, errors.New(helper.RedisErr)
-		}
-	*/
+	
 	return m, nil
 }
 
