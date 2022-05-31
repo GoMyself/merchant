@@ -202,31 +202,34 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 
 	//查调整
-	adjustAmount, err := EsAdjust(username, cutTime, now)
+	adjustData, err := EsAdjust(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	if adjustAmount.Cmp(decimal.Zero) == 1 {
-
-		//组装vip礼金的流水稽查
-		data.D = append(data.D, InspectionData{
-			No:               fmt.Sprintf(`%d`, i),
-			Username:         username,
-			Level:            fmt.Sprintf(`%d`, mb.Level),
-			TopName:          mb.TopName,
-			Title:            "调整（分数调整和输赢调整）",
-			Amount:           "0.0000",
-			RewardAmount:     adjustAmount.StringFixed(4),
-			ReviewName:       "",
-			FlowMultiple:     "1",
-			FlowAmount:       adjustAmount.StringFixed(4),
-			FinishedAmount:   totalVaild.StringFixed(4),
-			UnfinishedAmount: adjustAmount.Sub(totalVaild).StringFixed(4),
-			CreatedAt:        0,
-			Ty:               "4",
-			Pid:              "0",
-		})
-		i++
+	if adjustData.T > 0 {
+		for _, v := range adjustData.D {
+			adjustAmount := decimal.NewFromFloat(v.Amount)
+			flowAmount := decimal.NewFromInt(int64(v.TurnoverMulti))
+			//组装vip礼金的流水稽查
+			data.D = append(data.D, InspectionData{
+				No:               fmt.Sprintf(`%d`, i),
+				Username:         username,
+				Level:            fmt.Sprintf(`%d`, mb.Level),
+				TopName:          mb.TopName,
+				Title:            "调整（分数调整和输赢调整）",
+				Amount:           "0.0000",
+				RewardAmount:     adjustAmount.StringFixed(4),
+				ReviewName:       "",
+				FlowMultiple:     "1",
+				FlowAmount:       adjustAmount.Mul(flowAmount).StringFixed(4),
+				FinishedAmount:   totalVaild.StringFixed(4),
+				UnfinishedAmount: adjustAmount.Mul(flowAmount).Sub(totalVaild).StringFixed(4),
+				CreatedAt:        0,
+				Ty:               "4",
+				Pid:              "0",
+			})
+			i++
+		}
 	}
 
 	//查存款
@@ -659,52 +662,35 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decima
 	return decimal.NewFromFloat(*handOutAmount.Value), nil
 }
 
-func EsAdjust(username string, startAt, endAt int64) (decimal.Decimal, error) {
+func EsAdjust(username string, startTime, endTime int64) (AdjustData, error) {
 
-	waterFlow := decimal.NewFromFloat(0.0000)
-	if startAt == 0 && endAt == 0 {
-		return waterFlow, errors.New(helper.QueryTimeRangeErr)
+	data := AdjustData{}
+	query := elastic.NewBoolQuery()
+	if startTime != 0 && endTime != 0 {
+
+		query.Filter(elastic.NewRangeQuery("review_at").Gte(startTime).Lte(endTime))
 	}
+	query.Filter(elastic.NewTermQuery("is_turnover", "1"))
+	query.Filter(elastic.NewTermQuery("hand_out_state", AdjustReviewPass))
+	query.Filter(elastic.NewTermQuery("username", username))
 
-	boolQuery := elastic.NewBoolQuery()
-
-	filters := make([]elastic.Query, 0)
-	rg := elastic.NewRangeQuery("review_at").Gte(startAt)
-	if startAt == 0 {
-		rg.IncludeLower(false)
-	}
-	if endAt == 0 {
-		rg.IncludeUpper(false)
-	}
-
-	if endAt > 0 {
-		rg.Lt(endAt)
-	}
-
-	filters = append(filters, rg)
-	boolQuery.Filter(filters...)
-
-	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("username", username))
-	terms = append(terms, elastic.NewTermQuery("is_turnover", "1"))
-	terms = append(terms, elastic.NewTermQuery("hand_out_state", AdjustSuccess))
-
-	boolQuery.Must(terms...)
-
-	fsc := elastic.NewFetchSourceContext(true)
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(esPrefixIndex("tbl_member_adjust")).
-		Aggregation("amount_agg", elastic.NewSumAggregation().Field("amount")).Do(ctx)
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_member_adjust"), "apply_at", 1, 100, adjustFields, query, nil)
 	if err != nil {
-		fmt.Println(err)
-		return waterFlow, err
+		return data, err
 	}
 
-	handOutAmount, ok := resOrder.Aggregations.Sum("amount_agg")
-	if handOutAmount == nil || !ok {
-		return waterFlow, errors.New("agg error")
+	data.T = t
+	var names []string
+	for _, v := range esResult {
+
+		record := MemberAdjust{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
 	}
 
-	return decimal.NewFromFloat(*handOutAmount.Value), nil
+	return data, nil
 }
