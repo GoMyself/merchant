@@ -175,7 +175,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 	//查升级红利
-	dividendData, err := EsDividend(username, cutTime, now, []int{DividendUpgrade, DividendBirthday, DividendMonthly, DividendRedPacket})
+	dividendData, err := EsDividend(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -616,12 +616,12 @@ func EsDepost(username string, startAt, endAt int64) (decimal.Decimal, error) {
 	return decimal.NewFromFloat(*depositAmount.Value), nil
 }
 
-func EsDividend(username string, startAt, endAt int64, ty []int) (DividendEsData, error) {
+func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
 
 	data := DividendEsData{}
 	query := elastic.NewBoolQuery()
 	query.Filter(elastic.NewTermQuery("username", username))
-	query.Filter(elastic.NewRangeQuery("ty").Gte(DividendUpgrade).Lte(DividendRedPacket))
+	query.MustNot(elastic.NewTermsQuery("ty", DividendPromo))
 	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
 	query.Filter(elastic.NewTermQuery("water_limit", 2))
 
@@ -646,10 +646,10 @@ func EsDividend(username string, startAt, endAt int64, ty []int) (DividendEsData
 	for _, v := range esResult {
 
 		record := Dividend{}
-		//fmt.Println(string(v.Source))
+		fmt.Println(string(v.Source))
 		_ = helper.JsonUnmarshal(v.Source, &record)
 		record.ID = v.Id
-		//fmt.Println(record)
+		fmt.Println(record)
 		data.D = append(data.D, record)
 		names = append(names, record.ParentName)
 	}
