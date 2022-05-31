@@ -192,7 +192,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				Title:            "红利/礼金",
 				Amount:           "0.0000",
 				RewardAmount:     dividendAmount.StringFixed(4),
-				ReviewName:       "系统自动发送",
+				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.WaterMultiple),
 				FlowAmount:       flow.StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
@@ -223,7 +223,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				Title:            "调整（分数调整和输赢调整）",
 				Amount:           "0.0000",
 				RewardAmount:     adjustAmount.StringFixed(4),
-				ReviewName:       "",
+				ReviewName:       v.ReviewName,
 				FlowMultiple:     "1",
 				FlowAmount:       adjustAmount.Mul(flowAmount).StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
@@ -635,6 +635,7 @@ func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
 	}
 
 	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	fmt.Println("query:", query)
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_member_dividend"), "review_at", 1, 100, dividendFields, query, nil)
 	if err != nil {
