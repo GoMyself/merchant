@@ -47,6 +47,24 @@ type remarkLogParams struct {
 	Msg      string `rule:"none" name:"msg" max:"300"`
 }
 
+// 用户银行卡查询参数
+type memberCardLogInfo struct {
+	Username string `rule:"none" name:"username" msg:"username error"`
+	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
+	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
+	RealName string `rule:"none" name:"realname" msg:"realname error"`
+}
+
+// 用户银行卡参数
+type memberCardLogParams struct {
+	Username string `rule:"none" name:"username" msg:"username error"`
+	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
+	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
+	RealName string `rule:"none" name:"realname" msg:"realname error"`
+	Ip       string `rule:"none" name:"ip" msg:"ip error"`
+	Status   int    `rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
+}
+
 func (that *MemberController) Detail(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
@@ -733,6 +751,116 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, helper.Success)
+}
+
+/**
+ * @Description: MemberCardList // 查询会员 银行卡 记录
+ * @Author: starc
+ * @Date: 2022/5/31 16:38
+ * @LastEditTime: 2022/5/31 20:00
+ * @LastEditors: starc
+ */
+func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
+
+	Username := string(ctx.QueryArgs().Peek("username"))
+	BankName := string(ctx.QueryArgs().Peek("bankname"))
+	BankNo := string(ctx.QueryArgs().Peek("bankno"))
+	RealName := string(ctx.QueryArgs().Peek("realname"))
+
+	// 会员用户名
+	if !validator.CheckUName(Username, 5, 20) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	// 后台账号 字母和数字
+	if !helper.CtypeAlnum(RealName) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	// 银行卡检测
+	if !validator.CheckAName(BankName, 5, 20) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	// 银行账号全数字
+	if !validator.CheckStringDigit(BankNo) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	viewData, err2 := model.MemberCardOverview(Username, RealName, BankName, BankNo)
+	if err2 != nil {
+		helper.Print(ctx, false, err2.Error())
+		return
+	}
+	helper.Print(ctx, true, viewData)
+}
+
+/**
+ * @Description: MemberCardList // 新增会员 银行卡 记录
+ * @Author: starc
+ * @Date: 2022/5/31 16:38
+ * @LastEditTime: 2022/5/31 20:00
+ * @LastEditors: starc
+ */
+func (that *MemberController) MemberCardLogInsert(ctx *fasthttp.RequestCtx) {
+
+	params := memberCardLogParams{}
+	err := validator.Bind(ctx, &params)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	// 会员名校验
+	if !validator.CheckUName(params.Username, 5, 20) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+	// 会员真实姓名
+	if !validator.CheckAName(params.RealName, 5, 20) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	// ip地址名称校验
+	if !validator.CheckIps(params.Ip) {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	/// 状态信息
+	if !validator.CheckStringDigit(string(params.Status)) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	// 银行名称校验
+	if !validator.CheckStringLength(params.BankName, 5, 20) {
+		helper.Print(ctx, false, helper.ContentLengthErr)
+		return
+	}
+
+	// 银行卡号
+	if !validator.CheckStringDigit(params.BankNo) {
+		helper.Print(ctx, false, helper.BankcardIDErr)
+		return
+	}
+
+	// 插入时银行卡合法性检查  TODO 需要 params.BankCard
+	// if model.BankcardCheck(ctx, params.BankName, params.BankNo, params.BankName) != "1000" {
+	// 	helper.Print(ctx, false, helper.BankcardIDErr)
+	// 	return
+	// }
+	err2 := model.MemberCardInsert(params.Username, params.RealName, params.BankName, params.BankNo, params.Ip, params.Status, time.Now().UnixMilli())
+	if err2 != nil {
+		helper.Print(ctx, false, err2.Error())
+		return
+	}
+	helper.Print(ctx, true, true)
 }
 
 // 会员管理-会员列表-数据概览

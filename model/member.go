@@ -63,6 +63,19 @@ type memberDeviceReg struct {
 	Uid       uint64 `db:"uid" json:"uid"`
 }
 
+/*
+会员银行卡 数据概览
+*/
+type MemberCardOverviewData struct {
+	Username string `rule:"none" name:"username" msg:"username error"`
+	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
+	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
+	RealName string `rule:"none" name:"realname" msg:"realname error"`
+	Ip       string `rule:"none" name:"ip" msg:"ip error"`
+	Status   int    `rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
+	Ts       string `rule:"none" nane:"ts" `
+}
+
 // MemberDataOverviewData 会员管理-会员列表-数据概览 response structure
 type MemberDataOverviewData struct {
 	NetAmount      float64 `json:"net_amount"`       // 总输赢
@@ -1306,6 +1319,82 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	}
 
 	return data, nil
+}
+
+/**
+ * @Description: MemberCardList // 会员管理-会员银行卡概览
+ * @Author: starc
+ * @Date: 2022/5/31 16:38
+ * @LastEditTime: 2022/5/31 19:00
+ * @LastEditors: starc
+ */
+func MemberCardOverview(username, realname, bankname, bank_no string) (MemberCardOverviewData, error) {
+
+	data := MemberCardOverviewData{}
+
+	// 获取uid
+	mb, err := MemberFindOne(username)
+	if err != nil {
+		return data, err
+	}
+	fmt.Println("username:", username, "member id:", mb)
+	rex := g.Ex{
+		"username": username,
+		"realname": realname,
+		"bankname": bankname,
+		"bank_no":  bank_no,
+	}
+
+	//// query
+	query, pam, errs := dialect.From("bandcardcheck_log").Where(rex).ToSQL()
+	fmt.Println(query, pam, errs)
+
+	err = meta.MerchantDB.Get(&data.BankNo, query)
+	if err != nil {
+		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	return data, nil
+}
+
+/**
+ * @Description: MemberCardList // 会员管理-会员银行卡新增
+ * @Author: starc
+ * @Date: 2022/5/31 16:38
+ * @LastEditTime: 2022/5/31 19:00
+ * @LastEditors: starc
+ */
+func MemberCardInsert(username, realname, bankname, bank_no, ip string, status int, ts int64) error {
+
+	// 开始插入事务
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	trans := MemberCardOverviewData{
+		Username: username,
+		RealName: realname,
+		BankName: bankname,
+		BankNo:   bank_no,
+		Ip:       ip,
+		Status:   status,
+		Ts:       string(ts),
+	}
+	query2, param, errs := dialect.Insert("bandcardcheck_log").Rows(trans).ToSQL()
+	if errs != nil {
+		_ = tx.Rollback()
+		return pushLog(fmt.Errorf("%s, ToSql interface, %s,[%s] ", err.Error(), query2, param), helper.DBErr)
+	}
+	_, err = tx.Exec(query2)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query2), helper.DBErr)
+	}
+
+	_ = tx.Commit()
+
+	return nil
 }
 
 func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) error {
