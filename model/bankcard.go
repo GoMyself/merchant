@@ -347,7 +347,7 @@ func BankcardUpdateCache(username string) {
 		return
 	}
 
-	key := "cbc:" + username
+	key := fmt.Sprintf("%s:merchant:cbc:%s", meta.Prefix, username)
 
 	pipe := meta.MerchantRedis.Pipeline()
 	pipe.Del(ctx, key)
