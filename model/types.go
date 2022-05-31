@@ -248,19 +248,21 @@ type DividendEsData struct {
 }
 
 type Dividend struct {
-	ID         string  `db:"id" json:"id"`
-	UID        string  `db:"uid" json:"uid"`
-	Prefix     string  `db:"prefix" json:"prefix"`
-	Ty         int     `db:"ty" json:"ty"`
-	Username   string  `db:"username" json:"username"`
-	TopUid     string  `db:"top_uid" json:"top_uid"`         //总代uid
-	TopName    string  `db:"top_name" json:"top_name"`       //总代代理
-	ParentUid  string  `db:"parent_uid" json:"parent_uid"`   //上级uid
-	ParentName string  `db:"parent_name" json:"parent_name"` //上级代理
-	Amount     float64 `db:"amount" json:"amount"`
-	ReviewAt   uint64  `db:"review_at" json:"review_at"`
-	ReviewUid  string  `db:"review_uid" json:"review_uid"`
-	ReviewName string  `db:"review_name" json:"review_name"`
+	ID            string  `db:"id" json:"id"`
+	UID           string  `db:"uid" json:"uid"`
+	Prefix        string  `db:"prefix" json:"prefix"`
+	Ty            int     `db:"ty" json:"ty"`
+	Username      string  `db:"username" json:"username"`
+	TopUid        string  `db:"top_uid" json:"top_uid"`         //总代uid
+	TopName       string  `db:"top_name" json:"top_name"`       //总代代理
+	ParentUid     string  `db:"parent_uid" json:"parent_uid"`   //上级uid
+	ParentName    string  `db:"parent_name" json:"parent_name"` //上级代理
+	Amount        float64 `db:"amount" json:"amount"`
+	ReviewAt      uint64  `db:"review_at" json:"review_at"`
+	ReviewUid     string  `db:"review_uid" json:"review_uid"`
+	ReviewName    string  `db:"review_name" json:"review_name"`
+	WaterFlow     float64 `db:"water_flow" json:"water_flow"`
+	WaterMultiple int     `db:"water_multiple" json:"water_multiple"`
 }
 
 type MemberDividend struct {

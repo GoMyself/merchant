@@ -175,30 +175,34 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 	//查升级红利
-	dividendAmount, err := EsDividend(username, cutTime, now, []int{DividendUpgrade, DividendBirthday, DividendMonthly, DividendRedPacket})
+	dividendData, err := EsDividend(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	if dividendAmount.Cmp(decimal.Zero) == 1 {
-		//组装红利的流水稽查
-		data.D = append(data.D, InspectionData{
-			No:               fmt.Sprintf(`%d`, i),
-			Username:         username,
-			Level:            fmt.Sprintf(`%d`, mb.Level),
-			TopName:          mb.TopName,
-			Title:            "红利/礼金",
-			Amount:           "0.0000",
-			RewardAmount:     dividendAmount.StringFixed(4),
-			ReviewName:       "系统自动发送",
-			FlowMultiple:     "1",
-			FlowAmount:       dividendAmount.StringFixed(4),
-			FinishedAmount:   totalVaild.StringFixed(4),
-			UnfinishedAmount: dividendAmount.Sub(totalVaild).StringFixed(4),
-			CreatedAt:        0,
-			Ty:               "2",
-			Pid:              "0",
-		})
-		i++
+	if dividendData.T > 0 {
+		for _, v := range dividendData.D {
+			dividendAmount := decimal.NewFromFloat(v.Amount)
+			flow := decimal.NewFromFloat(v.WaterFlow)
+			//组装红利的流水稽查
+			data.D = append(data.D, InspectionData{
+				No:               fmt.Sprintf(`%d`, i),
+				Username:         username,
+				Level:            fmt.Sprintf(`%d`, mb.Level),
+				TopName:          mb.TopName,
+				Title:            "红利/礼金",
+				Amount:           "0.0000",
+				RewardAmount:     dividendAmount.StringFixed(4),
+				ReviewName:       "系统自动发送",
+				FlowMultiple:     fmt.Sprintf(`%d`, v.WaterMultiple),
+				FlowAmount:       flow.StringFixed(4),
+				FinishedAmount:   totalVaild.StringFixed(4),
+				UnfinishedAmount: flow.Sub(totalVaild).StringFixed(4),
+				CreatedAt:        int64(v.ReviewAt),
+				Ty:               "2",
+				Pid:              "0",
+			})
+			i++
+		}
 	}
 
 	//查调整
@@ -223,8 +227,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 				FlowMultiple:     "1",
 				FlowAmount:       adjustAmount.Mul(flowAmount).StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
-				UnfinishedAmount: adjustAmount.Mul(flowAmount).Sub(totalVaild).StringFixed(4),
-				CreatedAt:        0,
+				UnfinishedAmount: flowAmount.Sub(totalVaild).StringFixed(4),
+				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
 				Pid:              "0",
 			})
@@ -612,54 +616,45 @@ func EsDepost(username string, startAt, endAt int64) (decimal.Decimal, error) {
 	return decimal.NewFromFloat(*depositAmount.Value), nil
 }
 
-func EsDividend(username string, startAt, endAt int64, ty []int) (decimal.Decimal, error) {
+func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
 
-	waterFlow := decimal.NewFromFloat(0.0000)
-	if startAt == 0 && endAt == 0 {
-		return waterFlow, errors.New(helper.QueryTimeRangeErr)
+	data := DividendEsData{}
+	query := elastic.NewBoolQuery()
+	query.Filter(elastic.NewTermQuery("username", username))
+	query.MustNot(elastic.NewTermsQuery("ty", DividendPromo))
+	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
+	query.Filter(elastic.NewTermQuery("water_limit", 2))
+
+	if startAt != 0 && endAt != 0 {
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
-	boolQuery := elastic.NewBoolQuery()
-
-	filters := make([]elastic.Query, 0)
-	rg := elastic.NewRangeQuery("review_at").Gte(startAt)
-	if startAt == 0 {
-		rg.IncludeLower(false)
-	}
-	if endAt == 0 {
-		rg.IncludeUpper(false)
-	}
-
-	if endAt > 0 {
-		rg.Lt(endAt)
-	}
-
-	filters = append(filters, rg)
-	boolQuery.Filter(filters...)
-
-	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("username", username))
-	terms = append(terms, elastic.NewRangeQuery("ty").Gte(DividendUpgrade).Lte(DividendRedPacket))
-	terms = append(terms, elastic.NewTermQuery("state", DividendReviewPass))
-
-	boolQuery.Must(terms...)
-
-	fsc := elastic.NewFetchSourceContext(true)
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(esPrefixIndex("tbl_member_dividend")).
-		Aggregation("amount_agg", elastic.NewSumAggregation().Field("amount")).Do(ctx)
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_member_dividend"), "review_at", 1, 100, dividendFields, query, nil)
 	if err != nil {
-		fmt.Println(err)
-		return waterFlow, err
+		return data, pushLog(err, helper.DBErr)
 	}
 
-	handOutAmount, ok := resOrder.Aggregations.Sum("amount_agg")
-	if handOutAmount == nil || !ok {
-		return waterFlow, errors.New("agg error")
+	var names []string
+	data.T = t
+	for _, v := range esResult {
+
+		record := Dividend{}
+		fmt.Println(string(v.Source))
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		fmt.Println(record)
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
 	}
 
-	return decimal.NewFromFloat(*handOutAmount.Value), nil
+	return data, nil
 }
 
 func EsAdjust(username string, startTime, endTime int64) (AdjustData, error) {
@@ -671,7 +666,7 @@ func EsAdjust(username string, startTime, endTime int64) (AdjustData, error) {
 		query.Filter(elastic.NewRangeQuery("review_at").Gte(startTime).Lte(endTime))
 	}
 	query.Filter(elastic.NewTermQuery("is_turnover", "1"))
-	query.Filter(elastic.NewTermQuery("hand_out_state", AdjustReviewPass))
+	query.Filter(elastic.NewTermQuery("state", AdjustReviewPass))
 	query.Filter(elastic.NewTermQuery("username", username))
 
 	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
