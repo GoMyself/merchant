@@ -452,6 +452,8 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 		return pushLog(err, helper.DBErr)
 	}
 
+	_ = MemberUpdateCache(uid, "")
+
 	return nil
 }
 

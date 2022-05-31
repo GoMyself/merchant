@@ -1358,7 +1358,7 @@ func MemberFull(id string, field []string) (map[string]string, error) {
 
 func MemberBalanceZero(username, remark, adminID, adminName string) error {
 
-	mb, err := memberInfoCache(username)
+	mb, err := MemberBalance(username)
 	if err != nil {
 		return err
 	}
@@ -1396,9 +1396,9 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		BillNo:       id,
 		CreatedAt:    time.Now().UnixMilli(),
 		ID:           id,
-		CashType:     DividendPromo,
+		CashType:     TransactionUpPoint,
 		UID:          mb.UID,
-		Username:     mb.Username,
+		Username:     username,
 		Prefix:       meta.Prefix,
 		Remark:       remark,
 	}
@@ -1411,7 +1411,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 
 	_ = tx.Commit()
 	//fmt.Println(query)
-	MemberUpdateCache(mb.UID, "")
+	_ = MemberUpdateCache(mb.UID, "")
 	return nil
 }
 

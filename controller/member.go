@@ -953,7 +953,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 	planID := string(ctx.PostArgs().Peek("plan_id"))
 
-	if !validator.CheckUName(username, 5, 14) {
+	if !validator.CheckUName(username, 5, 14) && username != "root" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
