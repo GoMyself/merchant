@@ -1396,7 +1396,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		BillNo:       id,
 		CreatedAt:    time.Now().UnixMilli(),
 		ID:           id,
-		CashType:     DividendPromo,
+		CashType:     TransactionUpPoint,
 		UID:          mb.UID,
 		Username:     mb.Username,
 		Prefix:       meta.Prefix,
