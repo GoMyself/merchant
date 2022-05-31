@@ -224,7 +224,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				Amount:           "0.0000",
 				RewardAmount:     adjustAmount.StringFixed(4),
 				ReviewName:       v.ReviewName,
-				FlowMultiple:     "1",
+				FlowMultiple:     fmt.Sprintf(`%d`, v.TurnoverMulti),
 				FlowAmount:       adjustAmount.Mul(flowAmount).StringFixed(4),
 				FinishedAmount:   totalVaild.StringFixed(4),
 				UnfinishedAmount: flowAmount.Sub(totalVaild).StringFixed(4),
