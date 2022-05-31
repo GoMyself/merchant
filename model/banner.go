@@ -277,7 +277,7 @@ func BannersLoadCache() error {
 
 	for _, v := range single {
 		for k := range DeviceMap {
-			key := fmt.Sprintf("G%d%d", v, k)
+			key := fmt.Sprintf("%s:banner:G%d%d", meta.Prefix, v, k)
 			pipe.Unlink(ctx, key)
 		}
 
@@ -300,15 +300,14 @@ func BannersLoadCache() error {
 
 		if singleBanner.Device == "0" {
 			for k := range DeviceMap {
-				key := fmt.Sprintf("G%d%d", v, k)
+				key := fmt.Sprintf("%s:banner:G%d%d", meta.Prefix, v, k)
 				pipe.Set(ctx, key, base.String(), 100*time.Hour)
 				pipe.Persist(ctx, key)
 			}
 		} else {
 			di := strings.SplitN(singleBanner.Device, ",", 8)
 			for _, val := range di {
-				key := fmt.Sprintf("G%d%s", v, val)
-
+				key := fmt.Sprintf("%s:banner:G%d%s", meta.Prefix, v, val)
 				pipe.Set(ctx, key, base.String(), 100*time.Hour)
 				pipe.Persist(ctx, key)
 			}
@@ -317,7 +316,7 @@ func BannersLoadCache() error {
 
 	for _, v := range array {
 		for k := range DeviceMap {
-			key := fmt.Sprintf("G%d%d", v, k)
+			key := fmt.Sprintf("%s:banner:G%d%d", meta.Prefix, v, k)
 			pipe.Unlink(ctx, key)
 		}
 
@@ -341,13 +340,13 @@ func BannersLoadCache() error {
 
 			if val.Device == "0" {
 				for k := range DeviceMap {
-					key := fmt.Sprintf("G%d%d", v, k)
+					key := fmt.Sprintf("%s:banner:G%d%d", meta.Prefix, v, k)
 					results[key] = append(results[key], str)
 				}
 			} else {
 				di := strings.SplitN(val.Device, ",", 8)
 				for _, d := range di {
-					key := fmt.Sprintf("G%d%s", v, d)
+					key := fmt.Sprintf("%s:banner:G%d%s", meta.Prefix, v, d)
 					results[key] = append(results[key], str)
 				}
 			}
