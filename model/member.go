@@ -236,8 +236,11 @@ func MemberFindByUid(uid string) (Member, error) {
 
 	m := Member{}
 
-	t := dialect.From("tbl_members")
-	query, _, _ := t.Select(colsMember...).Where(g.Ex{"uid": uid}).Limit(1).ToSQL()
+	ex := g.Ex{
+		"uid":    uid,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_members").Select(colsMember...).Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&m, query)
 	if err != nil && err != sql.ErrNoRows {
 		return m, pushLog(err, helper.DBErr)
