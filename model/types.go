@@ -6,6 +6,14 @@ const (
 	TGDateFormat = "2006-01-02T15:04:05+07:00"
 )
 
+type Cate struct {
+	ID     int64  `db:"id" json:"id"`
+	Level  string `db:"level" json:"level"`
+	Name   string `db:"name" json:"name"`
+	Sort   int    `db:"sort" json:"sort"`
+	Prefix string `db:"prefix" json:"prefix"`
+}
+
 type MemberData struct {
 	Member
 	RealName string `json:"real_name"`

@@ -141,9 +141,9 @@ func GameToMinio(pid ...string) error {
 			continue
 		}
 
-		key := fmt.Sprintf("game:%s", v.ID)
-		hotKey := fmt.Sprintf("game:h:%s", v.ID)
-		newKey := fmt.Sprintf("game:n:%s", v.ID)
+		key := fmt.Sprintf("%s:game:%s", meta.Prefix, v.ID)
+		hotKey := fmt.Sprintf("%s:game:h:%s", meta.Prefix, v.ID)
+		newKey := fmt.Sprintf("%s:game:n:%s", meta.Prefix, v.ID)
 		pipe.Unlink(ctx, key)
 		pipe.Unlink(ctx, hotKey)
 		pipe.Unlink(ctx, newKey)
