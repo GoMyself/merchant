@@ -63,6 +63,28 @@ type memberDeviceReg struct {
 	Uid       uint64 `db:"uid" json:"uid"`
 }
 
+/*
+会员银行卡 数据概览
+*/
+type MemberCardOverviewData struct {
+	Ts       string `rule:"none" nane:"ts" `
+	Username string `rule:"none" name:"username" msg:"username error"`
+	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
+	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
+	RealName string `rule:"none" name:"realname" msg:"realname error"`
+	Ip       string `rule:"none" name:"ip" msg:"ip error"`
+	Status   int    `rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
+}
+
+/*
+MemberCardOverviewData 分页数据
+*/
+type MemberCardOverviews struct {
+	D []MemberCardOverviewData `json:"d"`
+	T int64                    `json:"t"`
+	S uint                     `json:"s"`
+}
+
 // MemberDataOverviewData 会员管理-会员列表-数据概览 response structure
 type MemberDataOverviewData struct {
 	NetAmount      float64 `json:"net_amount"`       // 总输赢
@@ -1309,6 +1331,47 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	}
 
 	return data, nil
+}
+
+/**
+ * @Description: CardOverviewList // 会员管理-会员银行卡概览 模糊查询 分页查询
+ * @Author: starc
+ * @Date: 2022/6/1 13:38
+ * @LastEditTime: 2022/6/1 19:00
+ * @LastEditors: starc
+ */
+func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOverviews, error) {
+	data := MemberCardOverviews{}
+	t := dialect.From("bandcardcheck_log")
+	exp := g.Ex{"prefix": meta.Prefix}
+	if len(exp) > 0 {
+		ex = append(ex, exp)
+	}
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT(1)).Where(ex...).ToSQL()
+		err := meta.MerchantDB.Get(&data, query)
+		if err != nil {
+			body := fmt.Errorf("%s,[%s]", err.Error(), query)
+			return data, pushLog(body, helper.DBErr)
+		}
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	// 分页查
+	offset := (page - 1) * pageSize
+	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status").
+		Where(ex...).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	err := meta.MerchantDB.Select(&data.D, query)
+	if err != nil {
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
+	}
+
+	data.S = pageSize
+	return data, nil
+
 }
 
 func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) error {
