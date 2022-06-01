@@ -622,7 +622,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 
 	if address != "" {
 		ll := len(address)
-		if ll < 4 || ll > 50 {
+		if ll < 4 || ll >= 50 {
 			helper.Print(ctx, false, helper.AddressFMTErr)
 			return
 		}
