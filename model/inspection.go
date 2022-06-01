@@ -479,8 +479,7 @@ func promoDataList(pids []string) ([]PromoData, error) {
 
 	}
 	ex := g.Ex{
-		"id":    pids,
-		"state": "2",
+		"id": pids,
 	}
 	t := dialect.From("tbl_promo")
 
