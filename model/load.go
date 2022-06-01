@@ -94,7 +94,7 @@ func LoadMembers() {
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&total, query)
 	if err != nil {
-		fmt.Println(query, err)
+		_ = pushLog(err, helper.DBErr)
 		return
 	}
 
@@ -113,7 +113,7 @@ func LoadMembers() {
 			fmt.Println(query)
 			err := meta.MerchantDB.Select(&data, query)
 			if err != nil {
-				fmt.Println(query, err)
+				_ = pushLog(err, helper.DBErr)
 				return
 			}
 

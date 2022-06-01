@@ -107,6 +107,10 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		key = fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 	case TyBankcard:
 		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	case TyRebate:
+		key = fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
+	case TyCGRebate:
+		key = fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
 	}
 
 	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
@@ -174,7 +178,7 @@ func BlacklistDelete(id string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	BlacklistLoadCache(data.Ty)
+	_ = BlacklistLoadCache(data.Ty)
 
 	return nil
 }
@@ -218,6 +222,8 @@ func BlacklistLoadCache(ty int) error {
 	ipKey := fmt.Sprintf("%s:merchant:ip_blacklist", meta.Prefix)
 	phoneKey := fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 	bankcardKey := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	rebateKey := fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
+	cgrebateKey := fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
 
 	if ty != 0 {
 		key := ""
@@ -230,11 +236,16 @@ func BlacklistLoadCache(ty int) error {
 			key = phoneKey
 		case TyBankcard:
 			key = bankcardKey
+		case TyRebate:
+			key = rebateKey
+		case TyCGRebate:
+			key = cgrebateKey
 		}
 		pipe.Unlink(ctx, key)
 	} else {
-		pipe.Unlink(ctx, deviceKey, ipKey, phoneKey, bankcardKey)
+		pipe.Unlink(ctx, deviceKey, ipKey, phoneKey, bankcardKey, rebateKey, cgrebateKey)
 	}
+
 	for _, v := range data {
 		key := ""
 		switch v.Ty {
@@ -246,6 +257,10 @@ func BlacklistLoadCache(ty int) error {
 			key = phoneKey
 		case TyBankcard:
 			key = bankcardKey
+		case TyRebate:
+			key = rebateKey
+		case TyCGRebate:
+			key = cgrebateKey
 		}
 
 		pipe.Do(ctx, "CF.ADD", key, v.Value)

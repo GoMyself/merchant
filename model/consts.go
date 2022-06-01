@@ -298,6 +298,8 @@ var (
 		TyPhone:          true, //电话号码
 		TyBankcard:       true, //银行卡
 		TyVirtualAccount: true, //虚拟币地址
+		TyRebate:         true,
+		TyCGRebate:       true,
 	}
 )
 
@@ -309,6 +311,8 @@ const (
 	TyPhone          = 4 //电话号码
 	TyBankcard       = 5 //银行卡
 	TyVirtualAccount = 6 //虚拟币地址
+	TyRebate         = 7 //场馆返水
+	TyCGRebate       = 8 //cg彩票返点
 )
 
 const (
