@@ -93,7 +93,6 @@ func GroupRefresh() error {
 			}
 			pipe.Persist(ctx, id)
 		}
-		//pipe.HSet(ctx, "GroupMap", id, ","+val.Permission+",") // 暂停
 	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
