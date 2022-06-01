@@ -144,7 +144,7 @@ func PlatToMinio() error {
 	defer pipe.Close()
 
 	for _, val := range data {
-		k := fmt.Sprintf("plat:%s", val.ID)
+		k := fmt.Sprintf("%s:plat:%s", meta.Prefix, val.ID)
 		b1, err := helper.JsonMarshal(val)
 		if err != nil {
 			fmt.Println("PlatToMinio error = ", err)
@@ -157,11 +157,13 @@ func PlatToMinio() error {
 		pipe.Persist(ctx, k)
 	}
 
-	pipe.Unlink(ctx, "nav", "plat")
-	pipe.Set(ctx, "nav", string(navB), 0)
-	pipe.Persist(ctx, "nav")
-	pipe.Set(ctx, "plat", string(b), 0)
-	pipe.Persist(ctx, "plat")
+	navKey := fmt.Sprintf("%s:nav", meta.Prefix)
+	platKey := fmt.Sprintf("%s:plat", meta.Prefix)
+	pipe.Unlink(ctx, navKey, platKey)
+	pipe.Set(ctx, navKey, string(navB), 0)
+	pipe.Persist(ctx, navKey)
+	pipe.Set(ctx, platKey, string(b), 0)
+	pipe.Persist(ctx, platKey)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		return pushLog(err, "redis")

@@ -62,6 +62,7 @@ func GroupRefresh() error {
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(cols...).Where(ex).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&records, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)

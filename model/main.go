@@ -154,14 +154,17 @@ func Constructor(mt *MetaTable, rpc string) {
 func Load() {
 
 	AppUpgradeLoadCache()
-	LinkLoad()
+	LoadLink()
+	LoadMembers()
 
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
 	_ = BlacklistLoadCache(0)
 	_ = BannersLoadCache()
+	_ = LoadMemberRebate()
 	_ = TreeLoadToRedis()
+	_ = PlatToMinio()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {

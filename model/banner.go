@@ -288,6 +288,7 @@ func BannersLoadCache() error {
 			"prefix": meta.Prefix,
 		}
 		query, _, _ := dialect.From("tbl_banner").Select(colsBanner...).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Get(&singleBanner, query)
 		if err != nil {
 			continue
@@ -327,6 +328,7 @@ func BannersLoadCache() error {
 			"prefix": meta.Prefix,
 		}
 		query, _, _ := dialect.From("tbl_banner").Select(colsBanner...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Select(&recs, query)
 		if err != nil {
 			continue
