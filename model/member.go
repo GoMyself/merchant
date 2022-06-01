@@ -85,6 +85,7 @@ type MemberListData struct {
 type memberInfo struct {
 	UID          string `db:"uid" json:"uid"`
 	AgencyType   string `json:"agency_type" db:"agency_type"`
+	Tester       string `json:"tester" db:"tester"`
 	Username     string `db:"username" json:"username"`           //会员名
 	LastLoginIp  string `db:"last_login_ip" json:"last_login_ip"` //最后登陆ip
 	TopUid       string `db:"top_uid" json:"top_uid"`             //总代uid
