@@ -1095,8 +1095,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		//fmt.Println("update phone = ", param["phone"])
 		//fmt.Println("update phoneHash = ", phoneHash)
-
-		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Val()
+		key := fmt.Sprintf("%s:phoneExist", meta.Prefix)
+		meta.MerchantRedis.Do(ctx, "CF.ADD", key, phoneHash).Val()
 		//fmt.Println("CF.ADD phoneExist v = ", v)
 	}
 
