@@ -735,6 +735,67 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, helper.Success)
 }
 
+/**
+ * @Description: MemberCardList // 查询会员 银行卡 记录
+ * @Author: starc
+ * @Date: 2022/6/1 12:38
+ * @LastEditTime: 2022/6/1 20:00
+ * @LastEditors: starc
+ */
+func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
+	// 默认10个
+
+	Page := string(ctx.QueryArgs().Peek("page"))
+	PageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	Username := string(ctx.QueryArgs().Peek("username"))
+	BankName := string(ctx.QueryArgs().Peek("bankname"))
+	BankNo := string(ctx.QueryArgs().Peek("bankno"))
+	RealName := string(ctx.QueryArgs().Peek("realname"))
+
+	var (
+		exs  []g.Expression
+		size uint = 10
+	)
+	if PageSize > 0 {
+		size = uint(PageSize)
+	}
+	ex := g.Ex{}
+	cpage, err := strconv.ParseUint(Page, 10, 64)
+	if err != nil {
+		cpage = 1
+	}
+	if cpage < 1 {
+		cpage = 1
+	}
+
+	if Username == "" && RealName == "" && BankName == "" && BankNo == "" {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+	if Username != "" && validator.CheckUName(Username, 1, 20) {
+		ex["username"] = Username
+	}
+	if RealName != "" && validator.CheckAName(RealName, 1, 20) {
+		ex["realname"] = RealName
+	}
+	if BankName != "" {
+		ex["bankname"] = BankName
+	}
+	if BankNo != "" && validator.CheckStringDigit(BankNo) {
+		ex["bank_no"] = BankNo
+	}
+	if len(ex) > 0 {
+		exs = append(exs, ex)
+	}
+	viewData, err2 := model.CardOverviewList(uint(cpage), size, exs...)
+	if err2 != nil {
+		helper.Print(ctx, false, err2.Error())
+		return
+	}
+
+	helper.Print(ctx, true, viewData)
+}
+
 // 会员管理-会员列表-数据概览
 func (that MemberController) Overview(ctx *fasthttp.RequestCtx) {
 
