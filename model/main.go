@@ -164,6 +164,7 @@ func Load() {
 	_ = BannersLoadCache()
 	_ = LoadMemberRebate()
 	_ = TreeLoadToRedis()
+	_ = PlatToMinio()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {
