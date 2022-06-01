@@ -1098,8 +1098,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 
 		//fmt.Println("update phone = ", param["phone"])
 		//fmt.Println("update phoneHash = ", phoneHash)
-
-		meta.MerchantRedis.Do(ctx, "CF.ADD", "phoneExist", phoneHash).Val()
+		key := fmt.Sprintf("%s:phoneExist", meta.Prefix)
+		meta.MerchantRedis.Do(ctx, "CF.ADD", key, phoneHash).Val()
 		//fmt.Println("CF.ADD phoneExist v = ", v)
 	}
 
@@ -1565,7 +1565,7 @@ func LoadMemberPlatform() error {
 		pipe := meta.MerchantRedis.Pipeline()
 
 		for _, v := range data {
-			key := fmt.Sprintf("%s:memberplat:%s:%s", meta.Prefix, v.Username, v.Pid)
+			key := fmt.Sprintf("%s:m:plat:%s:%s", meta.Prefix, v.Username, v.Pid)
 			pipe.Unlink(ctx, key)
 			pipe.HMSet(ctx, key, PlatToMap(v))
 			pipe.Persist(ctx, key)
