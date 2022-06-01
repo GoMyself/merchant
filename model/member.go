@@ -873,7 +873,8 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	}
 
 	for id := range idMap {
-		data = append(data, MemberListCol{UID: id})
+		ele := MemberListCol{UID: id}
+		data = append([]MemberListCol{ele}, data...)
 	}
 
 	return data, number, nil
