@@ -1748,7 +1748,7 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebateResu
 			return pushLog(err, helper.DBErr)
 		}
 
-		MemberUpdateCache(uid, "")
+		_ = MemberUpdateCache(uid, "")
 	}
 
 	recd := g.Record{

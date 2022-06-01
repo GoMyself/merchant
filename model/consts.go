@@ -6,7 +6,10 @@ var (
 	gameRecordFields = []string{"parent_uid", "parent_name", "top_uid", "top_name", "settle_time", "start_time", "resettle", "presettle", "ball_type", "odds", "handicap", "handicap_type", "game_name", "flow_quota", "is_use", "main_bill_no", "api_bill_no", "api_name", "updated_at", "created_at", "result", "prefix", "file_path", "copy_flag", "play_type", "flag", "valid_bet_amount", "bet_amount", "rebate_amount", "game_type", "bet_time", "net_amount", "uid", "name", "player_name", "api_type", "bill_no", "row_id", "id"}
 )
 
-const LINK_PAGE = 100
+const (
+	LINK_PAGE   = 1000
+	MEMBER_PAGE = 1000
+)
 
 //动态验证码的有效时间
 const (
