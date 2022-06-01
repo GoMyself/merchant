@@ -1399,7 +1399,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		BillNo:       id,
 		CreatedAt:    time.Now().UnixMilli(),
 		ID:           id,
-		CashType:     TransactionUpPoint,
+		CashType:     TransactionSetBalanceZero,
 		UID:          mb.UID,
 		Username:     username,
 		Prefix:       meta.Prefix,
