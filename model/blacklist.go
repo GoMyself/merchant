@@ -192,17 +192,19 @@ func BlacklistExist(ex g.Ex) bool {
 
 func BlacklistLoadCache(ty int) error {
 
-	data := []Blacklist{}
+	var data []Blacklist
 
 	if ty != 0 {
 		ex := g.Ex{"ty": ty}
 		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
 			return err
 		}
 	} else {
 		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
 			return err

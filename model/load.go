@@ -12,6 +12,7 @@ func LoadLink() {
 
 	t := dialect.From("tbl_members")
 	query, _, _ := t.Select(g.COUNT("uid")).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&total, query)
 	if err != nil {
 		fmt.Println(query, err)
@@ -31,6 +32,7 @@ func LoadLink() {
 				data []Link_t
 			)
 			query, _, _ = t.Where(g.Ex{}).Select("uid").Offset(uint(i * LINK_PAGE)).Limit(LINK_PAGE).ToSQL()
+			fmt.Println(query)
 			err := meta.MerchantDB.Select(&uids, query)
 			if err != nil {
 				fmt.Println(query, err)
@@ -89,6 +91,7 @@ func LoadMembers() {
 
 	t := dialect.From("tbl_members")
 	query, _, _ := t.Select(g.COUNT("uid")).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&total, query)
 	if err != nil {
 		fmt.Println(query, err)
@@ -107,6 +110,7 @@ func LoadMembers() {
 				data []Member
 			)
 			query, _, _ = t.Where(g.Ex{}).Select(colsMember...).Offset(uint(i * MEMBER_PAGE)).Limit(MEMBER_PAGE).ToSQL()
+			fmt.Println(query)
 			err := meta.MerchantDB.Select(&data, query)
 			if err != nil {
 				fmt.Println(query, err)
@@ -130,9 +134,8 @@ func LoadMembers() {
 func LoadMemberRebate() error {
 
 	var data []MemberRebate
-
-	t := dialect.From("tbl_member_rebate_info")
-	query, _, _ := t.Select(colsMemberRebate...).ToSQL()
+	query, _, _ := dialect.From("tbl_member_rebate_info").Select(colsMemberRebate...).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)

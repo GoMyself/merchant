@@ -1536,6 +1536,7 @@ func LoadMemberPlatform() error {
 
 	t := dialect.From("tbl_member_platform")
 	query, _, _ := t.Select(g.COUNT(1)).Where(g.Ex{"prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&total, query)
 	if err != nil {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -1552,6 +1553,7 @@ func LoadMemberPlatform() error {
 		var data []MemberPlatform
 		offset := index * pageSize
 		query, _, _ = t.Offset(offset).Limit(pageSize).ToSQL()
+		fmt.Println(query)
 		err = meta.MerchantDB.Select(&data, query)
 		if err != nil {
 			continue
