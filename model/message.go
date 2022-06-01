@@ -325,7 +325,7 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (string, e
 		"send_name": "system",
 	}
 	rangeParam := map[string][]interface{}{
-		"bet_time": {startAt, endAt},
+		"send_at": {startAt, endAt},
 	}
 	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", false, page, pageSize, fields, param, rangeParam, map[string]string{})
 	if err != nil {
