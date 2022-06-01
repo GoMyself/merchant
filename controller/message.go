@@ -26,10 +26,10 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	level := string(ctx.PostArgs().Peek("level"))        //vip等级 0-10,多个逗号分割
 	names := string(ctx.PostArgs().Peek("names"))        //会员名，多个用逗号分割
 
-	if len(title) == 0 ||
-		len(subTitle) == 0 ||
+	if len(title) < 1 || len(title) > 255 ||
+		len(subTitle) < 1 || len(subTitle) > 255 ||
 		len(content) == 0 ||
-		len(sendName) == 0 {
+		len(sendName) < 1 || len(sendName) > 20 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -56,7 +56,6 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			"8":  true,
 			"9":  true,
 			"10": true,
-			"11": true,
 		}
 		for _, v := range strings.Split(level, ",") {
 			if _, ok := lv[v]; !ok {
