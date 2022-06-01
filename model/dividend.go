@@ -265,6 +265,8 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 		}
 
 		_ = tx.Commit()
+		key := meta.Prefix + ":member:" + v.Username
+		_ = meta.MerchantRedis.HSet(ctx, key, "balance", balanceAfter.String()).Err()
 	}
 
 	if len(usernames) > 0 {
