@@ -1349,7 +1349,7 @@ func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOvervi
 	}
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT(1)).Where(ex...).ToSQL()
-		err := meta.MerchantDB.Get(&data, query)
+		err := meta.MerchantTD.Get(&data, query)
 		if err != nil {
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
@@ -1363,7 +1363,7 @@ func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOvervi
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status").
 		Where(ex...).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-	err := meta.MerchantDB.Select(&data.D, query)
+	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
 		return data, pushLog(body, helper.DBErr)
