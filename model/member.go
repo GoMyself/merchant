@@ -1562,7 +1562,7 @@ func LoadMemberPlatform() error {
 		pipe := meta.MerchantRedis.Pipeline()
 
 		for _, v := range data {
-			key := fmt.Sprintf("%s:memberplat:%s:%s", meta.Prefix, v.Username, v.Pid)
+			key := fmt.Sprintf("%s:m:plat:%s:%s", meta.Prefix, v.Username, v.Pid)
 			pipe.Unlink(ctx, key)
 			pipe.HMSet(ctx, key, PlatToMap(v))
 			pipe.Persist(ctx, key)
