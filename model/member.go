@@ -795,7 +795,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	var members []Member
 	offset := (page - 1) * pageSize
 	query, _, _ := dialect.From("tbl_members").Select("uid").Where(ex).Offset(uint(offset)).
-		Limit(uint(pageSize)).Order(g.L("created_at").Desc()).ToSQL()
+		Limit(uint(pageSize)).Order(g.I("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&members, query)
 	if err != nil {
