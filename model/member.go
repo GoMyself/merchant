@@ -80,7 +80,7 @@ type MemberCardOverviewData struct {
 MemberCardOverviewData 分页数据
 */
 type MemberCardOverviews struct {
-	D []MemberCardOverviewData `json:"cards"`
+	D []MemberCardOverviewData `json:"d"`
 	T int64                    `json:"t"`
 	S uint                     `json:"s"`
 }

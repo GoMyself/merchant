@@ -744,17 +744,22 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
  */
 func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
 	// 默认10个
-	var (
-		exs  []g.Expression
-		size uint = 10
-	)
-	ex := g.Ex{}
+
 	Page := string(ctx.QueryArgs().Peek("page"))
+	PageSize := ctx.PostArgs().GetUintOrZero("page_size")
 	Username := string(ctx.QueryArgs().Peek("username"))
 	BankName := string(ctx.QueryArgs().Peek("bankname"))
 	BankNo := string(ctx.QueryArgs().Peek("bankno"))
 	RealName := string(ctx.QueryArgs().Peek("realname"))
 
+	var (
+		exs  []g.Expression
+		size uint = 10
+	)
+	if PageSize > 0 {
+		size = uint(PageSize)
+	}
+	ex := g.Ex{}
 	cpage, err := strconv.ParseUint(Page, 10, 64)
 	if err != nil {
 		cpage = 1
