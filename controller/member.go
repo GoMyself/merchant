@@ -621,8 +621,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if address != "" {
-		ll := len(address)
-		if ll < 4 || ll >= 50 {
+		if len(strings.Split(address, "|")) != 4 {
 			helper.Print(ctx, false, helper.AddressFMTErr)
 			return
 		}
