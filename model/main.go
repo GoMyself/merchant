@@ -166,6 +166,7 @@ func Load() {
 	_ = TreeLoadToRedis()
 	_ = PlatToMinio()
 	_ = SMSChannelToCache()
+	_ = GameToMinio()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {
