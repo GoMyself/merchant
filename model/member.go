@@ -75,7 +75,7 @@ type MemberCardLogOverviewData struct {
 	Ip       string `db:"ip" json:"ip" rule:"none" msg:"ip error"`
 	Status   int    `db:"status" json:"status" rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
 	Device   int    `db:"device" json:"device" rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
-	Ts       uint32 `db:"create_at" json:"create_at"`
+	Ts       uint32 `db:"create_at" json:"ts"`
 }
 
 /*
