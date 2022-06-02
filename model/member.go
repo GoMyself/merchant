@@ -1361,7 +1361,7 @@ func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOvervi
 
 	// 分页查
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status").
+	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").
 		Where(ex...).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
