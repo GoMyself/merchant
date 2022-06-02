@@ -738,19 +738,17 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
  * @Description: MemberCardList // 查询会员 银行卡 记录
  * @Author: starc
  * @Date: 2022/6/1 12:38
- * @LastEditTime: 2022/6/1 20:00
+ * @LastEditTime: 2022/6/2 20:00
  * @LastEditors: starc
  */
 func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
-	// 默认10个
-
 	Page := string(ctx.PostArgs().Peek("page"))
-	PageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	PageSize := ctx.PostArgs().GetUintOrZero("pagesize")
 	Username := string(ctx.PostArgs().Peek("username"))
 	BankName := string(ctx.PostArgs().Peek("bankname"))
 	BankNo := string(ctx.PostArgs().Peek("bankno"))
-	RealName := string(ctx.PostArgs().Peek("realname"))
-
+	Device := ctx.PostArgs().GetUintOrZero("device")
+	//  分页默认10
 	var (
 		exs  []g.Expression
 		size uint = 10
@@ -767,15 +765,15 @@ func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
 		cpage = 1
 	}
 
-	if Username == "" && RealName == "" && BankName == "" && BankNo == "" {
+	if Username == "" && Device == 0 && BankName == "" && BankNo == "" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
 	if Username != "" && validator.CheckUName(Username, 1, 20) {
 		ex["username"] = Username
 	}
-	if RealName != "" && validator.CheckAName(RealName, 1, 20) {
-		ex["realname"] = RealName
+	if Device != 0 {
+		ex["device"] = Device
 	}
 	if BankName != "" {
 		ex["bankname"] = BankName
