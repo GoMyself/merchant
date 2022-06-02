@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"merchant2/contrib/helper"
@@ -67,7 +66,7 @@ type memberDeviceReg struct {
 /*
 会员银行卡 数据概览
 */
-type MemberCardOverviewData struct {
+type MemberCardLogOverviewData struct {
 	Ts       string `rule:"none" name:"ts" db:"ts" json:"ts"`
 	Username string `rule:"none" name:"username" msg:"username error"`
 	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
@@ -75,15 +74,16 @@ type MemberCardOverviewData struct {
 	RealName string `rule:"none" name:"realname" msg:"realname error"`
 	Ip       string `rule:"none" name:"ip" msg:"ip error"`
 	Status   int    `rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
+	Device   int    `rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
 }
 
 /*
 MemberCardOverviewData 分页数据
 */
-type MemberCardOverviews struct {
-	D []MemberCardOverviewData `json:"d"`
-	T int64                    `json:"t"`
-	S uint                     `json:"s"`
+type MemberCardLogOverviews struct {
+	D []MemberCardLogOverviewData `json:"d"`
+	T int64                       `json:"t"`
+	S uint                        `json:"s"`
 }
 
 // MemberDataOverviewData 会员管理-会员列表-数据概览 response structure
@@ -1335,16 +1335,14 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 }
 
 // starc 会员管理-会员银行卡概览 模糊查询 分页查询
-func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardOverviews, error) {
-	data := MemberCardOverviews{}
+func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardLogOverviews, error) {
+	data := MemberCardLogOverviews{}
 	t := dialect.From("bandcardcheck_log")
 
 	if page == 1 {
 		query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-		esx, _ := json.Marshal(ex)
-		fmt.Printf("cards search ex: %+v to query:%+v\n", string(esx), query)
-		err := meta.MerchantTD.Get(&data.D, query)
 
+		err := meta.MerchantTD.Get(&data.D, query)
 		if err != nil {
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
