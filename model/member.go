@@ -67,7 +67,7 @@ type memberDeviceReg struct {
 会员银行卡 数据概览
 */
 type MemberCardOverviewData struct {
-	Ts       string `rule:"none" nane:"ts" `
+	Ts       string `rule:"none" name:"ts" db:"ts" json:"ts"`
 	Username string `rule:"none" name:"username" msg:"username error"`
 	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
 	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
