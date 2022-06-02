@@ -735,29 +735,29 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 }
 
 /**
- * @Description: MemberCardList // 查询会员 银行卡 记录
+ * @Description: // 查询会员 银行卡 校验记录
  * @Author: starc
- * @Date: 2022/6/1 12:38
- * @LastEditTime: 2022/6/2 20:00
+ * @Date: 2022/05/31 12:38
+ * @LastEditTime: 2022/6/2 19:00
  * @LastEditors: starc
  */
 func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
-	Page := string(ctx.PostArgs().Peek("page"))
-	PageSize := ctx.PostArgs().GetUintOrZero("pagesize")
-	Username := string(ctx.PostArgs().Peek("username"))
-	BankName := string(ctx.PostArgs().Peek("bankname"))
-	BankNo := string(ctx.PostArgs().Peek("bankno"))
-	Device := ctx.PostArgs().GetUintOrZero("device")
+	page := string(ctx.PostArgs().Peek("page"))
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	username := string(ctx.PostArgs().Peek("username"))
+	bankName := string(ctx.PostArgs().Peek("bankname"))
+	bankNo := string(ctx.PostArgs().Peek("bankno"))
+	device := ctx.PostArgs().GetUintOrZero("device")
 	//  分页默认10
 	var (
 		exs  []g.Expression
 		size uint = 10
 	)
-	if PageSize > 0 {
-		size = uint(PageSize)
+	if pageSize > 0 {
+		size = uint(pageSize)
 	}
 	ex := g.Ex{}
-	cpage, err := strconv.ParseUint(Page, 10, 64)
+	cpage, err := strconv.ParseUint(page, 10, 64)
 	if err != nil {
 		cpage = 1
 	}
@@ -765,21 +765,21 @@ func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
 		cpage = 1
 	}
 
-	if Username == "" && Device == 0 && BankName == "" && BankNo == "" {
+	if username == "" && device == 0 && bankName == "" && bankNo == "" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
 	}
-	if Username != "" && validator.CheckUName(Username, 1, 20) {
-		ex["username"] = Username
+	if username != "" && validator.CheckUName(username, 1, 20) {
+		ex["username"] = username
 	}
-	if Device != 0 {
-		ex["device"] = Device
+	if device != 0 {
+		ex["device"] = device
 	}
-	if BankName != "" {
-		ex["bankname"] = BankName
+	if bankName != "" {
+		ex["bankname"] = bankName
 	}
-	if BankNo != "" && validator.CheckStringDigit(BankNo) {
-		ex["bank_no"] = BankNo
+	if bankNo != "" && validator.CheckStringDigit(bankNo) {
+		ex["bank_no"] = bankNo
 	}
 	if len(ex) > 0 {
 		exs = append(exs, ex)
