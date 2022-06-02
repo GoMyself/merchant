@@ -285,7 +285,11 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	//查活动对应场馆的流水总和
 	for _, v := range recordList {
-		validBetAmount, err := EsPlatValidBet(username, promoMap[v.Pid].Platforms, promoMap[v.Pid].StartAt, now)
+		apitype := ""
+		if promoMap[v.Pid].Flag == "rescue" {
+			apitype = promoMap[v.Pid].Platforms
+		}
+		validBetAmount, err := EsPlatValidBet(username, apitype, promoMap[v.Pid].StartAt, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
