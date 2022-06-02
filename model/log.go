@@ -7,7 +7,7 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/olivere/elastic/v7"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 )
 
 func AdminLoginLog(start, end string, page, pageSize int, ex g.Ex) (AdminLoginLogData, error) {

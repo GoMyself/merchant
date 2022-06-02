@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"runtime"
 	"strings"
 

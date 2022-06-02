@@ -2,9 +2,9 @@ package controller
 
 import (
 	g "github.com/doug-martin/goqu/v9"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"merchant/model"
 
 	"github.com/valyala/fasthttp"
 )

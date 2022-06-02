@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"merchant/model"
 	"strconv"
 
 	g "github.com/doug-martin/goqu/v9"

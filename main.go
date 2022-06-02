@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"merchant2/contrib/apollo"
-	"merchant2/contrib/conn"
-	"merchant2/contrib/session"
-	"merchant2/middleware"
-	"merchant2/model"
-	"merchant2/router"
+	"merchant/contrib/apollo"
+	"merchant/contrib/conn"
+	"merchant/contrib/session"
+	"merchant/middleware"
+	"merchant/model"
+	"merchant/router"
 	"os"
 	"strings"
 

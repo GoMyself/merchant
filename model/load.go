@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 )
 
 func LoadLink() {

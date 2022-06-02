@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 )
 
 type tbl_members_t struct {
@@ -78,7 +78,7 @@ func memberInfoCache(username string) (tbl_members_t, error) {
 	if err = rs.Scan(&m); err != nil {
 		return m, pushLog(rs.Err(), helper.RedisErr)
 	}
-	
+
 	return m, nil
 }
 

@@ -3,9 +3,9 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/session"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/contrib/session"
+	"merchant/model"
 	"strconv"
 
 	"github.com/valyala/fastjson"

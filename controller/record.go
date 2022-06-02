@@ -7,9 +7,9 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"merchant/model"
 	"strconv"
 	"strings"
 )

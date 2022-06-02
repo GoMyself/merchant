@@ -5,9 +5,9 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"merchant/model"
 	"strings"
 )
 

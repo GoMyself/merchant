@@ -7,7 +7,7 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strings"
 	"time"
 )

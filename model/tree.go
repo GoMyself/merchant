@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"time"
 )
 

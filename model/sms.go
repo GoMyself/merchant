@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
