@@ -750,7 +750,7 @@ func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
 	device := ctx.PostArgs().GetUintOrZero("device")
 	//  分页默认10
 	var (
-		exs  []g.Expression
+		// exs  []g.Expression
 		size uint = 10
 	)
 	if pageSize > 0 {
@@ -781,10 +781,10 @@ func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
 	if bankNo != "" && validator.CheckStringDigit(bankNo) {
 		ex["bank_no"] = bankNo
 	}
-	if len(ex) > 0 {
-		exs = append(exs, ex)
-	}
-	viewData, err2 := model.CardOverviewList(uint(cpage), size, exs...)
+	// if len(ex) > 0 {
+	// 	exs = append(exs, ex)
+	// }
+	viewData, err2 := model.CardOverviewList(uint(cpage), size, ex)
 	if err2 != nil {
 		helper.Print(ctx, false, err2.Error())
 		return
