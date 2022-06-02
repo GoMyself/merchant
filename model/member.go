@@ -1337,9 +1337,12 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOverviews, error) {
 	data := MemberCardOverviews{}
 	t := dialect.From("bandcardcheck_log")
+
 	if page == 1 {
-		query, _, _ := t.Select(g.COUNT(1)).Where(ex...).ToSQL()
-		err := meta.MerchantTD.Get(&data, query)
+		query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex...).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+		fmt.Printf("cards search ex: %+v to query:%+v\n", ex, query)
+		err := meta.MerchantTD.Get(&data.D, query)
+
 		if err != nil {
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
