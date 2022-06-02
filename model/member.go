@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"merchant2/contrib/helper"
@@ -1334,13 +1335,14 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 }
 
 // starc 会员管理-会员银行卡概览 模糊查询 分页查询
-func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOverviews, error) {
+func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardOverviews, error) {
 	data := MemberCardOverviews{}
 	t := dialect.From("bandcardcheck_log")
 
 	if page == 1 {
-		query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex...).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-		fmt.Printf("cards search ex: %+v to query:%+v\n", ex, query)
+		query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+		esx, _ := json.Marshal(ex)
+		fmt.Printf("cards search ex: %+v to query:%+v\n", string(esx), query)
 		err := meta.MerchantTD.Get(&data.D, query)
 
 		if err != nil {
@@ -1355,7 +1357,7 @@ func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOvervi
 	// 分页查
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").
-		Where(ex...).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+		Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
