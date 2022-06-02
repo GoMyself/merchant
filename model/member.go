@@ -70,7 +70,7 @@ type MemberCardLogOverviewData struct {
 	Ts       string `db:"ts" rule:"none" name:"ts"  json:"ts"`
 	Username string `db:"username" rule:"none" name:"username" msg:"username error"`
 	BankName string `db:"bankname" rule:"none" name:"bankname" msg:"bankname error"`
-	BankNo   string `db:"bankno" rule:"none" name:"bankno" msg:"bankno error"`
+	BankNo   string `db:"bank_no" rule:"none" name:"bankno" msg:"bankno error"`
 	RealName string `db:"realname" rule:"none" name:"realname" msg:"realname error"`
 	Ip       string `db:"ip" rule:"none" name:"ip" msg:"ip error"`
 	Status   int    `db:"status" rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
