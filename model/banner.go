@@ -405,7 +405,7 @@ func bannerRefreshToCache(id string) error {
 	ok := single[record.Flags]
 	if ok {
 		for k := range DeviceMap {
-			key := fmt.Sprintf("G%s%d", flags, k)
+			key := fmt.Sprintf("%s:banner:G%s%d", meta.Prefix, flags, k)
 			pipe.Unlink(ctx, key)
 		}
 
@@ -415,8 +415,8 @@ func bannerRefreshToCache(id string) error {
 			"flags":  flags,
 			"prefix": meta.Prefix,
 		}
-		query, _, _ := dialect.From("tbl_banner").Select(colsBanner...).Where(ex).ToSQL()
-		err := meta.MerchantDB.Get(&recs, query)
+		query, _, _ = dialect.From("tbl_banner").Select(colsBanner...).Where(ex).ToSQL()
+		err = meta.MerchantDB.Get(&recs, query)
 		if err != nil && err != sql.ErrNoRows {
 			return err
 		}
@@ -439,14 +439,14 @@ func bannerRefreshToCache(id string) error {
 		// 全端支持
 		if recs.Device == "0" {
 			for k := range DeviceMap {
-				key := fmt.Sprintf("G%s%d", flags, k)
+				key := fmt.Sprintf("%s:banner:G%s%d", meta.Prefix, flags, k)
 				pipe.Set(ctx, key, base.String(), 100*time.Hour)
 				pipe.Persist(ctx, key)
 			}
 		} else {
 			di := strings.SplitN(recs.Device, ",", 8)
 			for _, val := range di {
-				key := fmt.Sprintf("G%s%s", flags, val)
+				key := fmt.Sprintf("%s:banner:G%s%s", meta.Prefix, flags, val)
 				pipe.Set(ctx, key, base.String(), 100*time.Hour)
 				pipe.Persist(ctx, key)
 			}
@@ -457,7 +457,7 @@ func bannerRefreshToCache(id string) error {
 	ok = array[record.Flags]
 	if ok {
 		for k := range DeviceMap {
-			key := fmt.Sprintf("G%s%d", flags, k)
+			key := fmt.Sprintf("%s:banner:G%s%d", meta.Prefix, flags, k)
 			pipe.Unlink(ctx, key)
 		}
 
@@ -485,13 +485,13 @@ func bannerRefreshToCache(id string) error {
 
 			if val.Device == "0" {
 				for k := range DeviceMap {
-					key := fmt.Sprintf("G%s%d", flags, k)
+					key := fmt.Sprintf("%s:banner:G%s%d", meta.Prefix, flags, k)
 					results[key] = append(results[key], str)
 				}
 			} else {
 				di := strings.SplitN(val.Device, ",", 8)
 				for _, d := range di {
-					key := fmt.Sprintf("G%s%s", flags, d)
+					key := fmt.Sprintf("%s:banner:G%s%s", meta.Prefix, flags, d)
 					results[key] = append(results[key], str)
 				}
 			}
