@@ -563,17 +563,22 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 
 	terms := make([]elastic.Query, 0)
 	terms = append(terms, elastic.NewTermQuery("name", username))
-	shouldQuery := elastic.NewBoolQuery()
-	if len(pid) > 0 {
-		pids := strings.Split(pid, ",")
-		for _, v := range pids {
-			if len(v) <= 20 {
-				//查询域名,采用模糊匹配
-				shouldQuery.Should(elastic.NewTermQuery("api_type", v))
+	fmt.Println("pid:", pid)
+	if strings.Contains(pid, ",") {
+		shouldQuery := elastic.NewBoolQuery()
+		if len(pid) > 0 {
+			pids := strings.Split(pid, ",")
+			for _, v := range pids {
+				if len(v) <= 20 {
+					//查询域名,采用模糊匹配
+					shouldQuery.Should(elastic.NewTermQuery("api_type", v))
+				}
 			}
-		}
 
-		boolQuery.Must(shouldQuery)
+			boolQuery.Must(shouldQuery)
+		}
+	} else if len(pid) > 0 {
+		terms = append(terms, elastic.NewTermQuery("api_type", pid))
 	}
 	terms = append(terms, elastic.NewTermQuery("flag", 1))
 
