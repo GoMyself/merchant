@@ -67,7 +67,7 @@ type memberDeviceReg struct {
 会员银行卡 校验数据概览
 */
 type MemberCardLogOverviewData struct {
-	Ts       string `db:"ts" json:"ts"`
+	//Ts       string `db:"ts" json:"ts"`
 	Username string `db:"username" json:"username" rule:"none" msg:"username error"`
 	BankName string `db:"bankname" json:"bankname" rule:"none"  msg:"bankname error"`
 	BankNo   string `db:"bank_no" json:"bank_no" rule:"none" msg:"bankno error"`
@@ -75,6 +75,7 @@ type MemberCardLogOverviewData struct {
 	Ip       string `db:"ip" json:"ip" rule:"none" msg:"ip error"`
 	Status   int    `db:"status" json:"status" rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
 	Device   int    `db:"device" json:"device" rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
+	Ts       uint32 `db:"create_at" json:"create_at"`
 }
 
 /*
@@ -1357,7 +1358,7 @@ func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardLogOvervi
 
 	// 分页查
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("username", "bankname", "bank_no", "realname", "ip", "status", "device", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Cards Check Log query = ", query)
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
