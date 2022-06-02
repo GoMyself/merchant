@@ -1333,13 +1333,7 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	return data, nil
 }
 
-/**
- * @Description: CardOverviewList // 会员管理-会员银行卡概览 模糊查询 分页查询
- * @Author: starc
- * @Date: 2022/6/1 13:38
- * @LastEditTime: 2022/6/1 19:00
- * @LastEditors: starc
- */
+// starc 会员管理-会员银行卡概览 模糊查询 分页查询
 func CardOverviewList(page, pageSize uint, ex ...g.Expression) (MemberCardOverviews, error) {
 	data := MemberCardOverviews{}
 	t := dialect.From("bandcardcheck_log")
