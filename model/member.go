@@ -67,14 +67,14 @@ type memberDeviceReg struct {
 会员银行卡 数据概览
 */
 type MemberCardLogOverviewData struct {
-	Ts       string `rule:"none" name:"ts" db:"ts" json:"ts"`
-	Username string `rule:"none" name:"username" msg:"username error"`
-	BankName string `rule:"none" name:"bankname" msg:"bankname error"`
-	BankNo   string `rule:"none" name:"bankno" msg:"bankno error"`
-	RealName string `rule:"none" name:"realname" msg:"realname error"`
-	Ip       string `rule:"none" name:"ip" msg:"ip error"`
-	Status   int    `rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
-	Device   int    `rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
+	Ts       string `db:"ts" rule:"none" name:"ts"  json:"ts"`
+	Username string `db:"username" rule:"none" name:"username" msg:"username error"`
+	BankName string `db:"bankname" rule:"none" name:"bankname" msg:"bankname error"`
+	BankNo   string `db:"bank_no" rule:"none" name:"bankno" msg:"bankno error"`
+	RealName string `db:"realname" rule:"none" name:"realname" msg:"realname error"`
+	Ip       string `db:"ip" rule:"none" name:"ip" msg:"ip error"`
+	Status   int    `db:"status" rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
+	Device   int    `db:"device" rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
 }
 
 /*
@@ -1340,12 +1340,10 @@ func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardLogOvervi
 	t := dialect.From("bandcardcheck_log")
 
 	if page == 1 {
-		query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").Where(ex).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-
-		err := meta.MerchantTD.Get(&data.D, query)
-		if err != nil {
-			body := fmt.Errorf("%s,[%s]", err.Error(), query)
-			return data, pushLog(body, helper.DBErr)
+		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+		err0 := meta.MerchantTD.Get(&data.T, query)
+		if err0 != nil && err0 != sql.ErrNoRows {
+			return data, pushLog(err0, helper.DBErr)
 		}
 		if data.T == 0 {
 			return data, nil
@@ -1354,8 +1352,7 @@ func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardLogOvervi
 
 	// 分页查
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("ts", "username", "bankname", "bank_no", "realname", "ip", "status", "device").
-		Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select(colsCardCheckLog...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
