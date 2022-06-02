@@ -121,7 +121,7 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 	flag := ctx.PostArgs().GetUintOrZero("flag")                        //1审核列表 2历史记录
 	title := string(ctx.PostArgs().Peek("title"))                       //标题
-	sendName := string(ctx.PostArgs().Peek("send_name"))                //发送人名
+	username := string(ctx.PostArgs().Peek("username"))                 //会员名
 	isVip := string(ctx.PostArgs().Peek("is_vip"))                      //是否vip站内信 1 vip站内信
 	isPush := string(ctx.PostArgs().Peek("is_push"))                    //0不推送 1推送
 	ty := ctx.PostArgs().GetUintOrZero("ty")                            //1站内消息 2活动消息
@@ -155,8 +155,8 @@ func (that *MessageController) List(ctx *fasthttp.RequestCtx) {
 		ex["title"] = title
 	}
 
-	if sendName != "" {
-		ex["send_name"] = sendName
+	if username != "" {
+		ex["username"] = username
 	}
 
 	if ty > 0 {

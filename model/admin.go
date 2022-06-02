@@ -232,8 +232,9 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	}
 
 	permission := "111"
+	token := fmt.Sprintf("%s:a:token:%s", meta.Prefix, data.ID)
 	b, _ := helper.JsonMarshal(data)
-	sid, err := session.AdminSet(b, data.ID, deviceNo)
+	sid, err := session.AdminSet(b, token, deviceNo)
 	if err != nil {
 		fmt.Println("AdminSet = ", err)
 		return rsp, errors.New(helper.SessionErr)
