@@ -74,6 +74,8 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 
 	user, err := AdminToken(fctx)
 	if err != nil {
+		fmt.Println("Warning BlacklistInsert Exec AccessTokenExpires = ", err.Error())
+
 		return errors.New(helper.AccessTokenExpires)
 	}
 
@@ -82,6 +84,8 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		"value": value,
 	}
 	if BlacklistExist(ex) {
+		fmt.Println("Warning BlacklistInsert Exec RecordExistErr = ", err.Error())
+
 		return errors.New(helper.RecordExistErr)
 	}
 
@@ -94,7 +98,7 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		//fmt.Println("BlacklistInsert Exec err = ", err.Error())
+		fmt.Println("Warning BlacklistInsert Exec err = ", err.Error())
 		return errors.New(helper.DBErr)
 	}
 
@@ -124,8 +128,12 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		"state": "3",
 	}
 	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	_, err = meta.MerchantDB.Exec(query)
-	if err != nil {
+	fmt.Printf("Warning update card state tbl_member_bankcard sql:%v\n", query)
+	ir, err2 := meta.MerchantDB.Exec(query)
+
+	if err2 != nil {
+		fmt.Printf("Warning update card state error result tbl_member_bankcard:%+v, %v\n", ir, err2.Error())
+
 		return errors.New(helper.DBErr)
 	}
 
@@ -133,7 +141,7 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 	query, _, _ = t.Select(colsBankcard...).Where(ex).ToSQL()
 	err = meta.MerchantDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
-		fmt.Println("BankcardUpdateCache err = ", err)
+		fmt.Println("Warning BankcardUpdateCache err = ", err)
 		return err
 	}
 
