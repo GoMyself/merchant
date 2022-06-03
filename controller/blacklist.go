@@ -2,11 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"log"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
-	"os"
 	"strconv"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -16,12 +14,8 @@ import (
 
 type BlacklistController struct{}
 
-var (
-	logger = log.New(os.Stderr, "WARNING -:", 18)
-)
-
 func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
-
+ 
 	page := string(ctx.QueryArgs().Peek("page"))
 	pageSize := string(ctx.QueryArgs().Peek("page_size"))
 	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {
@@ -179,7 +173,7 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 	ty := ctx.PostArgs().GetUintOrZero("ty")
 	if _, ok := model.BlackTy[ty]; !ok {
-		logger.Printf("insert blacklist failed: %+v %v  ParamErr:%v \n", &ctx, false, helper.ParamErr)
+		fmt.Printf("insert blacklist failed: %+v %v  ParamErr:%v \n", &ctx, false, helper.ParamErr)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -188,19 +182,19 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 	switch ty {
 	case model.TyBankcard:
 		if !validator.CheckStringLength(value, 6, 20) || !validator.CheckStringDigit(value) {
-			logger.Printf("case TyBankcard blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
+			fmt.Printf("case TyBankcard blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
 	case model.TyRebate, model.TyCGRebate:
 		if !validator.CheckUName(value, 5, 14) {
-			logger.Printf("case TyCGRebate blacklist: %+v %v  UsernameErr:%v \n", value, false, helper.UsernameErr)
+			fmt.Printf("case TyCGRebate blacklist: %+v %v  UsernameErr:%v \n", value, false, helper.UsernameErr)
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 	default:
 		if !validator.CheckStringLength(value, 1, 60) {
-			logger.Printf("case default blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
+			fmt.Printf("case default blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
@@ -208,7 +202,7 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 
 	remark := string(ctx.PostArgs().Peek("remark"))
 	if !validator.CheckStringLength(remark, 1, 1000) {
-		logger.Printf("remark check blacklist: %+v %v  ParamErr:%v \n", remark, false, helper.RemarkFMTErr)
+		fmt.Printf("remark check blacklist: %+v %v  ParamErr:%v \n", remark, false, helper.RemarkFMTErr)
 		helper.Print(ctx, false, helper.RemarkFMTErr)
 		return
 	}
@@ -220,7 +214,7 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 		"remark": remark,
 	}
 	err := model.BlacklistInsert(ctx, ty, value, record)
-	logger.Printf("insert result record: %+v %v  record:%v err:%v \n", ty, value, record, err)
+	fmt.Printf("insert result record: %+v %v  record:%v err:%v \n", ty, value, record, err)
 
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -234,10 +228,10 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-	logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", id, helper.RemarkFMTErr)
+	fmt.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", id, helper.RemarkFMTErr)
 
 	if !validator.CheckStringDigit(id) {
-		logger.Printf("case update check id IDErr: %+v  id:%v  IDErr:%v \n", helper.IDErr, id, helper.IDErr)
+		fmt.Printf("case update check id IDErr: %+v  id:%v  IDErr:%v \n", helper.IDErr, id, helper.IDErr)
 
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -245,7 +239,7 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	remark := string(ctx.PostArgs().Peek("remark"))
 	if !validator.CheckStringLength(remark, 1, 1000) {
-		logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", ctx, remark, id, helper.RemarkFMTErr)
+		fmt.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", ctx, remark, id, helper.RemarkFMTErr)
 
 		helper.Print(ctx, false, helper.RemarkFMTErr)
 		return
@@ -258,7 +252,7 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 		"remark": validator.FilterInjection(remark),
 	}
 	err := model.BlacklistUpdate(ex, record)
-	logger.Printf("case update check blacklist id: %+v %v  IDErr:%v \n", err.Error(), id, record)
+	fmt.Printf("case update check blacklist id: %+v %v  IDErr:%v \n", err.Error(), id, record)
 
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -273,14 +267,14 @@ func (that *BlacklistController) Delete(ctx *fasthttp.RequestCtx) {
 	id := string(ctx.QueryArgs().Peek("id"))
 
 	if !validator.CheckStringDigit(id) {
-		logger.Printf("case delete check blacklist id: %+v %v  IDErr:%v \n", ctx, id, helper.IDErr)
+		fmt.Printf("case delete check blacklist id: %+v %v  IDErr:%v \n", ctx, id, helper.IDErr)
 
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
 	err := model.BlacklistDelete(id)
-	logger.Printf("case delete result err: %+v id:%v  IDErr:%v \n", err, id, helper.IDErr)
+	fmt.Printf("case delete result err: %+v id:%v  IDErr:%v \n", err, id, helper.IDErr)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
