@@ -157,9 +157,9 @@ func Load() {
 	LoadLink()
 	LoadMembers()
 
-	//_ = PrivRefresh()
-	//_ = GroupRefresh()
-	//_ = LoadMemberPlatform()
+	_ = PrivRefresh()
+	_ = GroupRefresh()
+	_ = LoadMemberPlatform()
 	//_ = BlacklistLoadCache(0)
 	//_ = BannersLoadCache()
 	//_ = LoadMemberRebate()
