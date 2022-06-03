@@ -58,8 +58,12 @@ func LoadLink() {
 			bcs := make(map[string]map[string]Link_t)
 			for _, v := range data {
 				key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.UID)
-				bcs[key] = map[string]Link_t{
-					"$" + v.ID: v,
+				if _, ok := bcs[key]; ok {
+					bcs[key]["$"+v.ID] = v
+				} else {
+					bcs[key] = map[string]Link_t{
+						"$" + v.ID: v,
+					}
 				}
 			}
 
