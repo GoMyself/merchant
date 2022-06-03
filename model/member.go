@@ -850,6 +850,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 			g.And(
 				g.C("uid").Neq(g.C("parent_uid")),
 				g.C("uid").In(ids),
+				g.C("data_type").Eq("1"),
 			),
 		)
 	} else {
@@ -883,6 +884,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 		).GroupBy("uid").
 		ToSQL()
 	err = meta.ReportDB.Select(&data, query)
+	fmt.Println(query)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(err.Error())
 		return data, number, pushLog(err, helper.DBErr)
