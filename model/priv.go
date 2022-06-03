@@ -62,7 +62,8 @@ func PrivRefresh() error {
 
 	privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
 	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	pipe.Unlink(ctx, privAllKey, privMapKey)
+	pipe.Unlink(ctx, privAllKey)
+	pipe.Unlink(ctx, privMapKey)
 	pipe.Set(ctx, privAllKey, string(recs), 0)
 
 	for _, val := range records {
