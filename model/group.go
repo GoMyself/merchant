@@ -6,7 +6,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strings"
 )
 

@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -111,7 +111,6 @@ func SMSChannelToCache() (err error) {
 	query, _, _ := dialect.From("tbl_sms").Select("name", "alias", "txt", "voice").Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&data, query)
-
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}

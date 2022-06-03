@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"merchant2/contrib/apollo"
-	"merchant2/contrib/conn"
-	"merchant2/contrib/session"
-	"merchant2/middleware"
-	"merchant2/model"
-	"merchant2/router"
+	"merchant/contrib/apollo"
+	"merchant/contrib/conn"
+	"merchant/contrib/session"
+	"merchant/middleware"
+	"merchant/model"
+	"merchant/router"
 	"os"
 	"strings"
 
@@ -49,7 +49,7 @@ func main() {
 	mt.MerchantDB = conn.InitDB(cfg.Db.Master.Addr, cfg.Db.Master.MaxIdleConn, cfg.Db.Master.MaxOpenConn)
 	mt.ReportDB = conn.InitDB(cfg.Db.Report.Addr, cfg.Db.Report.MaxIdleConn, cfg.Db.Report.MaxOpenConn)
 	mt.BetDB = conn.InitDB(cfg.Db.Bet.Addr, cfg.Db.Bet.MaxIdleConn, cfg.Db.Bet.MaxOpenConn)
-	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, cfg.Redis.Db)
+	mt.MerchantRedis = conn.InitRedisCluster(cfg.Redis.Addr, cfg.Redis.Password)
 	mt.BeanPool = conn.InitBeanstalk(cfg.Beanstalkd.Addr, 15, cfg.Beanstalkd.MaxIdle, cfg.Beanstalkd.MaxCap)
 	mt.BeanBetPool = conn.InitBeanstalk(cfg.BeanBet.Addr, 15, cfg.BeanBet.MaxIdle, cfg.BeanBet.MaxCap)
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"merchant2/contrib/helper"
-	"merchant2/model"
+	"merchant/contrib/helper"
+	"merchant/model"
 
 	"github.com/valyala/fasthttp"
 )

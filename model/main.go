@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"runtime"
 	"strings"
 
@@ -48,7 +48,7 @@ var grpc_t struct {
 
 type MetaTable struct {
 	VenueRebate    VenueRebateScale
-	MerchantRedis  *redis.Client
+	MerchantRedis  *redis.ClusterClient
 	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
 	ReportDB       *sqlx.DB

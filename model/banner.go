@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strings"
 	"time"
 
@@ -291,6 +291,9 @@ func BannersLoadCache() error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Get(&singleBanner, query)
 		if err != nil {
+			if err != sql.ErrNoRows {
+				_ = pushLog(err, helper.DBErr)
+			}
 			continue
 		}
 
@@ -331,6 +334,9 @@ func BannersLoadCache() error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&recs, query)
 		if err != nil {
+			if err != sql.ErrNoRows {
+				_ = pushLog(err, helper.DBErr)
+			}
 			continue
 		}
 

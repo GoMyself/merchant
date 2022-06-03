@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 
 	g "github.com/doug-martin/goqu/v9"
 )
@@ -113,6 +113,7 @@ func PlatToMinio() error {
 	}
 	query, _, _ := dialect.From("tbl_platforms").
 		Select(colsPlatJson...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
@@ -137,8 +138,8 @@ func PlatToMinio() error {
 		return errors.New(helper.FormatErr)
 	}
 
-	fmt.Println(string(navB))
-	fmt.Println(string(b))
+	//fmt.Println(string(navB))
+	//fmt.Println(string(b))
 
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
@@ -147,7 +148,7 @@ func PlatToMinio() error {
 		k := fmt.Sprintf("%s:plat:%s", meta.Prefix, val.ID)
 		b1, err := helper.JsonMarshal(val)
 		if err != nil {
-			fmt.Println("PlatToMinio error = ", err)
+			_ = pushLog(err, helper.FormatErr)
 			continue
 		}
 
@@ -159,14 +160,15 @@ func PlatToMinio() error {
 
 	navKey := fmt.Sprintf("%s:nav", meta.Prefix)
 	platKey := fmt.Sprintf("%s:plat", meta.Prefix)
-	pipe.Unlink(ctx, navKey, platKey)
+	pipe.Unlink(ctx, navKey)
+	pipe.Unlink(ctx, platKey)
 	pipe.Set(ctx, navKey, string(navB), 0)
 	pipe.Persist(ctx, navKey)
 	pipe.Set(ctx, platKey, string(b), 0)
 	pipe.Persist(ctx, platKey)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return pushLog(err, "redis")
+		return pushLog(err, helper.RedisErr)
 	}
 
 	return nil
@@ -177,6 +179,7 @@ func NavMinio() ([]navJson, error) {
 	var top []Cate
 	query, _, _ := dialect.From("tbl_tree").
 		Where(g.C("level").ILike("0010%"), g.C("prefix").Eq(meta.Prefix)).Order(g.C("sort").Asc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&top, query)
 	if err != nil {
 		return nil, pushLog(err, helper.DBErr)
@@ -197,11 +200,11 @@ func NavMinio() ([]navJson, error) {
 			"game_type": v.ID,
 			"prefix":    meta.Prefix,
 		}
-
 		query, _, _ = dialect.From("tbl_platforms").Select(colsPlatJson...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+		fmt.Println(query)
 		err = meta.MerchantDB.Select(&data[k].L, query)
 		if err != nil {
-			fmt.Println("platform query = ", query)
+			_ = pushLog(err, helper.DBErr)
 			continue
 		}
 	}

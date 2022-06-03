@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/validator"
+	"merchant/contrib/helper"
+	"merchant/contrib/validator"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"

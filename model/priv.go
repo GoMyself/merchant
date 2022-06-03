@@ -5,7 +5,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 )
 
 func PrivList() (string, error) {
@@ -62,7 +62,8 @@ func PrivRefresh() error {
 
 	privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
 	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	pipe.Unlink(ctx, privAllKey, privMapKey)
+	pipe.Unlink(ctx, privAllKey)
+	pipe.Unlink(ctx, privMapKey)
 	pipe.Set(ctx, privAllKey, string(recs), 0)
 
 	for _, val := range records {

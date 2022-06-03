@@ -1,4 +1,4 @@
-module merchant2
+module merchant
 
 go 1.18
 

@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strconv"
 	"strings"
 

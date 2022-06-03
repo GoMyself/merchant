@@ -2,7 +2,7 @@ package router
 
 import (
 	"fmt"
-	"merchant2/controller"
+	"merchant/controller"
 	"runtime/debug"
 	"time"
 

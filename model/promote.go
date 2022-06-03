@@ -9,7 +9,7 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fastjson"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"net/url"
 	"strings"
 	"time"

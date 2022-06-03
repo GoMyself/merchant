@@ -1,9 +1,10 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 )
 
 func LoadLink() {
@@ -32,10 +33,12 @@ func LoadLink() {
 				data []Link_t
 			)
 			query, _, _ = t.Where(g.Ex{}).Select("uid").Offset(uint(i * LINK_PAGE)).Limit(LINK_PAGE).ToSQL()
-			fmt.Println(query)
+			//fmt.Println(query)
 			err := meta.MerchantDB.Select(&uids, query)
 			if err != nil {
-				fmt.Println(query, err)
+				if err != sql.ErrNoRows {
+					_ = pushLog(err, helper.DBErr)
+				}
 				return
 			}
 
@@ -43,9 +46,12 @@ func LoadLink() {
 				"uid": uids,
 			}
 			query, _, _ = dialect.From("tbl_member_link").Where(ex).Select(colsLink...).ToSQL()
+			//fmt.Println(query)
 			err = meta.MerchantDB.Select(&data, query)
 			if err != nil {
-				fmt.Println(query, err)
+				if err != sql.ErrNoRows {
+					_ = pushLog(err, helper.DBErr)
+				}
 				return
 			}
 
@@ -63,7 +69,7 @@ func LoadLink() {
 
 				value, err := helper.JsonMarshal(&v)
 				if err != nil {
-					fmt.Println(err)
+					_ = pushLog(err, helper.FormatErr)
 					return
 				}
 
@@ -71,12 +77,12 @@ func LoadLink() {
 				pipe.Do(ctx, "JSON.SET", k, ".", string(value))
 				pipe.Persist(ctx, k)
 
-				fmt.Println(k, string(value))
+				//fmt.Println(k, string(value))
 			}
 
 			_, err = pipe.Exec(ctx)
 			if err != nil {
-				fmt.Println(err)
+				_ = pushLog(err, helper.RedisErr)
 				return
 			}
 
@@ -106,9 +112,7 @@ func LoadMembers() {
 		}
 		for i := 0; i < p; i++ {
 
-			var (
-				data []Member
-			)
+			var data []Member
 			query, _, _ = t.Where(g.Ex{}).Select(colsMember...).Offset(uint(i * MEMBER_PAGE)).Limit(MEMBER_PAGE).ToSQL()
 			fmt.Println(query)
 			err := meta.MerchantDB.Select(&data, query)
@@ -125,7 +129,12 @@ func LoadMembers() {
 				pipe.HMSet(ctx, key, fields...)
 				pipe.Persist(ctx, key)
 			}
-			_, _ = pipe.Exec(ctx)
+			_, err = pipe.Exec(ctx)
+			if err != nil {
+				_ = pushLog(err, helper.RedisErr)
+				return
+			}
+
 			_ = pipe.Close()
 		}
 	}
@@ -153,8 +162,83 @@ func LoadMemberRebate() error {
 		pipe.Persist(ctx, key)
 	}
 
-	_, _ = pipe.Exec(ctx)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		_ = pushLog(err, helper.DBErr)
+	}
+
 	_ = pipe.Close()
+
+	return nil
+}
+
+func PlatToMap(m MemberPlatform) map[string]interface{} {
+
+	data := map[string]interface{}{
+		"id":                      m.ID,
+		"username":                m.Username,
+		"password":                m.Password,
+		"pid":                     m.Pid,
+		"balance":                 m.Balance,
+		"state":                   m.State,
+		"created_at":              m.CreatedAt,
+		"transfer_in":             m.TransferIn,
+		"transfer_in_processing":  m.TransferInProcessing,
+		"transfer_out":            m.TransferOut,
+		"transfer_out_processing": m.TransferOutProcessing,
+		"extend":                  m.Extend,
+	}
+
+	return data
+}
+
+func LoadMemberPlatform() error {
+
+	var total int
+
+	t := dialect.From("tbl_member_platform")
+	query, _, _ := t.Select(g.COUNT(1)).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&total, query)
+	if err != nil {
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	if total == 0 {
+		return nil
+	}
+
+	p := total / MEMBER_PAGE
+	if total%MEMBER_PAGE > 0 {
+		p += 1
+	}
+	for i := 0; i < p; i++ {
+
+		var data []MemberPlatform
+		query, _, _ = t.Select(colsMemberPlatform...).Offset(uint(i * MEMBER_PAGE)).Limit(MEMBER_PAGE).ToSQL()
+		fmt.Println(query)
+		err = meta.MerchantDB.Select(&data, query)
+		if err != nil {
+			_ = pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+			continue
+		}
+
+		pipe := meta.MerchantRedis.Pipeline()
+
+		for _, v := range data {
+			key := fmt.Sprintf("%s:m:plat:%s:%s", meta.Prefix, v.Username, v.Pid)
+			pipe.Unlink(ctx, key)
+			pipe.HMSet(ctx, key, PlatToMap(v))
+			pipe.Persist(ctx, key)
+		}
+
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			_ = pushLog(err, helper.DBErr)
+		}
+
+		_ = pipe.Close()
+	}
 
 	return nil
 }

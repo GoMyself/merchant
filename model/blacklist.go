@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strings"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -204,14 +204,14 @@ func BlacklistLoadCache(ty int) error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
-			return err
+			return pushLog(err, helper.DBErr)
 		}
 	} else {
 		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).ToSQL()
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
-			return err
+			return pushLog(err, helper.DBErr)
 		}
 	}
 
@@ -243,7 +243,12 @@ func BlacklistLoadCache(ty int) error {
 		}
 		pipe.Unlink(ctx, key)
 	} else {
-		pipe.Unlink(ctx, deviceKey, ipKey, phoneKey, bankcardKey, rebateKey, cgrebateKey)
+		pipe.Unlink(ctx, deviceKey)
+		pipe.Unlink(ctx, ipKey)
+		pipe.Unlink(ctx, phoneKey)
+		pipe.Unlink(ctx, bankcardKey)
+		pipe.Unlink(ctx, rebateKey)
+		pipe.Unlink(ctx, cgrebateKey)
 	}
 
 	for _, v := range data {
@@ -266,7 +271,10 @@ func BlacklistLoadCache(ty int) error {
 		pipe.Do(ctx, "CF.ADD", key, v.Value)
 	}
 
-	_, _ = pipe.Exec(ctx)
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
 
 	return nil
 }

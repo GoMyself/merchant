@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"strconv"
 	"strings"
 
@@ -111,6 +111,7 @@ func GameToMinio(pid ...string) error {
 	}
 
 	query, _, _ := dialect.From("tbl_platforms").Select(colsPlatJson...).Where(ex).Order(g.C("created_at").Asc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -132,6 +133,7 @@ func GameToMinio(pid ...string) error {
 			"prefix":      meta.Prefix,
 		}
 		query1, _, _ := dialect.From("tbl_game_lists").Select(colsShowGame...).Where(exG).Order(g.C("sorting").Asc()).ToSQL()
+		fmt.Println(query)
 		err = meta.MerchantDB.Select(&sg, query1)
 		if err != nil {
 			return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)

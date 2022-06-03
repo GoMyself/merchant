@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant2/contrib/helper"
-	"merchant2/contrib/session"
+	"merchant/contrib/helper"
+	"merchant/contrib/session"
 	"strconv"
 	"strings"
 	"time"
@@ -850,6 +850,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 			g.And(
 				g.C("uid").Neq(g.C("parent_uid")),
 				g.C("uid").In(ids),
+				g.C("data_type").Eq("1"),
 			),
 		)
 	} else {
@@ -883,6 +884,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 		).GroupBy("uid").
 		ToSQL()
 	err = meta.ReportDB.Select(&data, query)
+	fmt.Println(query)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(err.Error())
 		return data, number, pushLog(err, helper.DBErr)
@@ -1567,75 +1569,6 @@ func memberPlatformRetryReset(username, pid string) error {
 	param["unlock_ty"] = fmt.Sprintf("%d", PromoUnlockAdmin)
 	// 投递消息队列，异步处理会员场馆活动解锁
 	_, _ = BeanPut("promo", param, 0)
-
-	return nil
-}
-
-func PlatToMap(m MemberPlatform) map[string]interface{} {
-
-	data := map[string]interface{}{
-		"id":                      m.ID,
-		"username":                m.Username,
-		"password":                m.Password,
-		"pid":                     m.Pid,
-		"balance":                 m.Balance,
-		"state":                   m.State,
-		"created_at":              m.CreatedAt,
-		"transfer_in":             m.TransferIn,
-		"transfer_in_processing":  m.TransferInProcessing,
-		"transfer_out":            m.TransferOut,
-		"transfer_out_processing": m.TransferOutProcessing,
-		"extend":                  m.Extend,
-	}
-
-	return data
-}
-
-func LoadMemberPlatform() error {
-
-	var (
-		total    uint = 0
-		index    uint = 0
-		pageSize uint = 100
-	)
-
-	t := dialect.From("tbl_member_platform")
-	query, _, _ := t.Select(g.COUNT(1)).Where(g.Ex{"prefix": meta.Prefix}).ToSQL()
-	fmt.Println(query)
-	err := meta.MerchantDB.Get(&total, query)
-	if err != nil {
-		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-	}
-
-	if total == 0 {
-		return nil
-	}
-
-	pageMax := total / pageSize
-	t = t.Select(colsMemberPlatform...)
-
-	for index = 0; index <= pageMax; index++ {
-		var data []MemberPlatform
-		offset := index * pageSize
-		query, _, _ = t.Offset(offset).Limit(pageSize).ToSQL()
-		fmt.Println(query)
-		err = meta.MerchantDB.Select(&data, query)
-		if err != nil {
-			continue
-		}
-
-		pipe := meta.MerchantRedis.Pipeline()
-
-		for _, v := range data {
-			key := fmt.Sprintf("%s:m:plat:%s:%s", meta.Prefix, v.Username, v.Pid)
-			pipe.Unlink(ctx, key)
-			pipe.HMSet(ctx, key, PlatToMap(v))
-			pipe.Persist(ctx, key)
-		}
-
-		_, _ = pipe.Exec(ctx)
-		_ = pipe.Close()
-	}
 
 	return nil
 }

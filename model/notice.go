@@ -7,7 +7,7 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/wI2L/jettison"
-	"merchant2/contrib/helper"
+	"merchant/contrib/helper"
 	"time"
 )
 
