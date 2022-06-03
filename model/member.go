@@ -128,6 +128,7 @@ type MemberListCol struct {
 	Withdraw         float64 `json:"withdraw" db:"withdraw"`
 	ValidAmount      float64 `json:"valid_amount" db:"valid_amount"`
 	Rebate           float64 `json:"rebate" db:"rebate"`
+	RebatePoint      float64 `json:"rebate_point" db:"rebate_point"`
 	NetAmount        float64 `json:"net_amount" db:"net_amount"`
 	TY               string  `json:"ty" db:"ty"`
 	ZR               string  `json:"zr" db:"zr"`
@@ -850,6 +851,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 			g.And(
 				g.C("uid").Neq(g.C("parent_uid")),
 				g.C("uid").In(ids),
+				g.C("data_type").Eq("1"),
 			),
 		)
 	} else {
@@ -879,10 +881,12 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 			g.SUM("withdrawal_amount").As("withdraw"),
 			g.SUM("valid_bet_amount").As("valid_amount"),
 			g.SUM("rebate_amount").As("rebate"),
+			g.SUM("rebate_point").As("rebate_point"),
 			g.SUM("company_net_amount").As("net_amount"),
 		).GroupBy("uid").
 		ToSQL()
 	err = meta.ReportDB.Select(&data, query)
+	fmt.Println(query)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(err.Error())
 		return data, number, pushLog(err, helper.DBErr)
