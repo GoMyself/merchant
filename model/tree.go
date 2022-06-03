@@ -36,13 +36,11 @@ func TreeLoadToRedis() error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
-			fmt.Println("TreeLoadToRedis Select 2 = ", err)
-			return err
+			return pushLog(err, helper.DBErr)
 		}
 
 		data = data[1:]
 		b, _ := helper.JsonMarshal(data)
-
 		pipe.Unlink(ctx, key)
 		pipe.Set(ctx, key, string(b), time.Duration(100)*time.Hour)
 		pipe.Persist(ctx, key)
@@ -50,7 +48,11 @@ func TreeLoadToRedis() error {
 	}
 
 	_, err = pipe.Exec(ctx)
-	return err
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	return nil
 }
 
 func TreeList(level string) (string, error) {

@@ -161,12 +161,12 @@ func Load() {
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
 	_ = BlacklistLoadCache(0)
-	//_ = BannersLoadCache()
-	//_ = LoadMemberRebate()
-	//_ = TreeLoadToRedis()
-	//_ = PlatToMinio()
-	//_ = SMSChannelToCache()
-	//_ = GameToMinio()
+	_ = BannersLoadCache()
+	_ = LoadMemberRebate()
+	_ = TreeLoadToRedis()
+	_ = PlatToMinio()
+	_ = SMSChannelToCache()
+	_ = GameToMinio()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {

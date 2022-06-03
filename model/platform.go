@@ -113,6 +113,7 @@ func PlatToMinio() error {
 	}
 	query, _, _ := dialect.From("tbl_platforms").
 		Select(colsPlatJson...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
@@ -147,7 +148,7 @@ func PlatToMinio() error {
 		k := fmt.Sprintf("%s:plat:%s", meta.Prefix, val.ID)
 		b1, err := helper.JsonMarshal(val)
 		if err != nil {
-			fmt.Println("PlatToMinio error = ", err)
+			_ = pushLog(err, helper.FormatErr)
 			continue
 		}
 
@@ -166,7 +167,7 @@ func PlatToMinio() error {
 	pipe.Persist(ctx, platKey)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return pushLog(err, "redis")
+		return pushLog(err, helper.RedisErr)
 	}
 
 	return nil
