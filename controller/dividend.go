@@ -147,8 +147,6 @@ func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 
 	id := ctx.QueryArgs().GetUintOrZero("id")                            //订单号
 	username := string(ctx.QueryArgs().Peek("username"))                 //用户名
-	wallet := ctx.QueryArgs().GetUintOrZero("wallet")                    //1 中心钱包 2 场馆钱包
-	platformId := string(ctx.QueryArgs().Peek("platform_id"))            //场馆id
 	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //红利类型
 	waterLimit := ctx.QueryArgs().GetUintOrZero("water_limit")           //流水限制 1无需流水限制 2需要流水限制
 	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名字
@@ -173,23 +171,6 @@ func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 		}
 
 		ex["username"] = username
-	}
-
-	if wallet > 0 {
-		w := map[int]bool{
-			1: true, //中心钱包
-			2: true, //场馆钱包
-		}
-		if _, ok := w[wallet]; !ok {
-			helper.Print(ctx, false, helper.WalletTypeErr)
-			return
-		}
-
-		ex["wallet"] = wallet
-
-		if wallet == 2 && platformId != "" {
-			ex["platform_id"] = platformId
-		}
 	}
 
 	if ty != 0 {
