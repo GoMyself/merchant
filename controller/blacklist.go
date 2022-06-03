@@ -3,10 +3,10 @@ package controller
 import (
 	"fmt"
 	"log"
-	"os"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"os"
 	"strconv"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -234,7 +234,7 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-	logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", , id, helper.RemarkFMTErr)
+	logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", id, helper.RemarkFMTErr)
 
 	if !validator.CheckStringDigit(id) {
 		logger.Printf("case update check id IDErr: %+v  id:%v  IDErr:%v \n", helper.IDErr, id, helper.IDErr)

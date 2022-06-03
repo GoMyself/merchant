@@ -46,7 +46,7 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if param.Ty == model.TransactionDividend {
+	if param.Ty == helper.TransactionDividend {
 		if param.Pid == "" || !validator.CtypeDigit(param.Pid) {
 			helper.Print(ctx, false, helper.PlatIDErr)
 			return
