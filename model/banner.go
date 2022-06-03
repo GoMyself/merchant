@@ -291,7 +291,9 @@ func BannersLoadCache() error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Get(&singleBanner, query)
 		if err != nil {
-			_ = pushLog(err, helper.DBErr)
+			if err != sql.ErrNoRows {
+				_ = pushLog(err, helper.DBErr)
+			}
 			continue
 		}
 
@@ -332,7 +334,9 @@ func BannersLoadCache() error {
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&recs, query)
 		if err != nil {
-			_ = pushLog(err, helper.DBErr)
+			if err != sql.ErrNoRows {
+				_ = pushLog(err, helper.DBErr)
+			}
 			continue
 		}
 
