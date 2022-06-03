@@ -234,13 +234,19 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
+	logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", , id, helper.RemarkFMTErr)
+
 	if !validator.CheckStringDigit(id) {
+		logger.Printf("case update check id IDErr: %+v  id:%v  IDErr:%v \n", helper.IDErr, id, helper.IDErr)
+
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
 	remark := string(ctx.PostArgs().Peek("remark"))
 	if !validator.CheckStringLength(remark, 1, 1000) {
+		logger.Printf("case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", ctx, remark, id, helper.RemarkFMTErr)
+
 		helper.Print(ctx, false, helper.RemarkFMTErr)
 		return
 	}
@@ -252,6 +258,8 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 		"remark": validator.FilterInjection(remark),
 	}
 	err := model.BlacklistUpdate(ex, record)
+	logger.Printf("case update check blacklist id: %+v %v  IDErr:%v \n", err.Error(), id, record)
+
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
