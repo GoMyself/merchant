@@ -229,7 +229,7 @@ func DividendReview(state int, ts int64, adminID, adminName, reviewRemark string
 			BillNo:       v.ID,
 			CreatedAt:    time.Now().UnixMilli(),
 			ID:           helper.GenId(),
-			CashType:     TransactionDividend,
+			CashType:     helper.TransactionDividend,
 			UID:          v.UID,
 			Username:     v.Username,
 			Prefix:       meta.Prefix,

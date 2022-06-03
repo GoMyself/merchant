@@ -15,7 +15,7 @@ import (
 type BlacklistController struct{}
 
 func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
-
+ 
 	page := string(ctx.QueryArgs().Peek("page"))
 	pageSize := string(ctx.QueryArgs().Peek("page_size"))
 	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {

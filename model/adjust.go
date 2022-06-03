@@ -194,14 +194,14 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 			BillNo:       adjust["id"].(string),
 			CreatedAt:    time.Now().UnixMilli(),
 			ID:           helper.GenId(),
-			CashType:     TransactionUpPoint,
+			CashType:     helper.TransactionUpPoint,
 			UID:          uid,
 			Username:     username,
 			Prefix:       meta.Prefix,
 		}
 		// 离线转卡存款
 		if adjustType == 3 {
-			trans.CashType = TransactionOfflineDeposit
+			trans.CashType = helper.TransactionOfflineDeposit
 		}
 		query, _, _ = dialect.Insert("tbl_balance_transaction").Rows(trans).ToSQL()
 		_, err = tx.Exec(query)
@@ -325,7 +325,7 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 			BillNo:       adjust["id"].(string),
 			CreatedAt:    time.Now().UnixNano() / 1e6,
 			ID:           helper.GenId(),
-			CashType:     TransactionDownPoint,
+			CashType:     helper.TransactionDownPoint,
 			UID:          uid,
 			Username:     username,
 			Prefix:       meta.Prefix,
@@ -413,7 +413,7 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 			BillNo:       adjust["id"].(string),
 			CreatedAt:    time.Now().UnixNano() / 1e6,
 			ID:           helper.GenId(),
-			CashType:     TransactionDownPointBack,
+			CashType:     helper.TransactionDownPointBack,
 			UID:          uid,
 			Username:     username,
 			Prefix:       meta.Prefix,
