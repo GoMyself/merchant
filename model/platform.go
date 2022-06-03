@@ -138,8 +138,8 @@ func PlatToMinio() error {
 		return errors.New(helper.FormatErr)
 	}
 
-	fmt.Println(string(navB))
-	fmt.Println(string(b))
+	//fmt.Println(string(navB))
+	//fmt.Println(string(b))
 
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
@@ -160,7 +160,8 @@ func PlatToMinio() error {
 
 	navKey := fmt.Sprintf("%s:nav", meta.Prefix)
 	platKey := fmt.Sprintf("%s:plat", meta.Prefix)
-	pipe.Unlink(ctx, navKey, platKey)
+	pipe.Unlink(ctx, navKey)
+	pipe.Unlink(ctx, platKey)
 	pipe.Set(ctx, navKey, string(navB), 0)
 	pipe.Persist(ctx, navKey)
 	pipe.Set(ctx, platKey, string(b), 0)
@@ -178,6 +179,7 @@ func NavMinio() ([]navJson, error) {
 	var top []Cate
 	query, _, _ := dialect.From("tbl_tree").
 		Where(g.C("level").ILike("0010%"), g.C("prefix").Eq(meta.Prefix)).Order(g.C("sort").Asc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&top, query)
 	if err != nil {
 		return nil, pushLog(err, helper.DBErr)
@@ -198,11 +200,11 @@ func NavMinio() ([]navJson, error) {
 			"game_type": v.ID,
 			"prefix":    meta.Prefix,
 		}
-
 		query, _, _ = dialect.From("tbl_platforms").Select(colsPlatJson...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+		fmt.Println(query)
 		err = meta.MerchantDB.Select(&data[k].L, query)
 		if err != nil {
-			fmt.Println("platform query = ", query)
+			_ = pushLog(err, helper.DBErr)
 			continue
 		}
 	}

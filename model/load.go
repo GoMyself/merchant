@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
@@ -35,7 +36,9 @@ func LoadLink() {
 			//fmt.Println(query)
 			err := meta.MerchantDB.Select(&uids, query)
 			if err != nil {
-				_ = pushLog(err, helper.DBErr)
+				if err != sql.ErrNoRows {
+					_ = pushLog(err, helper.DBErr)
+				}
 				return
 			}
 
@@ -43,10 +46,12 @@ func LoadLink() {
 				"uid": uids,
 			}
 			query, _, _ = dialect.From("tbl_member_link").Where(ex).Select(colsLink...).ToSQL()
-			fmt.Println(query)
+			//fmt.Println(query)
 			err = meta.MerchantDB.Select(&data, query)
 			if err != nil {
-				_ = pushLog(err, helper.DBErr)
+				if err != sql.ErrNoRows {
+					_ = pushLog(err, helper.DBErr)
+				}
 				return
 			}
 
