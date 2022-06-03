@@ -81,7 +81,7 @@ func LoadLink() {
 				pipe.Do(ctx, "JSON.SET", k, ".", string(value))
 				pipe.Persist(ctx, k)
 
-				//fmt.Println(k, string(value))
+				fmt.Println(k, string(value))
 			}
 
 			_, err = pipe.Exec(ctx)
