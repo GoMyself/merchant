@@ -160,7 +160,7 @@ func Load() {
 	_ = PrivRefresh()
 	_ = GroupRefresh()
 	_ = LoadMemberPlatform()
-	//_ = BlacklistLoadCache(0)
+	_ = BlacklistLoadCache(0)
 	//_ = BannersLoadCache()
 	//_ = LoadMemberRebate()
 	//_ = TreeLoadToRedis()

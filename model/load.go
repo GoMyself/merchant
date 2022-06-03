@@ -32,7 +32,7 @@ func LoadLink() {
 				data []Link_t
 			)
 			query, _, _ = t.Where(g.Ex{}).Select("uid").Offset(uint(i * LINK_PAGE)).Limit(LINK_PAGE).ToSQL()
-			fmt.Println(query)
+			//fmt.Println(query)
 			err := meta.MerchantDB.Select(&uids, query)
 			if err != nil {
 				_ = pushLog(err, helper.DBErr)
