@@ -71,6 +71,7 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		data []BankCard_t
 		key  string
 	)
+	fmt.Printf("Warning insert and update card value: %v\n", value)
 
 	user, err := AdminToken(fctx)
 	if err != nil {
@@ -118,7 +119,9 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 	}
 
 	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
+
 	valueHash := MurmurHash(value, 0)
+	fmt.Printf("Warning update card value: %v hash :%v\n", value, valueHash)
 
 	ex = g.Ex{
 		"prefix":         meta.Prefix,
