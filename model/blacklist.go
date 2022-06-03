@@ -212,7 +212,7 @@ func BlacklistExist(ex g.Ex) bool {
 	t := dialect.From("tbl_blacklist")
 	query, _, _ := t.Select("id").Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&id, query)
-	fmt.Printf("bank card blacklist check sql: %+v, now id: %v result err:%v \n", query, id, err)
+	fmt.Printf("WARNING: bank card blacklist check sql: %+v, now id: %v result err:%v \n", query, id, err)
 	return err != sql.ErrNoRows
 }
 
