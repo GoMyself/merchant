@@ -35,7 +35,7 @@ func LoadLink() {
 			fmt.Println(query)
 			err := meta.MerchantDB.Select(&uids, query)
 			if err != nil {
-				fmt.Println(query, err)
+				_ = pushLog(err, helper.DBErr)
 				return
 			}
 
@@ -43,9 +43,10 @@ func LoadLink() {
 				"uid": uids,
 			}
 			query, _, _ = dialect.From("tbl_member_link").Where(ex).Select(colsLink...).ToSQL()
+			fmt.Println(query)
 			err = meta.MerchantDB.Select(&data, query)
 			if err != nil {
-				fmt.Println(query, err)
+				_ = pushLog(err, helper.DBErr)
 				return
 			}
 
@@ -63,7 +64,7 @@ func LoadLink() {
 
 				value, err := helper.JsonMarshal(&v)
 				if err != nil {
-					fmt.Println(err)
+					_ = pushLog(err, helper.FormatErr)
 					return
 				}
 
@@ -123,7 +124,12 @@ func LoadMembers() {
 				pipe.HMSet(ctx, key, fields...)
 				pipe.Persist(ctx, key)
 			}
-			_, _ = pipe.Exec(ctx)
+			_, err = pipe.Exec(ctx)
+			if err != nil {
+				_ = pushLog(err, helper.RedisErr)
+				return
+			}
+
 			_ = pipe.Close()
 		}
 	}
