@@ -120,7 +120,7 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 
 	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
 
-	valueHash := MurmurHash(value, 0)
+	valueHash := fmt.Sprintf("%d", MurmurHash(value, 0))
 	fmt.Printf("Warning update card value: %v hash :%v\n", value, valueHash)
 
 	ex = g.Ex{
