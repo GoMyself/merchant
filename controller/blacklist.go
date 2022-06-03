@@ -173,7 +173,6 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 	ty := ctx.PostArgs().GetUintOrZero("ty")
 	if _, ok := model.BlackTy[ty]; !ok {
-		fmt.Printf("Warning insert blacklist failed: %+v %v  ParamErr:%v \n", &ctx, false, helper.ParamErr)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -182,19 +181,16 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 	switch ty {
 	case model.TyBankcard:
 		if !validator.CheckStringLength(value, 6, 20) || !validator.CheckStringDigit(value) {
-			fmt.Printf("Warning case TyBankcard blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
 	case model.TyRebate, model.TyCGRebate:
 		if !validator.CheckUName(value, 5, 14) {
-			fmt.Printf("Warning case TyCGRebate blacklist: %+v %v  UsernameErr:%v \n", value, false, helper.UsernameErr)
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 	default:
 		if !validator.CheckStringLength(value, 1, 60) {
-			fmt.Printf("Warning case default blacklist: %+v %v  ParamErr:%v \n", value, false, helper.ParamErr)
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
@@ -202,7 +198,6 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 
 	remark := string(ctx.PostArgs().Peek("remark"))
 	if !validator.CheckStringLength(remark, 1, 1000) {
-		fmt.Printf("Warning remark check blacklist: %+v %v  ParamErr:%v \n", remark, false, helper.RemarkFMTErr)
 		helper.Print(ctx, false, helper.RemarkFMTErr)
 		return
 	}
@@ -214,8 +209,6 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 		"remark": remark,
 	}
 	err := model.BlacklistInsert(ctx, ty, value, record)
-	fmt.Printf("Warning insert result record: %+v %v  record:%v err:%v \n", ty, value, record, err)
-
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -228,19 +221,14 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-	fmt.Printf("Warning case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", id, helper.RemarkFMTErr)
 
 	if !validator.CheckStringDigit(id) {
-		fmt.Printf("Warning case update check id IDErr: %+v  id:%v  IDErr:%v \n", helper.IDErr, id, helper.IDErr)
-
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
 	remark := string(ctx.PostArgs().Peek("remark"))
 	if !validator.CheckStringLength(remark, 1, 1000) {
-		fmt.Printf("Warning case update check blacklist ctx: %+v remark:%v, id:%v  RemarkFMTErr:%v \n", ctx, remark, id, helper.RemarkFMTErr)
-
 		helper.Print(ctx, false, helper.RemarkFMTErr)
 		return
 	}
@@ -252,8 +240,6 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 		"remark": validator.FilterInjection(remark),
 	}
 	err := model.BlacklistUpdate(ex, record)
-	fmt.Printf("Warning case update check blacklist id: %+v %v  IDErr:%v \n", err.Error(), id, record)
-
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -267,14 +253,11 @@ func (that *BlacklistController) Delete(ctx *fasthttp.RequestCtx) {
 	id := string(ctx.QueryArgs().Peek("id"))
 
 	if !validator.CheckStringDigit(id) {
-		fmt.Printf("Warning case delete check blacklist id: %+v %v  IDErr:%v \n", ctx, id, helper.IDErr)
-
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
 	err := model.BlacklistDelete(id)
-	fmt.Printf("Warning case delete result err: %+v id:%v  IDErr:%v \n", err, id, helper.IDErr)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
