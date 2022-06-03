@@ -1319,9 +1319,20 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 
 	// 总返水
 	rex := g.Ex{
-		"uid":        mb.UID,
-		"prefix":     meta.Prefix,
-		"cash_type":  []int{TransactionRebate, TransactionSubRebate},
+		"uid":    mb.UID,
+		"prefix": meta.Prefix,
+		"cash_type": []int{
+			helper.TransactionRebateCasino,       //真人返水
+			helper.TransactionRebateLottery,      //彩票返水
+			helper.TransactionRebateSport,        //体育返水
+			helper.TransactionRebateDesk,         //棋牌返水
+			helper.TransactionRebateESport,       //电竞返水
+			helper.TransactionRebateCockFighting, //斗鸡返水
+			helper.TransactionRebateFishing,      //捕鱼返水
+			helper.TransactionRebateLott,         //电游返水
+			helper.TransactionRebateCGLottery,    //彩票返点
+			helper.TransactionSubRebate,          //下级返水
+		},
 		"created_at": g.Op{"between": exp.NewRangeVal(ss*1000, se*1000)},
 	}
 	query, _, _ = dialect.From("tbl_balance_transaction").
@@ -1464,7 +1475,7 @@ func MemberBalanceZero(username, remark, adminID, adminName string) error {
 		BillNo:       id,
 		CreatedAt:    time.Now().UnixMilli(),
 		ID:           id,
-		CashType:     TransactionSetBalanceZero,
+		CashType:     helper.TransactionSetBalanceZero,
 		UID:          mb.UID,
 		Username:     username,
 		Prefix:       meta.Prefix,
