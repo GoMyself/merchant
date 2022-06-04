@@ -55,7 +55,7 @@ func SMSChannelUpdateState(cid string, txtState, voiceState int) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	_ = SMSChannelToCache()
+	_ = LoadSMSChannels()
 
 	return nil
 }
@@ -74,7 +74,7 @@ func SMSChannelUpdate(cid string, rc g.Record) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	_ = SMSChannelToCache()
+	_ = LoadSMSChannels()
 
 	return nil
 }
@@ -93,12 +93,12 @@ func SMSChannelInsert(data *SMSChannel) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	_ = SMSChannelToCache()
+	_ = LoadSMSChannels()
 
 	return nil
 }
 
-func SMSChannelToCache() (err error) {
+func LoadSMSChannels() (err error) {
 
 	fmt.Println("====== CacheIn")
 

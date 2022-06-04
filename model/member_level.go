@@ -34,7 +34,7 @@ func MemberLevelFindOne(ex g.Ex) (MemberLevel, error) {
 	return vip, err
 }
 
-func MemberLevelToMinio() {
+func LoadMemberLevels() {
 
 	vip, err := MemberLevelList()
 	if err != nil || len(vip) < 1 {
@@ -85,7 +85,7 @@ func VIPUpdate(vid string, record g.Record) error {
 	}
 
 	//_ = vipRefreshCache(vip.Level)
-	MemberLevelToMinio()
+	LoadMemberLevels()
 
 	return nil
 }
@@ -100,7 +100,7 @@ func VIPInsert(data MemberLevel) error {
 	}
 
 	//_ = vipRefreshCache(data.Level)
-	MemberLevelToMinio()
+	LoadMemberLevels()
 
 	return nil
 }

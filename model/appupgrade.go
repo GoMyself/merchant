@@ -50,7 +50,7 @@ func AppUpgradeUpdate(device, version, content, url, isForce string, admin map[s
 	}
 
 	// 更新缓存
-	AppUpgradeLoadCache()
+	LoadAppUpgrades()
 
 	return nil
 }
@@ -67,7 +67,7 @@ func AppUpgradeList() ([]AppUpgrade, error) {
 	return data, nil
 }
 
-func AppUpgradeLoadCache() {
+func LoadAppUpgrades() {
 
 	var data []UpgradeInfo
 	query, _, _ := dialect.From("tbl_app_upgrade").Select("platform", "version", "is_force", "content", "url").Where(g.Ex{"prefix": meta.Prefix}).ToSQL()

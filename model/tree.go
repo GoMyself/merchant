@@ -14,14 +14,14 @@ type tree_t struct {
 	Prefix string `db:"prefix" json:"prefix"` //排序
 }
 
-func TreeLoadToRedis() error {
+func LoadTrees() error {
 
 	var parent []tree_t
 	query := fmt.Sprintf("SELECT * FROM `tbl_tree` WHERE LENGTH(`level`) = 3 and prefix= '%s';", meta.Prefix)
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&parent, query)
 	if err != nil {
-		fmt.Println("TreeLoadToRedis Select = ", err)
+		fmt.Println("LoadTrees Select = ", err)
 		return err
 	}
 

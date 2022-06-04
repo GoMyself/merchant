@@ -268,7 +268,7 @@ func BannerInsert(record Banner) error {
 }
 
 // 加载banner到缓存
-func BannersLoadCache() error {
+func LoadBanners() error {
 
 	single := []int{1}
 	array := []int{2, 5}
