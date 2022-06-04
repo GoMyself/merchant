@@ -51,10 +51,10 @@ func GroupUpdate(id string, data Group) error {
 		return pushLog(body, helper.DBErr)
 	}
 
-	return GroupRefresh()
+	return LoadGroups()
 }
 
-func GroupRefresh() error {
+func LoadGroups() error {
 
 	var records []Group
 	cols := []interface{}{"noted", "gid", "gname", "permission", "create_at", "state", "lft", "rgt", "lvl", "pid"}
@@ -160,7 +160,7 @@ func GroupInsert(pid string, data Group) error {
 		return pushLog(body, helper.DBErr)
 	}
 
-	return GroupRefresh()
+	return LoadGroups()
 }
 
 func GroupList() (string, error) {

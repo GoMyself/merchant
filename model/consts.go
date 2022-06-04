@@ -7,8 +7,7 @@ var (
 )
 
 const (
-	LINK_PAGE   = 1000
-	MEMBER_PAGE = 1000
+	LOAD_PAGE = 100
 )
 
 //动态验证码的有效时间
@@ -23,14 +22,6 @@ var (
 const (
 	GameOffline = 0 // 0下线
 	GameOnline  = 1 // 1上线
-)
-
-//广告类型
-const (
-	BannerFlagApp       = 1 // App闪屏页广告
-	BannerFlagCarousel  = 2 // 轮播图广告
-	BannerFlagWebSports = 3 // web体育场馆广告
-	BannerFlagSite      = 4 // 站点广告位
 )
 
 const (

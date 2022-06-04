@@ -153,20 +153,21 @@ func Constructor(mt *MetaTable, rpc string) {
 
 func Load() {
 
-	AppUpgradeLoadCache()
-	LoadLink()
+	LoadAppUpgrades()
+	LoadLinks()
 	LoadMembers()
+	LoadMemberLevels()
 
-	_ = PrivRefresh()
-	_ = GroupRefresh()
-	_ = LoadMemberPlatform()
-	_ = BlacklistLoadCache(0)
-	_ = BannersLoadCache()
-	_ = LoadMemberRebate()
-	_ = TreeLoadToRedis()
+	_ = LoadPrivs()
+	_ = LoadGroups()
+	_ = LoadMemberPlatforms()
+	_ = LoadBlacklists(0)
+	_ = LoadBanners()
+	_ = LoadMemberRebates()
+	_ = LoadTrees()
 	_ = PlatToMinio()
-	_ = SMSChannelToCache()
-	_ = GameToMinio()
+	_ = LoadSMSChannels()
+	_ = LoadGameLists()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {

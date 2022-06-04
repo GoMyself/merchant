@@ -7,144 +7,97 @@ import (
 	"merchant/contrib/helper"
 )
 
-func LoadLink() {
+func LoadLinks() {
 
-	var total int
-
-	t := dialect.From("tbl_members")
-	query, _, _ := t.Select(g.COUNT("uid")).ToSQL()
+	var data []Link_t
+	query, _, _ := dialect.From("tbl_member_link").Where(g.Ex{}).Select(colsLink...).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Get(&total, query)
+	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
-		fmt.Println(query, err)
+		if err != sql.ErrNoRows {
+			_ = pushLog(err, helper.DBErr)
+		}
 		return
 	}
 
-	if total > 0 {
-
-		p := total / LINK_PAGE
-		if total%LINK_PAGE > 0 {
-			p += 1
+	bcs := make(map[string]map[string]Link_t)
+	for _, v := range data {
+		key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.UID)
+		if _, ok := bcs[key]; ok {
+			bcs[key]["$"+v.ID] = v
+		} else {
+			bcs[key] = map[string]Link_t{
+				"$" + v.ID: v,
+			}
 		}
-		for i := 0; i < p; i++ {
+	}
 
-			var (
-				uids []string
-				data []Link_t
-			)
-			query, _, _ = t.Where(g.Ex{}).Select("uid").Offset(uint(i * LINK_PAGE)).Limit(LINK_PAGE).ToSQL()
-			//fmt.Println(query)
-			err := meta.MerchantDB.Select(&uids, query)
-			if err != nil {
-				if err != sql.ErrNoRows {
-					_ = pushLog(err, helper.DBErr)
-				}
-				return
-			}
+	for k, v := range bcs {
 
-			ex := g.Ex{
-				"uid": uids,
-			}
-			query, _, _ = dialect.From("tbl_member_link").Where(ex).Select(colsLink...).ToSQL()
-			//fmt.Println(query)
-			err = meta.MerchantDB.Select(&data, query)
-			if err != nil {
-				if err != sql.ErrNoRows {
-					_ = pushLog(err, helper.DBErr)
-				}
-				return
-			}
-
-			bcs := make(map[string]map[string]Link_t)
-			for _, v := range data {
-				key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.UID)
-				if _, ok := bcs[key]; ok {
-					bcs[key]["$"+v.ID] = v
-				} else {
-					bcs[key] = map[string]Link_t{
-						"$" + v.ID: v,
-					}
-				}
-			}
-
-			pipe := meta.MerchantRedis.TxPipeline()
-
-			for k, v := range bcs {
-
-				value, err := helper.JsonMarshal(&v)
-				if err != nil {
-					_ = pushLog(err, helper.FormatErr)
-					return
-				}
-
-				pipe.Unlink(ctx, k)
-				pipe.Do(ctx, "JSON.SET", k, ".", string(value))
-				pipe.Persist(ctx, k)
-
-				fmt.Println(k, string(value))
-			}
-
-			_, err = pipe.Exec(ctx)
-			if err != nil {
-				_ = pushLog(err, helper.RedisErr)
-				return
-			}
-
-			_ = pipe.Close()
+		value, err := helper.JsonMarshal(&v)
+		if err != nil {
+			_ = pushLog(err, helper.FormatErr)
+			return
 		}
+
+		pipe := meta.MerchantRedis.TxPipeline()
+		pipe.Unlink(ctx, k)
+		pipe.Do(ctx, "JSON.SET", k, ".", string(value))
+		pipe.Persist(ctx, k)
+
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			fmt.Println(k, string(value), err)
+			_ = pushLog(err, helper.RedisErr)
+			return
+		}
+
+		_ = pipe.Close()
 	}
 }
 
 func LoadMembers() {
 
-	var total int
-
-	t := dialect.From("tbl_members")
-	query, _, _ := t.Select(g.COUNT("uid")).ToSQL()
+	var data []Member
+	query, _, _ := dialect.From("tbl_members").Where(g.Ex{}).Select(colsMember...).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Get(&total, query)
+	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		_ = pushLog(err, helper.DBErr)
 		return
 	}
 
-	if total > 0 {
+	total := len(data)
+	p := total / LOAD_PAGE
+	if total%LOAD_PAGE > 0 {
+		p += 1
+	}
 
-		p := total / MEMBER_PAGE
-		if total%MEMBER_PAGE > 0 {
-			p += 1
+	for i := 0; i < p; i++ {
+
+		pd := data[i*LOAD_PAGE : i+1*LOAD_PAGE]
+		if i == p-1 {
+			pd = data[i*LOAD_PAGE:]
 		}
-		for i := 0; i < p; i++ {
-
-			var data []Member
-			query, _, _ = t.Where(g.Ex{}).Select(colsMember...).Offset(uint(i * MEMBER_PAGE)).Limit(MEMBER_PAGE).ToSQL()
-			fmt.Println(query)
-			err := meta.MerchantDB.Select(&data, query)
-			if err != nil {
-				_ = pushLog(err, helper.DBErr)
-				return
-			}
-
-			pipe := meta.MerchantRedis.TxPipeline()
-			for _, v := range data {
-				key := meta.Prefix + ":member:" + v.Username
-				fields := []interface{}{"uid", v.UID, "username", v.Username, "password", v.Password, "birth", v.Birth, "birth_hash", v.BirthHash, "realname_hash", v.RealnameHash, "email_hash", v.EmailHash, "phone_hash", v.PhoneHash, "zalo_hash", v.ZaloHash, "prefix", v.Prefix, "tester", v.Tester, "withdraw_pwd", v.WithdrawPwd, "regip", v.Regip, "reg_device", v.RegDevice, "reg_url", v.RegUrl, "created_at", v.CreatedAt, "last_login_ip", v.LastLoginIp, "last_login_at", v.LastLoginAt, "source_id", v.SourceId, "first_deposit_at", v.FirstDepositAt, "first_deposit_amount", v.FirstDepositAmount, "first_bet_at", v.FirstBetAt, "first_bet_amount", v.FirstBetAmount, "", v.SecondDepositAt, "", v.SecondDepositAmount, "top_uid", v.TopUid, "top_name", v.TopName, "parent_uid", v.ParentUid, "parent_name", v.ParentName, "bankcard_total", v.BankcardTotal, "last_login_device", v.LastLoginDevice, "last_login_source", v.LastLoginSource, "remarks", v.Remarks, "state", v.State, "level", v.Level, "balance", v.Balance, "lock_amount", v.LockAmount, "commission", v.Commission, "group_name", v.GroupName, "agency_type", v.AgencyType, "address", v.Address, "avatar", v.Avatar}
-				pipe.Del(ctx, key)
-				pipe.HMSet(ctx, key, fields...)
-				pipe.Persist(ctx, key)
-			}
-			_, err = pipe.Exec(ctx)
-			if err != nil {
-				_ = pushLog(err, helper.RedisErr)
-				return
-			}
-
-			_ = pipe.Close()
+		pipe := meta.MerchantRedis.TxPipeline()
+		for _, v := range pd {
+			key := meta.Prefix + ":member:" + v.Username
+			fields := []interface{}{"uid", v.UID, "username", v.Username, "password", v.Password, "birth", v.Birth, "birth_hash", v.BirthHash, "realname_hash", v.RealnameHash, "email_hash", v.EmailHash, "phone_hash", v.PhoneHash, "zalo_hash", v.ZaloHash, "prefix", v.Prefix, "tester", v.Tester, "withdraw_pwd", v.WithdrawPwd, "regip", v.Regip, "reg_device", v.RegDevice, "reg_url", v.RegUrl, "created_at", v.CreatedAt, "last_login_ip", v.LastLoginIp, "last_login_at", v.LastLoginAt, "source_id", v.SourceId, "first_deposit_at", v.FirstDepositAt, "first_deposit_amount", v.FirstDepositAmount, "first_bet_at", v.FirstBetAt, "first_bet_amount", v.FirstBetAmount, "", v.SecondDepositAt, "", v.SecondDepositAmount, "top_uid", v.TopUid, "top_name", v.TopName, "parent_uid", v.ParentUid, "parent_name", v.ParentName, "bankcard_total", v.BankcardTotal, "last_login_device", v.LastLoginDevice, "last_login_source", v.LastLoginSource, "remarks", v.Remarks, "state", v.State, "level", v.Level, "balance", v.Balance, "lock_amount", v.LockAmount, "commission", v.Commission, "group_name", v.GroupName, "agency_type", v.AgencyType, "address", v.Address, "avatar", v.Avatar}
+			pipe.Del(ctx, key)
+			pipe.HMSet(ctx, key, fields...)
+			pipe.Persist(ctx, key)
 		}
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			_ = pushLog(err, helper.RedisErr)
+			return
+		}
+
+		_ = pipe.Close()
 	}
 }
 
-func LoadMemberRebate() error {
+func LoadMemberRebates() error {
 
 	var data []MemberRebate
 	query, _, _ := dialect.From("tbl_member_rebate_info").Select(colsMemberRebate...).ToSQL()
@@ -196,7 +149,7 @@ func PlatToMap(m MemberPlatform) map[string]interface{} {
 	return data
 }
 
-func LoadMemberPlatform() error {
+func LoadMemberPlatforms() error {
 
 	var total int
 
@@ -212,14 +165,14 @@ func LoadMemberPlatform() error {
 		return nil
 	}
 
-	p := total / MEMBER_PAGE
-	if total%MEMBER_PAGE > 0 {
+	p := total / LOAD_PAGE
+	if total%LOAD_PAGE > 0 {
 		p += 1
 	}
 	for i := 0; i < p; i++ {
 
 		var data []MemberPlatform
-		query, _, _ = t.Select(colsMemberPlatform...).Offset(uint(i * MEMBER_PAGE)).Limit(MEMBER_PAGE).ToSQL()
+		query, _, _ = t.Select(colsMemberPlatform...).Offset(uint(i * LOAD_PAGE)).Limit(LOAD_PAGE).ToSQL()
 		fmt.Println(query)
 		err = meta.MerchantDB.Select(&data, query)
 		if err != nil {

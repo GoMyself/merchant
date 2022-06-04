@@ -199,7 +199,7 @@ func BlacklistDelete(id string) error {
 	}
 	///// 更新结束
 
-	_ = BlacklistLoadCache(data.Ty)
+	_ = LoadBlacklists(data.Ty)
 
 	return nil
 }
@@ -216,7 +216,7 @@ func BlacklistExist(ex g.Ex) bool {
 	return err != sql.ErrNoRows
 }
 
-func BlacklistLoadCache(ty int) error {
+func LoadBlacklists(ty int) error {
 
 	var data []Blacklist
 

@@ -31,7 +31,7 @@ func GameListUpdate(id, pid string, record g.Record) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	return GameToMinio(pid)
+	return LoadGameLists(pid)
 }
 
 // 游戏列表 分页查询
@@ -93,7 +93,7 @@ func gameIntClientToString(client string) []string {
 	return data
 }
 
-func GameToMinio(pid ...string) error {
+func LoadGameLists(pid ...string) error {
 
 	var data []platJson
 	ex := g.Ex{

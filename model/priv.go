@@ -40,7 +40,7 @@ func PrivCheck(uri, gid string) error {
  * @Description: 刷新缓存
  * @Author: carl
  */
-func PrivRefresh() error {
+func LoadPrivs() error {
 
 	var records []Priv
 
