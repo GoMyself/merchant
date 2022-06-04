@@ -2,6 +2,7 @@ package controller
 
 import (
 	"merchant/contrib/helper"
+	"merchant/contrib/validator"
 	"merchant/model"
 
 	"github.com/valyala/fasthttp"
@@ -17,39 +18,31 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.QueryArgs().Peek("username"))
 	phone := string(ctx.QueryArgs().Peek("phone"))
 	state := string(ctx.QueryArgs().Peek("state"))
-	ty := string(ctx.QueryArgs().Peek("ty"))
+	ty := ctx.QueryArgs().GetUintOrZero("ty")
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
 	if page < 1 {
 		page = 1
 	}
-	if pageSize > 50 {
-		pageSize = 50
-	}
-	if pageSize < 20 {
-		pageSize = 20
+	if pageSize < 10 {
+		pageSize = 10
 	}
 	// 会员名校验
-	//if username != "" {
-	//	if !helper.CtypeAlnum(username) {
-	//		helper.Print(ctx, false, helper.UsernameErr)
-	//		return
-	//	}
-	//}
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+	}
 
 	//// 手机号校验
-	//if phone != "" {
-	//	if !helper.CtypeDigit(phone) {
-	//		helper.Print(ctx, false, helper.PhoneFMTErr)
-	//		return
-	//	}
-	//}
-	//
-	//if state == "" {
-	//	helper.Print(ctx, false, helper.PhoneFMTErr)
-	//	return
-	//}
+	if phone != "" {
+		if !validator.IsVietnamesePhone(phone) {
+			helper.Print(ctx, false, helper.PhoneFMTErr)
+			return
+		}
+	}
 
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)

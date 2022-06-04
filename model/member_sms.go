@@ -30,7 +30,7 @@ type SmsData_t struct {
 	S uint    `json:"s"`
 }
 
-func SmsList(page, pageSize uint, start, end, username, phone, state, ty string) (SmsData_t, error) {
+func SmsList(page, pageSize uint, start, end, username, phone, state string, ty int) (SmsData_t, error) {
 
 	ex := g.Ex{}
 	data := SmsData_t{}
@@ -47,12 +47,11 @@ func SmsList(page, pageSize uint, start, end, username, phone, state, ty string)
 		ex["state"] = state
 	}
 
-	if ty != "" {
+	if ty > 0 {
 		ex["ty"] = ty
 	}
 
 	ex["prefix"] = meta.Prefix
-
 	if start != "" && end != "" {
 
 		startAt, err := helper.TimeToLoc(start, loc)
@@ -69,7 +68,6 @@ func SmsList(page, pageSize uint, start, end, username, phone, state, ty string)
 	}
 
 	t := dialect.From("sms_log")
-
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
 		err := meta.MerchantTD.Get(&data.T, query)
@@ -78,8 +76,6 @@ func SmsList(page, pageSize uint, start, end, username, phone, state, ty string)
 		}
 
 		if err != nil {
-			//fmt.Println("SmsList COUNT err = ", err.Error())
-			//fmt.Println("SmsList COUNT query = ", query)
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
 			return data, pushLog(body, helper.DBErr)
 		}
@@ -88,16 +84,11 @@ func SmsList(page, pageSize uint, start, end, username, phone, state, ty string)
 			return data, nil
 		}
 	}
-	//.Order(g.C("ts").Desc())
 
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "phone", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-	//fmt.Println("SmsList query = ", query)
-
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
-		//fmt.Println("SmsList err = ", err.Error())
-		//fmt.Println("SmsList query = ", query)
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
 		return data, pushLog(body, helper.DBErr)
 	}
