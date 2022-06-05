@@ -206,6 +206,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				CreatedAt:        int64(v.ReviewAt),
 				Ty:               "2",
 				Pid:              "0",
+				RecordId:         v.ID,
 			})
 			needFlowAmount = needFlowAmount.Add(flow)
 			i++
@@ -242,6 +243,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
 				Pid:              "0",
+				RecordId:         v.ID,
 			})
 			needFlowAmount = needFlowAmount.Add(adjustAmount.Mul(multi))
 
@@ -250,37 +252,41 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 
 	//查存款
-	depostAmount, err := EsDepost(username, cutTime, now)
+	depostList, err := EsDepost(username, cutTime, now)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
 
-	if depostAmount.Cmp(decimal.Zero) == 1 {
+	if depostList.T > 0 {
 		//组装存款的流水稽查
-		uf := depostAmount.Sub(totalVaild)
-		if uf.Cmp(decimal.Zero) < 0 {
-			uf = decimal.Zero
-		}
-		data.D = append(data.D, InspectionData{
-			No:               fmt.Sprintf(`%d`, i),
-			Username:         username,
-			Level:            fmt.Sprintf(`%d`, mb.Level),
-			TopName:          mb.TopName,
-			Title:            "存款",
-			Amount:           depostAmount.StringFixed(4),
-			RewardAmount:     "0.0000",
-			ReviewName:       "无",
-			FlowMultiple:     "1",
-			FlowAmount:       depostAmount.StringFixed(4),
-			FinishedAmount:   totalVaild.StringFixed(4),
-			UnfinishedAmount: uf.StringFixed(4),
-			CreatedAt:        0,
-			Ty:               "1",
-			Pid:              "0",
-		})
-		needFlowAmount = needFlowAmount.Add(depostAmount)
+		for _, v := range depostList.D {
+			depostAmount := decimal.NewFromFloat(v.Amount)
+			uf := depostAmount.Sub(totalVaild)
+			if uf.Cmp(decimal.Zero) < 0 {
+				uf = decimal.Zero
+			}
+			data.D = append(data.D, InspectionData{
+				No:               fmt.Sprintf(`%d`, i),
+				Username:         username,
+				Level:            fmt.Sprintf(`%d`, mb.Level),
+				TopName:          mb.TopName,
+				Title:            "存款",
+				Amount:           depostAmount.StringFixed(4),
+				RewardAmount:     "0.0000",
+				ReviewName:       "无",
+				FlowMultiple:     "1",
+				FlowAmount:       depostAmount.StringFixed(4),
+				FinishedAmount:   totalVaild.StringFixed(4),
+				UnfinishedAmount: uf.StringFixed(4),
+				CreatedAt:        0,
+				Ty:               "1",
+				Pid:              "0",
+				RecordId:         v.ID,
+			})
+			needFlowAmount = needFlowAmount.Add(depostAmount)
 
-		i++
+			i++
+		}
 	}
 
 	//查活动对应场馆的流水总和
@@ -606,53 +612,37 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	return decimal.NewFromFloat(*validBet.Value), nil
 }
 
-func EsDepost(username string, startAt, endAt int64) (decimal.Decimal, error) {
+func EsDepost(username string, startAt, endAt int64) (FDepositData, error) {
 
-	waterFlow := decimal.NewFromFloat(0.0000)
-	if startAt == 0 && endAt == 0 {
-		return waterFlow, errors.New(helper.QueryTimeRangeErr)
-	}
+	data := FDepositData{}
 
-	boolQuery := elastic.NewBoolQuery()
+	query := elastic.NewBoolQuery()
 
-	filters := make([]elastic.Query, 0)
-	rg := elastic.NewRangeQuery("created_at").Gte(startAt)
-	if startAt == 0 {
-		rg.IncludeLower(false)
-	}
-	if endAt == 0 {
-		rg.IncludeUpper(false)
-	}
+	query.Filter(elastic.NewTermsQuery("state", DepositSuccess))
 
-	if endAt > 0 {
-		rg.Lt(endAt)
-	}
+	query.Filter(elastic.NewTermQuery("username", username))
 
-	filters = append(filters, rg)
-	boolQuery.Filter(filters...)
+	query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
 
-	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("username", username))
-	terms = append(terms, elastic.NewTermQuery("state", DepositSuccess))
-
-	boolQuery.Must(terms...)
-
-	fsc := elastic.NewFetchSourceContext(true)
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(esPrefixIndex("tbl_deposit")).
-		Aggregation("amount_agg", elastic.NewSumAggregation().Field("amount")).Do(ctx)
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	t, esResult, _, err := EsQuerySearch(
+		esPrefixIndex("tbl_deposit"), "created_at", 1, 100, depositFields, query, nil)
 	if err != nil {
-		fmt.Println(err)
-		return waterFlow, err
+		return data, pushLog(err, helper.DBErr)
 	}
 
-	depositAmount, ok := resOrder.Aggregations.Sum("amount_agg")
-	if depositAmount == nil || !ok {
-		return waterFlow, errors.New("agg error")
+	var names []string
+	data.T = t
+	for _, v := range esResult {
+
+		record := Deposit{}
+		_ = helper.JsonUnmarshal(v.Source, &record)
+		record.ID = v.Id
+		data.D = append(data.D, record)
+		names = append(names, record.ParentName)
 	}
 
-	return decimal.NewFromFloat(*depositAmount.Value), nil
+	return data, nil
 }
 
 func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
