@@ -135,9 +135,9 @@ func GroupInsert(parentGid string, data Group) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	treeNode := GroupClosureInsert(gid, parentGid)
+	query = GroupClosureInsert(gid, parentGid)
 	fmt.Println(query)
-	_, err = tx.Exec(treeNode)
+	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(err, helper.DBErr)
