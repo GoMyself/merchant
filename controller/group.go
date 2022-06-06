@@ -78,8 +78,13 @@ func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
  */
 func (that *GroupController) List(ctx *fasthttp.RequestCtx) {
 
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
 	// 获取权限列表
-	data, err := model.GroupList()
+	data, err := model.GroupList(admin["group_id"])
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

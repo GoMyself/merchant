@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
 	"strings"
 	"time"
@@ -175,15 +174,41 @@ func groupSubList(gid string) ([]string, map[string]bool, error) {
 	return gids, gidMap, nil
 }
 
-func GroupList() (string, error) {
+func GroupList(gid string) (string, error) {
 
-	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
-	val, err := meta.MerchantRedis.Get(ctx, key).Result()
-	if err != nil && err != redis.Nil {
-		return val, pushLog(err, helper.RedisErr)
+	gids, _, err := groupSubList(gid)
+	if err != nil {
+		return "[]", err
 	}
 
-	return val, nil
+	if len(gids) == 0 {
+		return "[]", nil
+	}
+
+	var groups []Group
+	ex := g.Ex{
+		"gid":    gids,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Where(ex).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&groups, query)
+	if err != nil {
+		return "[]", pushLog(err, helper.DBErr)
+	}
+
+	recs, err := helper.JsonMarshal(groups)
+	if err != nil {
+		return "[]", errors.New(helper.FormatErr)
+	}
+
+	//key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
+	//val, err := meta.MerchantRedis.Get(ctx, key).Result()
+	//if err != nil && err != redis.Nil {
+	//	return val, pushLog(err, helper.RedisErr)
+	//}
+
+	return string(recs), nil
 }
 
 func GroupClosureInsert(nodeID, targetID string) string {
