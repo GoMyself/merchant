@@ -11,7 +11,7 @@ import (
 func PrivList(gid string) (string, error) {
 
 	//privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	gKey := fmt.Sprintf("%s:priv:list:GM%d", meta.Prefix, gid)
+	gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, gid)
 	cmd := meta.MerchantRedis.Get(ctx, gKey)
 	fmt.Println(cmd.String())
 	val, err := cmd.Result()
