@@ -95,22 +95,26 @@ func GroupInsert(parentGid string, data Group) error {
 
 	parent := Group{}
 	err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", parentGid, meta.Prefix)
+	fmt.Println(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
 	tx, err := meta.MerchantDB.Begin()
+	fmt.Println(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
 	_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
+	fmt.Println(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(err, helper.DBErr)
 	}
 
 	_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
+	fmt.Println(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(err, helper.DBErr)
@@ -124,6 +128,7 @@ func GroupInsert(parentGid string, data Group) error {
 	data.Pid = parentGid
 	data.Prefix = meta.Prefix
 	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -131,6 +136,7 @@ func GroupInsert(parentGid string, data Group) error {
 	}
 
 	treeNode := GroupClosureInsert(gid, parentGid)
+	fmt.Println(query)
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
