@@ -190,7 +190,7 @@ func GroupList(gid string) (string, error) {
 		"gid":    gids,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Where(ex).Order(g.C("create_at").Asc()).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&groups, query)
 	if err != nil {
