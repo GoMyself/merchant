@@ -1070,11 +1070,11 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	if len(record) > 0 {
 		// 更新会员信息
 		query, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+		fmt.Println(query)
 		_, err = tx.Exec(query)
 		if err != nil {
 			return pushLog(err, helper.DBErr)
 		}
-		MemberUpdateCache(uid, "")
 	}
 
 	// 删除该用户的所有标签
@@ -1121,6 +1121,7 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
+	MemberUpdateCache(uid, "")
 
 	if _, ok := param["phone"]; ok {
 
