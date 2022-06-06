@@ -24,29 +24,31 @@ type Group struct {
 	Prefix     string `db:"prefix" rule:"none" json:"prefix"`
 }
 
-func GroupUpdate(id, parentGid string, data Group) error {
+func GroupUpdate(gid, adminGid string, data Group) error {
 
 	for _, v := range strings.Split(data.Permission, ",") {
-		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, parentGid)
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, adminGid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
 	}
 
-	var gid string
-	ex := g.Ex{
-		"gname":  data.Gname,
-		"prefix": meta.Prefix,
-	}
-	query, _, _ := dialect.From("tbl_admin_group").Select("gid").Where(ex).ToSQL()
-	fmt.Println(query)
-	err := meta.MerchantDB.Get(&gid, query)
-	if err != nil && err != sql.ErrNoRows {
-		return pushLog(err, helper.DBErr)
+	ok, err := groupSubCheck(gid, adminGid)
+	if err != nil {
+		return err
 	}
 
-	if gid != id && gid != "" {
+	if !ok {
+		return errors.New(helper.MethodNoPermission)
+	}
+
+	ok, err = groupExistCheck(data.Gname)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
@@ -56,7 +58,7 @@ func GroupUpdate(id, parentGid string, data Group) error {
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": id}).ToSQL()
+	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -66,67 +68,65 @@ func GroupUpdate(id, parentGid string, data Group) error {
 	return LoadGroups()
 }
 
-func GroupInsert(parentGid string, data Group) error {
+func GroupInsert(parentGid, adminGid string, data Group) error {
 
 	for _, v := range strings.Split(data.Permission, ",") {
-		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, parentGid)
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, adminGid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
 	}
 
-	var gid string
-	ex := g.Ex{
-		"gname":  data.Gname,
-		"prefix": meta.Prefix,
-	}
-	query, _, _ := dialect.From("tbl_admin_group").Select("gid").Where(ex).ToSQL()
-	err := meta.MerchantDB.Get(&gid, query)
-	if err != nil && err != sql.ErrNoRows {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+	ok, err := groupSubCheck(parentGid, adminGid)
+	if err != nil {
+		return err
 	}
 
-	if gid != "" {
+	if !ok {
+		return errors.New(helper.MethodNoPermission)
+	}
+
+	ok, err = groupExistCheck(data.Gname)
+	if err != nil {
+		return err
+	}
+
+	if ok {
 		return errors.New(helper.RecordExistErr)
 	}
 
 	parent := Group{}
-	err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", parentGid, meta.Prefix)
-	fmt.Println(query)
+	err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
 	tx, err := meta.MerchantDB.Begin()
-	fmt.Println(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
 	_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
-	fmt.Println(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(err, helper.DBErr)
 	}
 
 	_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
-	fmt.Println(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(err, helper.DBErr)
 	}
 
-	gid = helper.GenId()
+	gid := helper.GenId()
 	data.Lvl = parent.Lvl + 1
 	data.Lft = parent.Lft + 1
 	data.Rgt = parent.Lft + 2
 	data.Gid = gid
 	data.Pid = parentGid
 	data.Prefix = meta.Prefix
-	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
+	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -148,6 +148,26 @@ func GroupInsert(parentGid string, data Group) error {
 	}
 
 	return LoadGroups()
+}
+
+func groupExistCheck(gname string) (bool, error) {
+
+	var gid string
+	ex := g.Ex{
+		"gname":  gname,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select(g.COUNT("gid")).Where(ex).ToSQL()
+	err := meta.MerchantDB.Get(&gid, query)
+	if err != nil && err != sql.ErrNoRows {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // 检查当前后台账号所属分组是不是所操作分组的上级
