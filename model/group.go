@@ -219,13 +219,17 @@ func groupSubList(gid string) ([]string, map[string]bool, error) {
 
 func GroupList(gid, adminGid string) (string, error) {
 
-	ok, err := groupSubCheck(gid, adminGid)
-	if err != nil {
-		return "[]", err
-	}
+	if gid != "" {
+		ok, err := groupSubCheck(gid, adminGid)
+		if err != nil {
+			return "[]", err
+		}
 
-	if !ok {
-		return "[]", errors.New(helper.MethodNoPermission)
+		if !ok {
+			return "[]", errors.New(helper.MethodNoPermission)
+		}
+	} else {
+		gid = adminGid
 	}
 
 	gids, _, err := groupSubList(gid)

@@ -85,9 +85,11 @@ func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *GroupController) List(ctx *fasthttp.RequestCtx) {
 
 	gid := string(ctx.QueryArgs().Peek("gid"))
-	if !helper.CtypeDigit(gid) {
-		helper.Print(ctx, false, helper.GroupIDErr)
-		return
+	if gid != "" {
+		if !helper.CtypeDigit(gid) {
+			helper.Print(ctx, false, helper.GroupIDErr)
+			return
+		}
 	}
 
 	admin, err := model.AdminToken(ctx)
@@ -95,6 +97,7 @@ func (that *GroupController) List(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
+
 	// 获取权限列表
 	data, err := model.GroupList(gid, admin["group_id"])
 	if err != nil {
