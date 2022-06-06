@@ -159,6 +159,7 @@ func groupExistCheck(gname string) (bool, error) {
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(g.COUNT("gid")).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&gid, query)
+	fmt.Println(query)
 	if err != nil && err != sql.ErrNoRows {
 		return false, pushLog(err, helper.DBErr)
 	}
@@ -181,6 +182,7 @@ func groupSubCheck(gid, parentGid string) (bool, error) {
 	}
 	query, _, _ := dialect.From("tbl_admin_group_tree").
 		Select(g.COUNT("descendant")).Where(ex).GroupBy("descendant").ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&count, query)
 	if err != nil {
 		return false, pushLog(err, helper.DBErr)
