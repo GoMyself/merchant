@@ -8,10 +8,11 @@ import (
 	"merchant/contrib/helper"
 )
 
-func PrivList() (string, error) {
+func PrivList(gid string) (string, error) {
 
-	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	val, err := meta.MerchantRedis.Get(ctx, privAllKey).Result()
+	//privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
+	gKey := fmt.Sprintf("%s:priv:list:GM%d", meta.Prefix, gid)
+	val, err := meta.MerchantRedis.Get(ctx, gKey).Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
 	}
@@ -24,7 +25,7 @@ func PrivCheck(uri, gid string) error {
 	key := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
 	privId, err := meta.MerchantRedis.HGet(ctx, key, uri).Result()
 	if err != nil {
-		return err
+		return pushLog(err, helper.RedisErr)
 	}
 
 	id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, gid)
@@ -79,8 +80,4 @@ func LoadPrivs() error {
 	}
 
 	return nil
-}
-
-func (c *PrivTree) MarshalBinary() ([]byte, error) {
-	return helper.JsonMarshal(c)
 }

@@ -29,7 +29,12 @@ func (that *GroupController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.GroupUpdate(id, data)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+	err = model.GroupUpdate(id, admin["group_id"], data)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

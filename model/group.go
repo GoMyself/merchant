@@ -8,6 +8,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
 	"strings"
+	"time"
 )
 
 type Group struct {
@@ -24,14 +25,14 @@ type Group struct {
 	Prefix     string `db:"prefix" rule:"none" json:"prefix"`
 }
 
-func GroupUpdate(id string, data Group) error {
+func GroupUpdate(id, parentGid string, data Group) error {
 
 	var gid string
 	query, _, _ := dialect.From("tbl_admin_group").Select("gid").Where(g.Ex{"gname": data.Gname, "prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&gid, query)
 	if err != nil && err != sql.ErrNoRows {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
 	if gid != id && gid != "" {
@@ -45,10 +46,18 @@ func GroupUpdate(id string, data Group) error {
 		"permission": data.Permission,
 	}
 	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": id}).ToSQL()
+	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+		return pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range strings.Split(data.Permission, ",") {
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, parentGid)
+		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
+		if !exists {
+			return errors.New(helper.MethodNoPermission)
+		}
 	}
 
 	return LoadGroups()
@@ -56,20 +65,39 @@ func GroupUpdate(id string, data Group) error {
 
 func LoadGroups() error {
 
-	var records []Group
+	var (
+		groups []Group
+		privs  []Priv
+	)
 	cols := []interface{}{"noted", "gid", "gname", "permission", "create_at", "state", "lft", "rgt", "lvl", "pid"}
 	ex := g.Ex{
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(cols...).Where(ex).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Select(&records, query)
+	err := meta.MerchantDB.Select(&groups, query)
 	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
-	recs, err := helper.JsonMarshal(records)
+	query, _, _ = dialect.From("tbl_admin_priv").
+		Select("pid", "state", "id", "name", "sortlevel", "module").Where(g.Ex{"prefix": meta.Prefix}).Order(g.C("sortlevel").Asc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&privs, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if len(groups) == 0 || len(privs) == 0 {
+		return nil
+	}
+
+	privMap := make(map[string]Priv)
+	for _, v := range privs {
+		privMap[v.ID] = v
+	}
+
+	recs, err := helper.JsonMarshal(groups)
 	if err != nil {
 		return errors.New(helper.FormatErr)
 	}
@@ -82,17 +110,23 @@ func LoadGroups() error {
 	pipe.Set(ctx, key, string(recs), 0)
 	pipe.Persist(ctx, key)
 
-	for _, val := range records {
+	for _, val := range groups {
 
 		id := fmt.Sprintf("%s:priv:GM%d", meta.Prefix, val.Gid)
 		pipe.Unlink(ctx, id)
 		// 只保存开启状态的分组
 		if val.State == 1 {
+			var gPrivs []Priv
 			data := strings.Split(val.Permission, ",")
 			for _, v := range data {
 				pipe.HSet(ctx, id, v, "1")
+				gPrivs = append(gPrivs, privMap[v])
 			}
+			gRecs, _ := helper.JsonMarshal(gPrivs)
+			gKey := fmt.Sprintf("%s:priv:list:GM%d", meta.Prefix, val.Gid)
 			pipe.Persist(ctx, id)
+			pipe.Set(ctx, gKey, string(gRecs), 100*time.Hour)
+			pipe.Persist(ctx, gKey)
 		}
 	}
 	_, err = pipe.Exec(ctx)
