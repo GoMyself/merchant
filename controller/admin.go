@@ -9,7 +9,6 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"
 
-	"strconv"
 	"strings"
 )
 
@@ -153,47 +152,45 @@ func (that *AdminController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 func (that *AdminController) List(ctx *fasthttp.RequestCtx) {
 
-	var (
-		exs  []g.Expression
-		size uint = 10
-	)
-
-	ex := g.Ex{}
-	page := string(ctx.QueryArgs().Peek("page"))
+	page := ctx.QueryArgs().GetUintOrZero("page")
 	name := string(ctx.QueryArgs().Peek("name"))
 	state := string(ctx.QueryArgs().Peek("state"))
-	groupid := string(ctx.QueryArgs().Peek("groupid"))
+	groupID := string(ctx.QueryArgs().Peek("groupid"))
 
-	if len(name) > 0 {
+	if page < 1 {
+		page = 1
+	}
+	ex := g.Ex{}
+
+	if name != "" {
 		if !validator.CheckAName(name, 5, 20) {
 			helper.Print(ctx, false, helper.AdminNameErr)
 			return
 		}
+
+		ex["name"] = name
 	}
 
-	cpage, err := strconv.ParseUint(page, 10, 64)
-	if err != nil {
-		cpage = 1
-	}
-	if cpage < 1 {
-		cpage = 1
-	}
 	if state == "0" || state == "1" {
 		ex["state"] = state
 	}
 
-	if validator.CtypeAlnum(name) {
-		ex["name"] = name
-	}
-	if validator.CtypeDigit(groupid) {
-		ex["group_id"] = groupid
+	if groupID != "" {
+		if !validator.CtypeDigit(groupID) {
+			helper.Print(ctx, false, helper.GroupIDErr)
+			return
+		}
+
+		ex["group_id"] = groupID
 	}
 
-	if len(ex) > 0 {
-		exs = append(exs, ex)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
 	}
 
-	data, err := model.AdminList(uint(cpage), size, exs...)
+	data, err := model.AdminList(admin["group_id"], uint(page), 10, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

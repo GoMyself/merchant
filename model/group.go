@@ -145,6 +145,29 @@ func GroupInsert(parentGid string, data Group) error {
 	return LoadGroups()
 }
 
+// 查询当前代理的分组和下级分组gid
+func groupSubList(gid string) ([]string, map[string]bool, error) {
+
+	var gids []string
+	gidMap := make(map[string]bool)
+	ex := g.Ex{
+		"ancestor": gid,
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select("ancestor").Where(ex).GroupBy("ancestor").ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&gids, query)
+	if err != nil {
+		return nil, nil, pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range gids {
+		gidMap[v] = true
+	}
+
+	return gids, gidMap, nil
+}
+
 func GroupList() (string, error) {
 
 	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)

@@ -118,16 +118,26 @@ func AdminUpdate(id, pwd string, recs g.Record) error {
 	return nil
 }
 
-func AdminList(page, pageSize uint, ex ...g.Expression) (AdminData, error) {
+func AdminList(adminGid string, page, pageSize uint, ex g.Ex) (AdminData, error) {
 
 	data := AdminData{}
-	t := dialect.From("tbl_admins")
-	exp := g.Ex{"prefix": meta.Prefix}
-	if len(exp) > 0 {
-		ex = append(ex, exp)
+	gids, gidMap, err := groupSubList(adminGid)
+	if err != nil {
+		return data, err
 	}
+
+	ex["prefix"] = meta.Prefix
+	if gid, ok := ex["group_id"].(string); ok {
+		if _, ok = gidMap[gid]; !ok {
+			return data, errors.New(helper.MethodNoPermission)
+		}
+	} else {
+		ex["group_id"] = gids
+	}
+
+	t := dialect.From("tbl_admins")
 	if page == 1 {
-		query, _, _ := t.Select(g.COUNT(1)).Where(ex...).ToSQL()
+		query, _, _ := t.Select(g.COUNT(1)).Where(ex).ToSQL()
 		err := meta.MerchantDB.Get(&data.T, query)
 		if err != nil {
 			body := fmt.Errorf("%s,[%s]", err.Error(), query)
@@ -140,10 +150,9 @@ func AdminList(page, pageSize uint, ex ...g.Expression) (AdminData, error) {
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "name", "group_id", "last_login_time", "state",
-		"last_login_ip", "create_at", "created_uid", "created_name", "updated_at", "updated_uid", "updated_name").
-		Where(ex...).Offset(offset).Limit(pageSize).Order(g.C("create_at").Desc()).ToSQL()
-	err := meta.MerchantDB.Select(&data.D, query)
+	query, _, _ := t.Select(colsAdmin...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("create_at").Desc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
 		return data, pushLog(body, helper.DBErr)
