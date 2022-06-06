@@ -8,7 +8,20 @@ import (
 	"merchant/contrib/helper"
 )
 
-func PrivList(gid string) (string, error) {
+func PrivList(gid, adminGid string) (string, error) {
+
+	if gid != "" {
+		ok, err := groupSubCheck(gid, adminGid)
+		if err != nil {
+			return "[]", err
+		}
+
+		if !ok {
+			return "[]", errors.New(helper.MethodNoPermission)
+		}
+	} else {
+		gid = adminGid
+	}
 
 	gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, gid)
 	cmd := meta.MerchantRedis.Get(ctx, gKey)
