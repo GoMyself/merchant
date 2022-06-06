@@ -150,6 +150,29 @@ func GroupInsert(parentGid string, data Group) error {
 	return LoadGroups()
 }
 
+// 检查当前后台账号所属分组是不是所操作分组的上级
+func groupSubCheck(gid, parentGid string) (bool, error) {
+
+	var count int
+	ex := g.Ex{
+		"prefix":     meta.Prefix,
+		"ancestor":   parentGid,
+		"descendant": gid,
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select(g.COUNT("descendant")).Where(ex).GroupBy("descendant").ToSQL()
+	err := meta.MerchantDB.Get(&count, query)
+	if err != nil {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	if count == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // 查询当前代理的分组和下级分组gid
 func groupSubList(gid string) ([]string, map[string]bool, error) {
 
@@ -174,7 +197,16 @@ func groupSubList(gid string) ([]string, map[string]bool, error) {
 	return gids, gidMap, nil
 }
 
-func GroupList(gid string) (string, error) {
+func GroupList(gid, adminGid string) (string, error) {
+
+	ok, err := groupSubCheck(gid, adminGid)
+	if err != nil {
+		return "[]", err
+	}
+
+	if !ok {
+		return "[]", errors.New(helper.MethodNoPermission)
+	}
 
 	gids, _, err := groupSubList(gid)
 	if err != nil {
