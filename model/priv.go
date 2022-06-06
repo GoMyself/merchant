@@ -10,10 +10,9 @@ import (
 
 func PrivList(gid string) (string, error) {
 
-	//privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
 	gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, gid)
 	cmd := meta.MerchantRedis.Get(ctx, gKey)
-	fmt.Println(cmd.String())
+	//fmt.Println(cmd.String())
 	val, err := cmd.Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
@@ -26,7 +25,7 @@ func PrivCheck(uri, gid string) error {
 
 	key := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
 	cmd := meta.MerchantRedis.HGet(ctx, key, uri)
-	fmt.Println(cmd.String())
+	//fmt.Println(cmd.String())
 	privId, err := cmd.Result()
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
@@ -34,7 +33,7 @@ func PrivCheck(uri, gid string) error {
 
 	id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, gid)
 	hcmd := meta.MerchantRedis.HExists(ctx, id, privId)
-	fmt.Println(hcmd.String())
+	//fmt.Println(hcmd.String())
 	exists := hcmd.Val()
 	if !exists {
 		return errors.New("404")
