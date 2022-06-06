@@ -25,14 +25,16 @@ type Group struct {
 
 func GroupUpdate(gid, adminGid string, data Group) error {
 
+	// 检查新增分组的权限是否大于上级分组
 	for _, v := range strings.Split(data.Permission, ",") {
-		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, adminGid)
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
 	}
 
+	// 检查当前后台账号是否有权限增加当前分组
 	ok, err := groupSubCheck(gid, adminGid)
 	if err != nil {
 		return err
@@ -42,6 +44,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		return errors.New(helper.MethodNoPermission)
 	}
 
+	// 检查当前分组名是否已存在
 	ok, err = groupExistCheck(data.Gname)
 	if err != nil {
 		return err
@@ -69,14 +72,16 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 
 func GroupInsert(adminGid string, data Group) error {
 
+	// 检查新增分组的权限是否大于上级分组
 	for _, v := range strings.Split(data.Permission, ",") {
-		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, adminGid)
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
 	}
 
+	// 检查当前后台账号是否有权限增加当前分组
 	ok, err := groupSubCheck(data.Pid, adminGid)
 	if err != nil {
 		return err
@@ -86,6 +91,7 @@ func GroupInsert(adminGid string, data Group) error {
 		return errors.New(helper.MethodNoPermission)
 	}
 
+	// 检查当前分组名是否已存在
 	ok, err = groupExistCheck(data.Gname)
 	if err != nil {
 		return err
@@ -95,35 +101,34 @@ func GroupInsert(adminGid string, data Group) error {
 		return errors.New(helper.RecordExistErr)
 	}
 
-	parent := Group{}
-	err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
-	}
+	//parent := Group{}
+	//err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
+	//if err != nil {
+	//	return pushLog(err, helper.DBErr)
+	//}
 
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
-
-	_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
+	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
+	//if err != nil {
+	//	_ = tx.Rollback()
+	//	return pushLog(err, helper.DBErr)
+	//}
+	//
+	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
+	//if err != nil {
+	//	_ = tx.Rollback()
+	//	return pushLog(err, helper.DBErr)
+	//}
 
 	gid := helper.GenId()
-	data.Lvl = parent.Lvl + 1
-	data.Lft = parent.Lft + 1
-	data.Rgt = parent.Lft + 2
+	//data.Lvl = parent.Lvl + 1
+	//data.Lft = parent.Lft + 1
+	//data.Rgt = parent.Lft + 2
 	data.Gid = gid
-	data.Pid = data.Pid
 	data.Prefix = meta.Prefix
 	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
 	fmt.Println(query)
