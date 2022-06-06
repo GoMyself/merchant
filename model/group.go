@@ -158,9 +158,10 @@ func groupSubList(gid string) ([]string, map[string]bool, error) {
 	gidMap := make(map[string]bool)
 	ex := g.Ex{
 		"ancestor": gid,
+		"prefix":   meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group_tree").
-		Select("ancestor").Where(ex).GroupBy("ancestor").ToSQL()
+		Select("descendant").Where(ex).GroupBy("descendant").ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&gids, query)
 	if err != nil {
