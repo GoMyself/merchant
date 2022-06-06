@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
@@ -152,19 +151,19 @@ func GroupInsert(adminGid string, data Group) error {
 
 func groupExistCheck(gname string) (bool, error) {
 
-	var gid string
+	var count int
 	ex := g.Ex{
 		"gname":  gname,
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(g.COUNT("gid")).Where(ex).ToSQL()
-	err := meta.MerchantDB.Get(&gid, query)
+	err := meta.MerchantDB.Get(&count, query)
 	fmt.Println(query)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil {
 		return false, pushLog(err, helper.DBErr)
 	}
 
-	if err == sql.ErrNoRows {
+	if count == 0 {
 		return false, nil
 	}
 
