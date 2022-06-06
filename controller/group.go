@@ -56,15 +56,14 @@ func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	pid := string(ctx.PostArgs().Peek("pid"))
-	if !helper.CtypeDigit(pid) {
-		helper.Print(ctx, false, helper.IDErr)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
-
 	// 新增权限信息
 	group.CreateAt = int32(ctx.Time().Unix())
-	err = model.GroupInsert(pid, group)
+	err = model.GroupInsert(admin["group_id"], group)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
