@@ -126,6 +126,10 @@ func AdminList(adminGid string, page, pageSize uint, ex g.Ex) (AdminData, error)
 		return data, err
 	}
 
+	if len(gids) == 0 {
+		return data, nil
+	}
+
 	ex["prefix"] = meta.Prefix
 	if gid, ok := ex["group_id"].(string); ok {
 		if _, ok = gidMap[gid]; !ok {
