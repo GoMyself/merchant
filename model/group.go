@@ -68,7 +68,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	return LoadGroups()
 }
 
-func GroupInsert(parentGid, adminGid string, data Group) error {
+func GroupInsert(adminGid string, data Group) error {
 
 	for _, v := range strings.Split(data.Permission, ",") {
 		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, adminGid)
@@ -78,7 +78,7 @@ func GroupInsert(parentGid, adminGid string, data Group) error {
 		}
 	}
 
-	ok, err := groupSubCheck(parentGid, adminGid)
+	ok, err := groupSubCheck(data.Pid, adminGid)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func GroupInsert(parentGid, adminGid string, data Group) error {
 	data.Lft = parent.Lft + 1
 	data.Rgt = parent.Lft + 2
 	data.Gid = gid
-	data.Pid = parentGid
+	data.Pid = data.Pid
 	data.Prefix = meta.Prefix
 	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
 	fmt.Println(query)
@@ -134,7 +134,7 @@ func GroupInsert(parentGid, adminGid string, data Group) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	query = GroupClosureInsert(gid, parentGid)
+	query = GroupClosureInsert(gid, data.Pid)
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
