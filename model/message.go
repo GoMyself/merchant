@@ -387,7 +387,7 @@ func MessageDelete(id, tss string) error {
 	}
 	if tss != "" {
 		for _, v := range strings.Split(tss, ",") {
-			_, err := time.ParseInLocation("2006-01-02T15:04:05.999 07:00", v, loc)
+			_, err := time.ParseInLocation("2006-01-02T15:04:05.999999 07:00", v, loc)
 			if err != nil {
 				return errors.New(helper.ParamErr)
 			}
