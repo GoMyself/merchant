@@ -157,27 +157,6 @@ func BankCardFindOne(ex g.Ex) (BankCard_t, error) {
 	return data, nil
 }
 
-/// 黑名单获取一个
-func BlackListFindOne(ex g.Ex, table string) (BlackList_t, error) {
-
-	data := BlackList_t{}
-
-	ex["prefix"] = meta.Prefix
-
-	//"tbl_blacklist"
-	t := dialect.From(table)
-	query, _, _ := t.Select(colsBankcard...).Where(ex).Limit(1).ToSQL()
-	err := meta.MerchantDB.Get(&data, query)
-	if err != nil && err != sql.ErrNoRows {
-		fmt.Println("BlackListFindOne query = ", query)
-		fmt.Println("BlackListFindOne err = ", err)
-
-		return data, pushLog(err, helper.DBErr)
-	}
-
-	return data, nil
-}
-
 func BankcardList(page, pageSize uint, username, bankcard string) (BankcardData, error) {
 
 	var (
