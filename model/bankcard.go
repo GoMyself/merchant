@@ -250,6 +250,8 @@ func BankCardExistRedis(bankcardNo string) error {
 
 	ex1 := ex1Temp.Val()
 	ex2 := ex2Temp.Val()
+	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_exist:%+v\n", bankcardNo, ex1)
+	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_blacklist:%+v\n", bankcardNo, ex2)
 
 	if v, ok := ex1.(int64); ok && v == 1 {
 		return errors.New(helper.BankCardExistErr)
@@ -471,7 +473,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	pipe.Do(ctx, "CF.ADD", key, encRes["enckey"])
 	_, _ = pipe.Exec(ctx)
-	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
+	fmt.Printf("WARNING BankcardDelete commit redis bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
 
 	//key := "cbc:" + data.Username
 	//path := fmt.Sprintf(".$%s", data.ID)
