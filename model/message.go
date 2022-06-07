@@ -392,17 +392,17 @@ func MessageDelete(id, msgID string) error {
 func messageSend(msgID, title, subTitle, content, sendName, prefix string, isTop, isVip, ty int, names []string) error {
 
 	data := MessageTD{
-		MsgID:    msgID,
-		Title:    title,
-		SubTitle: subTitle,
-		Content:  content,
-		IsTop:    isTop,
-		IsVip:    isVip,
-		IsRead:   0,
-		Ty:       ty,
-		SendName: sendName,
-		SendAt:   time.Now().Unix(),
-		Prefix:   prefix,
+		MessageID: msgID,
+		Title:     title,
+		SubTitle:  subTitle,
+		Content:   content,
+		IsTop:     isTop,
+		IsVip:     isVip,
+		IsRead:    0,
+		Ty:        ty,
+		SendName:  sendName,
+		SendAt:    time.Now().Unix(),
+		Prefix:    prefix,
 	}
 	bulkRequest := meta.ES.Bulk().Index(meta.EsPrefix + "messages")
 	for _, v := range names {
