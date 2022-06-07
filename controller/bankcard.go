@@ -141,6 +141,7 @@ func (that *BankcardController) Update(ctx *fasthttp.RequestCtx) {
 func (that *BankcardController) Delete(ctx *fasthttp.RequestCtx) {
 
 	bid := string(ctx.QueryArgs().Peek("bid"))
+	fmt.Printf("WARNING BankcardController Delete card:%+v\n", bid)
 	if !validator.CheckStringDigit(bid) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -148,6 +149,8 @@ func (that *BankcardController) Delete(ctx *fasthttp.RequestCtx) {
 
 	// 删除银行卡
 	err := model.BankcardDelete(ctx, bid)
+	fmt.Printf("WARNING BankcardController BankcardDelete card result:%+v\n", err)
+
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
