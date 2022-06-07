@@ -413,7 +413,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	enckey := "bankcard" + bid
 	// encRes:map[bankcard142491282874077388:02312645320]    银行卡hash值  和 银行卡号
 	encRes, err := grpc_t.Decrypt(mb.UID, false, []string{enckey})
-	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", mb, enckey, encRes, encRes["enckey"])
+	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", mb, enckey, encRes, encRes[enckey])
 
 	if err != nil {
 		return errors.New(helper.GetRPCErr)
@@ -479,11 +479,11 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	defer pipe.Close()
 
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	pipe.Do(ctx, "CF.DEL", key, encRes["enckey"])
+	pipe.Do(ctx, "CF.DEL", key, encRes[enckey])
 	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_exist CF.DEL:%+v encRes:%+v\n", key, encRes)
 
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	pipe.Do(ctx, "CF.ADD", key, encRes["enckey"])
+	pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
 	_, _ = pipe.Exec(ctx)
 	fmt.Printf("WARNING BankcardDelete commit redis bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
 

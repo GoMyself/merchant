@@ -181,22 +181,22 @@ func BlacklistDelete(id string) error {
 	}
 
 	//// 银行卡从黑名单移出后，修改卡状态为停用
-	//valueHash := fmt.Sprintf("%d", MurmurHash(data.Value, 0))
-	//ex = g.Ex{
-	//	"prefix":         meta.Prefix,
-	//	"bank_card_hash": valueHash,
-	//}
-	//recs := g.Record{
-	//	"state": "2",
-	//}
-	//query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	//fmt.Printf("WARNING update card state value: %v hash :%v,\n sql:%+v \n", data.Value, valueHash, query)
-	//
-	//_, err2 := meta.MerchantDB.Exec(query)
-	//
-	//if err2 != nil {
-	//	return errors.New(helper.DBErr)
-	//}
+	valueHash := fmt.Sprintf("%d", MurmurHash(data.Value, 0))
+	ex = g.Ex{
+		"prefix":         meta.Prefix,
+		"bank_card_hash": valueHash,
+	}
+	recs := g.Record{
+		"state": "2",
+	}
+	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
+	fmt.Printf("WARNING update card state value: %v hash :%v,\n sql:%+v \n", data.Value, valueHash, query)
+
+	_, err2 := meta.MerchantDB.Exec(query)
+
+	if err2 != nil {
+		return errors.New(helper.DBErr)
+	}
 
 	/// 更新redis 黑名单信息
 	card_id := data.Value
@@ -206,8 +206,8 @@ func BlacklistDelete(id string) error {
 	encRes[enckey] = card_id
 	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 
-	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, encRes["enckey"])
-	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes["enckey"])
+	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, encRes[enckey])
+	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes[enckey])
 
 	err = cmd.Err()
 
