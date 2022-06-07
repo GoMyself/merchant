@@ -395,6 +395,8 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	enckey := "bankcard" + bid
 	encRes, err := grpc_t.Decrypt(mb.UID, false, []string{enckey})
+	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v\n", mb, enckey, encRes)
+
 	if err != nil {
 		return errors.New(helper.GetRPCErr)
 	}
@@ -406,7 +408,11 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	query, _, _ := dialect.Delete("tbl_member_bankcard").Where(g.Ex{"id": bid}).ToSQL()
+	fmt.Printf("WARNING BankcardDelete card tbl_member_bankcard sql:%+v\n", query)
+
 	_, err = tx.Exec(query)
+	fmt.Printf("WARNING BankcardDelete card tbl_member_bankcard sql err:%+v\n", err)
+
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.New(helper.DBErr)
@@ -417,13 +423,14 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 	query, _, _ = dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
+	fmt.Printf("WARNING BankcardDelete card after update tbl_members sql:%+v err:%+v\n", query, err)
+
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.New(helper.DBErr)
 	}
 
 	// 会员删除银行卡，加入黑名单
-
 	bankcard_blacklist_record := g.Record{
 		"id":           helper.GenId(),
 		"prefix":       meta.Prefix,
@@ -436,12 +443,16 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 	query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
 	_, err = tx.Exec(query)
+	fmt.Printf("WARNING BankcardDelete card after insert tbl_blacklist sql:%+v err:%+v\n", query, err)
+
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.New(helper.DBErr)
 	}
 
 	err = tx.Commit()
+	fmt.Printf("WARNING BankcardDelete commit tranalations tbl_blacklist sql:%+v err:%+v\n", query, err)
+
 	if err != nil {
 		return errors.New(helper.DBErr)
 	}
@@ -451,9 +462,12 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
 	pipe.Do(ctx, "CF.DEL", key, encRes["enckey"])
+	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_exist CF.DEL:%+v encRes:%+v\n", key, encRes)
+
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	pipe.Do(ctx, "CF.ADD", key, encRes["enckey"])
 	_, _ = pipe.Exec(ctx)
+	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
 
 	//key := "cbc:" + data.Username
 	//path := fmt.Sprintf(".$%s", data.ID)
