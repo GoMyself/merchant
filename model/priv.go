@@ -8,10 +8,25 @@ import (
 	"merchant/contrib/helper"
 )
 
-func PrivList() (string, error) {
+func PrivList(gid, adminGid string) (string, error) {
 
-	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	val, err := meta.MerchantRedis.Get(ctx, privAllKey).Result()
+	if gid != "" {
+		ok, err := groupSubCheck(gid, adminGid)
+		if err != nil {
+			return "[]", err
+		}
+
+		if !ok {
+			return "[]", errors.New(helper.MethodNoPermission)
+		}
+	} else {
+		gid = adminGid
+	}
+
+	gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, gid)
+	cmd := meta.MerchantRedis.Get(ctx, gKey)
+	//fmt.Println(cmd.String())
+	val, err := cmd.Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
 	}
@@ -22,13 +37,17 @@ func PrivList() (string, error) {
 func PrivCheck(uri, gid string) error {
 
 	key := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
-	privId, err := meta.MerchantRedis.HGet(ctx, key, uri).Result()
+	cmd := meta.MerchantRedis.HGet(ctx, key, uri)
+	//fmt.Println(cmd.String())
+	privId, err := cmd.Result()
 	if err != nil {
-		return err
+		return pushLog(err, helper.RedisErr)
 	}
 
 	id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, gid)
-	exists := meta.MerchantRedis.HExists(ctx, id, privId).Val()
+	hcmd := meta.MerchantRedis.HExists(ctx, id, privId)
+	//fmt.Println(hcmd.String())
+	exists := hcmd.Val()
 	if !exists {
 		return errors.New("404")
 	}
@@ -67,8 +86,7 @@ func LoadPrivs() error {
 	pipe.Set(ctx, privAllKey, string(recs), 0)
 
 	for _, val := range records {
-		id := fmt.Sprintf("%d", val.ID)
-		pipe.HSet(ctx, privMapKey, val.Module, id)
+		pipe.HSet(ctx, privMapKey, val.Module, val.ID)
 	}
 	pipe.Persist(ctx, privAllKey)
 	pipe.Persist(ctx, privMapKey)
@@ -79,8 +97,4 @@ func LoadPrivs() error {
 	}
 
 	return nil
-}
-
-func (c *PrivTree) MarshalBinary() ([]byte, error) {
-	return helper.JsonMarshal(c)
 }

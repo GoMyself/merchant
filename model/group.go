@@ -1,18 +1,17 @@
 package model
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
 	"strings"
+	"time"
 )
 
 type Group struct {
 	CreateAt   int32  `db:"create_at" rule:"none" json:"create_at"`                                                            //创建时间
-	Gid        int64  `db:"gid" rule:"none" json:"gid"`                                                                        //
+	Gid        string `db:"gid" rule:"none" json:"gid"`                                                                        //
 	Gname      string `db:"gname" name:"gname" rule:"chn" min:"2" max:"8" msg:"gname error[2-8]" json:"gname"`                 //组名
 	Lft        int64  `db:"lft" rule:"none" json:"lft"`                                                                        //节点左值
 	Lvl        int64  `db:"lvl" rule:"none" json:"lvl"`                                                                        //
@@ -24,18 +23,35 @@ type Group struct {
 	Prefix     string `db:"prefix" rule:"none" json:"prefix"`
 }
 
-func GroupUpdate(id string, data Group) error {
+func GroupUpdate(gid, adminGid string, data Group) error {
 
-	var gid string
-	query, _, _ := dialect.From("tbl_admin_group").Select("gid").Where(g.Ex{"gname": data.Gname, "prefix": meta.Prefix}).ToSQL()
-	err := meta.MerchantDB.Get(&gid, query)
-	if err != nil && err != sql.ErrNoRows {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+	// 检查新增分组的权限是否大于上级分组
+	for _, v := range strings.Split(data.Permission, ",") {
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
+		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
+		if !exists {
+			return errors.New(helper.MethodNoPermission)
+		}
 	}
 
-	if gid != id && gid != "" {
-		return errors.New(helper.RecordExistErr)
+	// 检查当前后台账号是否有权限增加当前分组
+	ok, err := groupSubCheck(gid, adminGid)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return errors.New(helper.MethodNoPermission)
+	}
+
+	// 检查当前分组名是否已存在
+	ok, err = groupExistCheck(data.Gname)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return errors.New(helper.RecordNotExistErr)
 	}
 
 	record := g.Record{
@@ -44,32 +60,262 @@ func GroupUpdate(id string, data Group) error {
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": id}).ToSQL()
+	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
+	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
 	return LoadGroups()
 }
 
+func GroupInsert(adminGid string, data Group) error {
+
+	// 检查新增分组的权限是否大于上级分组
+	for _, v := range strings.Split(data.Permission, ",") {
+		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
+		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
+		if !exists {
+			return errors.New(helper.MethodNoPermission)
+		}
+	}
+
+	// 检查当前后台账号是否有权限增加当前分组
+	ok, err := groupSubCheck(data.Pid, adminGid)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return errors.New(helper.MethodNoPermission)
+	}
+
+	// 检查当前分组名是否已存在
+	ok, err = groupExistCheck(data.Gname)
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		return errors.New(helper.RecordExistErr)
+	}
+
+	//parent := Group{}
+	//err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
+	//if err != nil {
+	//	return pushLog(err, helper.DBErr)
+	//}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
+	//if err != nil {
+	//	_ = tx.Rollback()
+	//	return pushLog(err, helper.DBErr)
+	//}
+	//
+	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
+	//if err != nil {
+	//	_ = tx.Rollback()
+	//	return pushLog(err, helper.DBErr)
+	//}
+
+	gid := helper.GenId()
+	//data.Lvl = parent.Lvl + 1
+	//data.Lft = parent.Lft + 1
+	//data.Rgt = parent.Lft + 2
+	data.Gid = gid
+	data.Prefix = meta.Prefix
+	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
+	fmt.Println(query)
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
+	}
+
+	query = GroupClosureInsert(gid, data.Pid)
+	fmt.Println(query)
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	return LoadGroups()
+}
+
+func groupExistCheck(gname string) (bool, error) {
+
+	var count int
+	ex := g.Ex{
+		"gname":  gname,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select(g.COUNT("gid")).Where(ex).ToSQL()
+	err := meta.MerchantDB.Get(&count, query)
+	fmt.Println(query)
+	if err != nil {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	if count == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// 检查当前后台账号所属分组是不是所操作分组的上级
+func groupSubCheck(gid, parentGid string) (bool, error) {
+
+	var count int
+	ex := g.Ex{
+		"prefix":     meta.Prefix,
+		"ancestor":   parentGid,
+		"descendant": gid,
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select(g.COUNT("descendant")).Where(ex).GroupBy("descendant").ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&count, query)
+	if err != nil {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	if count == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// 查询当前代理的分组和下级分组gid
+func groupSubList(gid string) ([]string, map[string]bool, error) {
+
+	var gids []string
+	gidMap := make(map[string]bool)
+	ex := g.Ex{
+		"ancestor": gid,
+		"prefix":   meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select("descendant").Where(ex).GroupBy("descendant").ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&gids, query)
+	if err != nil {
+		return nil, nil, pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range gids {
+		gidMap[v] = true
+	}
+
+	return gids, gidMap, nil
+}
+
+func GroupList(gid, adminGid string) (string, error) {
+
+	if gid != "" {
+		ok, err := groupSubCheck(gid, adminGid)
+		if err != nil {
+			return "[]", err
+		}
+
+		if !ok {
+			return "[]", errors.New(helper.MethodNoPermission)
+		}
+	} else {
+		gid = adminGid
+	}
+
+	gids, _, err := groupSubList(gid)
+	if err != nil {
+		return "[]", err
+	}
+
+	if len(gids) == 0 {
+		return "[]", nil
+	}
+
+	var groups []Group
+	ex := g.Ex{
+		"gid":    gids,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Where(ex).Order(g.C("create_at").Asc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&groups, query)
+	if err != nil {
+		return "[]", pushLog(err, helper.DBErr)
+	}
+
+	recs, err := helper.JsonMarshal(groups)
+	if err != nil {
+		return "[]", errors.New(helper.FormatErr)
+	}
+
+	//key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
+	//val, err := meta.MerchantRedis.Get(ctx, key).Result()
+	//if err != nil && err != redis.Nil {
+	//	return val, pushLog(err, helper.RedisErr)
+	//}
+
+	return string(recs), nil
+}
+
+func GroupClosureInsert(nodeID, targetID string) string {
+
+	t := "SELECT ancestor, " + nodeID + ",prefix, lvl+1 FROM tbl_admin_group_tree WHERE prefix='" + meta.Prefix + "' and descendant = " + targetID + " UNION SELECT " + nodeID + "," + nodeID + "," + "'" + meta.Prefix + "'" + ",0"
+	query := "INSERT INTO tbl_admin_group_tree (ancestor, descendant,prefix,lvl) (" + t + ")"
+
+	return query
+}
+
 func LoadGroups() error {
 
-	var records []Group
+	var (
+		groups []Group
+		privs  []Priv
+	)
 	cols := []interface{}{"noted", "gid", "gname", "permission", "create_at", "state", "lft", "rgt", "lvl", "pid"}
 	ex := g.Ex{
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(cols...).Where(ex).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Select(&records, query)
+	err := meta.MerchantDB.Select(&groups, query)
 	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
-	recs, err := helper.JsonMarshal(records)
+	query, _, _ = dialect.From("tbl_admin_priv").
+		Select("pid", "state", "id", "name", "sortlevel", "module").Where(g.Ex{"prefix": meta.Prefix}).Order(g.C("sortlevel").Asc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&privs, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if len(groups) == 0 || len(privs) == 0 {
+		return nil
+	}
+
+	privMap := make(map[string]Priv)
+	for _, v := range privs {
+		privMap[v.ID] = v
+	}
+
+	recs, err := helper.JsonMarshal(groups)
 	if err != nil {
 		return errors.New(helper.FormatErr)
 	}
@@ -82,17 +328,23 @@ func LoadGroups() error {
 	pipe.Set(ctx, key, string(recs), 0)
 	pipe.Persist(ctx, key)
 
-	for _, val := range records {
+	for _, val := range groups {
 
-		id := fmt.Sprintf("%s:priv:GM%d", meta.Prefix, val.Gid)
+		id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, val.Gid)
 		pipe.Unlink(ctx, id)
 		// 只保存开启状态的分组
 		if val.State == 1 {
+			var gPrivs []Priv
 			data := strings.Split(val.Permission, ",")
 			for _, v := range data {
 				pipe.HSet(ctx, id, v, "1")
+				gPrivs = append(gPrivs, privMap[v])
 			}
+			gRecs, _ := helper.JsonMarshal(gPrivs)
+			gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, val.Gid)
 			pipe.Persist(ctx, id)
+			pipe.Set(ctx, gKey, string(gRecs), 100*time.Hour)
+			pipe.Persist(ctx, gKey)
 		}
 	}
 	_, err = pipe.Exec(ctx)
@@ -101,101 +353,4 @@ func LoadGroups() error {
 	}
 
 	return nil
-}
-
-func GroupInsert(pid string, data Group) error {
-
-	var gid string
-	query, _, _ := dialect.From("tbl_admin_group").Select("gid").Where(g.Ex{"gname": data.Gname, "prefix": meta.Prefix}).ToSQL()
-	err := meta.MerchantDB.Get(&gid, query)
-	if err != nil && err != sql.ErrNoRows {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
-	}
-
-	if gid != "" {
-		return errors.New(helper.RecordExistErr)
-	}
-
-	parent := Group{}
-
-	err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", pid, meta.Prefix)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
-	}
-
-	tx, err := meta.MerchantDB.Begin()
-	if err != nil {
-		return pushLog(err, helper.DBErr)
-	}
-
-	_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
-
-	_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
-
-	data.Lvl = parent.Lvl + 1
-	data.Lft = parent.Lft + 1
-	data.Rgt = parent.Lft + 2
-	data.Pid = pid
-	data.Prefix = meta.Prefix
-	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
-	_, err = tx.Exec(query)
-	if err != nil {
-		_ = tx.Rollback()
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return pushLog(body, helper.DBErr)
-	}
-
-	return LoadGroups()
-}
-
-func GroupList() (string, error) {
-
-	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
-	val, err := meta.MerchantRedis.Get(ctx, key).Result()
-	if err != nil && err != redis.Nil {
-		return val, pushLog(err, helper.RedisErr)
-	}
-
-	return val, nil
-}
-
-func GroupFindOne(ex g.Ex) (Group, error) {
-
-	data := Group{}
-	query, _, _ := dialect.From("tbl_group").Select(colsGroup...).Where(ex).Limit(1).ToSQL()
-	err := meta.MerchantDB.Get(&data, query)
-	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
-
-	return data, nil
-}
-
-func GroupFindAll(ex g.Ex) ([]Group, error) {
-
-	var data []Group
-	query, _, _ := dialect.From("tbl_group").Select(colsGroup...).Where(ex).ToSQL()
-	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
-
-	return data, nil
 }

@@ -29,7 +29,12 @@ func (that *GroupController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.GroupUpdate(id, data)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+	err = model.GroupUpdate(id, admin["group_id"], data)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -51,15 +56,14 @@ func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	pid := string(ctx.PostArgs().Peek("pid"))
-	if !helper.CtypeDigit(pid) {
-		helper.Print(ctx, false, helper.IDErr)
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
-
 	// 新增权限信息
 	group.CreateAt = int32(ctx.Time().Unix())
-	err = model.GroupInsert(pid, group)
+	err = model.GroupInsert(admin["group_id"], group)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -74,8 +78,22 @@ func (that *GroupController) Insert(ctx *fasthttp.RequestCtx) {
  */
 func (that *GroupController) List(ctx *fasthttp.RequestCtx) {
 
+	gid := string(ctx.QueryArgs().Peek("gid"))
+	if gid != "" {
+		if !helper.CtypeDigit(gid) {
+			helper.Print(ctx, false, helper.GroupIDErr)
+			return
+		}
+	}
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
 	// 获取权限列表
-	data, err := model.GroupList()
+	data, err := model.GroupList(gid, admin["group_id"])
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

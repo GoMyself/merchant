@@ -408,17 +408,12 @@ type showGameJson struct {
 }
 
 type Priv struct {
-	ID        int64  `db:"id" json:"id" redis:"id"`                      //
+	ID        string `db:"id" json:"id" redis:"id"`                      //
 	Name      string `db:"name" json:"name" redis:"name"`                //权限名字
 	Module    string `db:"module" json:"module" redis:"module"`          //模块
 	Sortlevel string `db:"sortlevel" json:"sortlevel" redis:"sortlevel"` //
 	State     int    `db:"state" json:"state" redis:"state"`             //0:关闭1:开启
 	Pid       int64  `db:"pid" json:"pid" redis:"pid"`                   //父级ID
-}
-
-type PrivTree struct {
-	*Priv
-	Parent *PrivTree `json:"parent"`
 }
 
 // 后台用户登录记录
