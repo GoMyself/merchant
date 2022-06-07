@@ -32,6 +32,17 @@ type BankCard_t struct {
 	Prefix       string `db:"prefix" json:"prefix"`
 }
 
+type BlackBankCard_t struct {
+	ID          string `db:"id" json:"id"`
+	Ty          string `db:"ty" json:"ty"`
+	Value       string `db:"value" json:"value"`
+	Remark      string `db:"remark" json:"bankcard_no"`
+	CreatedUid  string `db:"created_uid" json:"created_uid"`
+	CreatedAt   uint64 `db:"created_at" json:"created_at"`
+	CreatedName string `db:"created_name" json:"created_name"`
+	Prefix      string `db:"prefix" json:"prefix"`
+}
+
 func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	encRes := [][]string{}
@@ -389,19 +400,20 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		return errors.New(helper.BankCardNotExist)
 	}
 
-	// 获取会员真实姓名
-	mb, err := MemberFindOne(data.Username)
-	if err != nil {
-		return err
-	}
+	// 获取会员真实信息
+	mb, errm := MemberInfo(data.Username)
+	fmt.Printf("WARNING user:%+v BankcardDelete card data:%+v\n", mb, data)
 
-	if mb.UID == "" {
-		return errors.New(helper.UsernameErr)
+	if errm != nil {
+		fmt.Printf("WARNING user data:%+v BankcardDelete card errm:%+v\n", data, errm)
+
+		return errors.New(helper.InviteUsernameErr)
 	}
 
 	enckey := "bankcard" + bid
+	// encRes:map[bankcard142491282874077388:02312645320]    银行卡hash值  和 银行卡号
 	encRes, err := grpc_t.Decrypt(mb.UID, false, []string{enckey})
-	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v\n", mb, enckey, encRes)
+	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", mb, enckey, encRes, encRes["enckey"])
 
 	if err != nil {
 		return errors.New(helper.GetRPCErr)

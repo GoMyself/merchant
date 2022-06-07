@@ -257,36 +257,8 @@ func (that *BlacklistController) Delete(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	/// 从redis删除 银行卡黑名单信息
-	ex := g.Ex{
-		"id": id,
-	}
-	data, err := model.BankCardFindOne(ex)
-	if err != nil {
-		fmt.Printf("Error bankcardFindOne err:%+v, card id:%+v \n,", err, id)
-		return
-	}
-
-	if data.Username == "" {
-		fmt.Printf("Error card id:%+v .BankCardNotExist:", id)
-		return
-	}
-
-	// 获取会员真实姓名
-	mb, err := model.MemberFindOne(data.Username)
-	if err != nil {
-		fmt.Printf("Error to get member info:%+v\n", data.Username)
-		return
-	}
-
-	if mb.UID == "" {
-		fmt.Printf("Error  member UsernameErr:%+v\n", mb)
-
-		return
-	}
-
 	/// 从数据库 和 redis删除黑名单
-	err = model.BlacklistDelete(id, mb.UID)
+	err := model.BlacklistDelete(id)
 	fmt.Printf("WARNGIN BlacklistController BlacklistDelete bank card:%+v, err:%+v \n", id, err)
 
 	if err != nil {

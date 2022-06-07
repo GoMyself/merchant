@@ -160,7 +160,7 @@ func BlacklistUpdate(ex g.Ex, record g.Record) error {
 }
 
 // 删除记录
-func BlacklistDelete(id, uid string) error {
+func BlacklistDelete(id string) error {
 	// id 银行卡号， uid 此卡的用户 uuid
 	ex := g.Ex{
 		"id":     id,
@@ -199,10 +199,16 @@ func BlacklistDelete(id, uid string) error {
 	}
 
 	/// 更新redis 黑名单信息
+	card_id := data.Value
 	enckey := "bankcard" + id
-	encRes, err := grpc_t.Decrypt(uid, false, []string{enckey})
+	//encRes:map[bankcard142491282874077388:02312645320]
+	encRes := make(map[string]string)
+	encRes[enckey] = card_id
 	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+
 	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, encRes["enckey"])
+	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes["enckey"])
+
 	err = cmd.Err()
 
 	fmt.Println("WARNING redis delete blacklist key:", cmd, "err:", err)
