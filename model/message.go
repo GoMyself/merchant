@@ -9,7 +9,6 @@ import (
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
 )
 
 //MessageInsert  站内信新增
@@ -288,7 +287,7 @@ func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
 		query, _, _ = t.Select(g.COUNT("ts")).Where(ex).ToSQL()
 		fmt.Println(query)
 		err = meta.MerchantTD.Get(&data.T, query)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return data, pushLog(err, helper.DBErr)
 		}
 
@@ -337,7 +336,7 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
 		fmt.Println(query)
 		err = meta.MerchantTD.Get(&data.T, query)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return data, pushLog(err, helper.DBErr)
 		}
 
@@ -391,29 +390,33 @@ func MessageDelete(id, msgID string) error {
 // 发送站内信
 func messageSend(msgID, title, subTitle, content, sendName, prefix string, isTop, isVip, ty int, names []string) error {
 
-	data := MessageTD{
-		MessageID: msgID,
-		Title:     title,
-		SubTitle:  subTitle,
-		Content:   content,
-		IsTop:     isTop,
-		IsVip:     isVip,
-		IsRead:    0,
-		Ty:        ty,
-		SendName:  sendName,
-		SendAt:    time.Now().Unix(),
-		Prefix:    prefix,
+	record := g.Record{
+		"message_id": msgID,
+		"title":      title,
+		"sub_title":  subTitle,
+		"content":    content,
+		"send_name":  sendName,
+		"prefix":     prefix,
+		"is_top":     isTop,
+		"is_vip":     isVip,
+		"is_read":    0,
+		"is_delete":  0,
+		"send_at":    time.Now().Unix(),
+		"ty":         ty,
 	}
-	bulkRequest := meta.ES.Bulk().Index(meta.EsPrefix + "messages")
+	var records []g.Record
 	for _, v := range names {
-		data.Username = v
-		doc := elastic.NewBulkIndexRequest().Id(helper.GenId()).Doc(data)
-		bulkRequest = bulkRequest.Add(doc)
+		ts := time.Now()
+		record["ts"] = ts.UnixMilli()
+		record["username"] = v
+		records = append(records, record)
 	}
 
-	_, err := bulkRequest.Refresh("wait_for").Do(ctx)
+	query, _, _ := dialect.Insert("messages").Rows(records).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantTD.Exec(query)
 	if err != nil {
-		return err
+		fmt.Println("insert messages = ", err.Error(), records)
 	}
 
 	return nil
