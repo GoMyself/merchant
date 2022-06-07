@@ -342,13 +342,13 @@ func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-	ts := string(ctx.PostArgs().Peek("ts"))
+	tss := string(ctx.PostArgs().Peek("tss"))
 	if !validator.CtypeDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
-	err := model.MessageDelete(id, ts)
+	err := model.MessageDelete(id, tss)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

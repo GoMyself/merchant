@@ -358,9 +358,9 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 }
 
 //MessageDelete  站内信删除
-func MessageDelete(id, ts string) error {
+func MessageDelete(id, tss string) error {
 
-	if ts == "" {
+	if tss == "" {
 		ex := g.Ex{
 			"id":     id,
 			"prefix": meta.Prefix,
@@ -380,14 +380,14 @@ func MessageDelete(id, ts string) error {
 		"flag":       "2", //删除站内信
 		"message_id": id,  //站内信id
 	}
-	if ts != "" {
-		for _, v := range strings.Split(ts, ",") {
+	if tss != "" {
+		for _, v := range strings.Split(tss, ",") {
 			_, err := time.ParseInLocation(time.RFC3339, v, loc)
 			if err != nil {
 				return errors.New(helper.ParamErr)
 			}
 		}
-		param["ts"] = ts
+		param["ts"] = tss
 	}
 	topic := fmt.Sprintf("%s_message", meta.Prefix)
 	_, _ = BeanPut(topic, param, 0)
