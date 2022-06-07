@@ -232,17 +232,17 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 		}
 
 		param := map[string]interface{}{
-			"flag":      "1",                            //发送站内信
-			"msg_id":    data.ID,                        //id
-			"title":     data.Title,                     //标题
-			"sub_title": data.SubTitle,                  //副标题
-			"content":   data.Content,                   //内容
-			"is_top":    fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
-			"is_push":   fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
-			"is_vip":    fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
-			"ty":        fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
-			"send_name": data.SendName,                  //发送人名
-			"prefix":    meta.Prefix,                    //商户前缀
+			"flag":       "1",                            //发送站内信
+			"message_id": data.ID,                        //id
+			"title":      data.Title,                     //标题
+			"sub_title":  data.SubTitle,                  //副标题
+			"content":    data.Content,                   //内容
+			"is_top":     fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
+			"is_push":    fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
+			"is_vip":     fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
+			"ty":         fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
+			"send_name":  data.SendName,                  //发送人名
+			"prefix":     meta.Prefix,                    //商户前缀
 		}
 		if data.IsVip == 0 {
 			param["usernames"] = data.Usernames
