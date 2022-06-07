@@ -388,8 +388,8 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	// 获取会员真实信息
-	mb, errm := MemberInfo(data.Username)
-	if errm != nil {
+	mb, err := MemberInfo(data.Username)
+	if err != nil {
 		return errors.New(helper.InviteUsernameErr)
 	}
 
