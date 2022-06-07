@@ -376,13 +376,14 @@ func MessageDelete(id, msgID string) error {
 	}
 
 	param := map[string]interface{}{
-		"flag":   "2", //删除站内信
-		"msg_id": id,  //站内信id
+		"flag":       "2", //删除站内信
+		"message_id": id,  //站内信id
 	}
 	if msgID != "" {
 		param["id"] = msgID
 	}
-	_, _ = BeanPut("message", param, 0)
+	topic := fmt.Sprintf("%s_message", meta.Prefix)
+	_, _ = BeanPut(topic, param, 0)
 
 	return nil
 }
