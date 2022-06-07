@@ -997,30 +997,11 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	password := string(ctx.PostArgs().Peek("password"))
 	remarks := string(ctx.PostArgs().Peek("remarks"))
-	ty_temp := string(ctx.PostArgs().Peek("ty"))
-	zr_temp := string(ctx.PostArgs().Peek("zr"))
-	qp_temp := string(ctx.PostArgs().Peek("qp"))
-	dj_temp := string(ctx.PostArgs().Peek("dj"))
-	dz_temp := string(ctx.PostArgs().Peek("dz"))
-	cp_temp := string(ctx.PostArgs().Peek("cp"))
-	fc_temp := string(ctx.PostArgs().Peek("fc"))
-	by_temp := string(ctx.PostArgs().Peek("by"))
-	cg_high_rebate_temp := string(ctx.PostArgs().Peek("cg_high_rebate"))
-	cg_official_rebate_temp := string(ctx.PostArgs().Peek("cg_official_rebate"))
-
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
-	planID := string(ctx.PostArgs().Peek("plan_id"))
 
 	if !validator.CheckUName(username, 5, 14) && username != "root" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
-	}
-
-	if planID != "" {
-		if !validator.CheckStringDigit(planID) {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
-		}
 	}
 
 	mb, err := model.MemberFindOne(username)
@@ -1029,73 +1010,135 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ty, err := decimal.NewFromString(ty_temp) //下级会员体育返水比例
+	recd := g.Record{}
+	if password != "" {
+		if !validator.CheckUPassword(password, 8, 20) {
+			helper.Print(ctx, false, helper.PasswordFMTErr)
+			return
+		}
+		recd["password"] = fmt.Sprintf("%d", model.MurmurHash(password, mb.CreatedAt))
+	}
+
+	if state != 0 {
+		if state > 2 || state < 1 {
+			helper.Print(ctx, false, helper.PasswordFMTErr)
+			return
+		}
+		recd["state"] = state
+	}
+
+	if remarks != "" {
+		recd["remarks"] = remarks
+	}
+
+	if len(recd) == 0 {
+		helper.Print(ctx, false, helper.NoDataUpdate)
+		return
+	}
+
+	// 更新代理
+	err = model.MemberUpdateInfo(mb.UID, recd)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
+// UpdateMemberRebate 修改返水比例
+func (that *MemberController) UpdateMemberRebate(ctx *fasthttp.RequestCtx) {
+
+	username := string(ctx.PostArgs().Peek("username"))
+	tyTemp := string(ctx.PostArgs().Peek("ty"))
+	zrTemp := string(ctx.PostArgs().Peek("zr"))
+	qpTemp := string(ctx.PostArgs().Peek("qp"))
+	djTemp := string(ctx.PostArgs().Peek("dj"))
+	dzTemp := string(ctx.PostArgs().Peek("dz"))
+	cpTemp := string(ctx.PostArgs().Peek("cp"))
+	fcTemp := string(ctx.PostArgs().Peek("fc"))
+	byTemp := string(ctx.PostArgs().Peek("by"))
+	cgHighRebateTemp := string(ctx.PostArgs().Peek("cg_high_rebate"))
+	cgOfficialRebateTemp := string(ctx.PostArgs().Peek("cg_official_rebate"))
+
+	if !validator.CheckUName(username, 5, 14) && username != "root" {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	mb, err := model.MemberFindOne(username)
+	if err != nil {
+		helper.Print(ctx, false, helper.UsernameErr)
+		return
+	}
+
+	ty, err := decimal.NewFromString(tyTemp) //下级会员体育返水比例
 	if err != nil || ty.IsNegative() {
-		fmt.Println("sty = ", ty_temp)
+		fmt.Println("sty = ", tyTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	zr, err := decimal.NewFromString(zr_temp) //下级会员真人返水比例
+	zr, err := decimal.NewFromString(zrTemp) //下级会员真人返水比例
 	if err != nil || zr.IsNegative() {
-		fmt.Println("szr = ", zr_temp)
+		fmt.Println("szr = ", zrTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	qp, err := decimal.NewFromString(qp_temp) //下级会员棋牌返水比例
+	qp, err := decimal.NewFromString(qpTemp) //下级会员棋牌返水比例
 	if err != nil || qp.IsNegative() {
-		fmt.Println("sqp = ", qp_temp)
+		fmt.Println("sqp = ", qpTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	dj, err := decimal.NewFromString(dj_temp) //下级会员电竞返水比例
+	dj, err := decimal.NewFromString(djTemp) //下级会员电竞返水比例
 	if err != nil || dj.IsNegative() {
-		fmt.Println("sdj = ", dj_temp)
+		fmt.Println("sdj = ", djTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	dz, err := decimal.NewFromString(dz_temp) //下级会员电子返水比例
+	dz, err := decimal.NewFromString(dzTemp) //下级会员电子返水比例
 	if err != nil || dz.IsNegative() {
-		fmt.Println("sdz = ", dz_temp)
+		fmt.Println("sdz = ", dzTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	cp, err := decimal.NewFromString(cp_temp) //下级会员彩票返水比例
+	cp, err := decimal.NewFromString(cpTemp) //下级会员彩票返水比例
 	if err != nil || cp.IsNegative() {
-		fmt.Println("scp = ", cp_temp)
+		fmt.Println("scp = ", cpTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	fc, err := decimal.NewFromString(fc_temp) //下级会员斗鸡返水比例
+	fc, err := decimal.NewFromString(fcTemp) //下级会员斗鸡返水比例
 	if err != nil || fc.IsNegative() {
-		fmt.Println("sfc = ", fc_temp)
+		fmt.Println("sfc = ", fcTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	by, err := decimal.NewFromString(by_temp) //下级会员捕鱼返水比例
+	by, err := decimal.NewFromString(byTemp) //下级会员捕鱼返水比例
 	if err != nil || by.IsNegative() {
-		fmt.Println("sby = ", by_temp)
+		fmt.Println("sby = ", byTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
 	nine := decimal.NewFromFloat(9.0)
-	cgHighRebate, err := decimal.NewFromString(cg_high_rebate_temp) //下级最高cg高频彩返点
+	cgHighRebate, err := decimal.NewFromString(cgHighRebateTemp) //下级最高cg高频彩返点
 	if err != nil || cgHighRebate.LessThan(nine) {
-		fmt.Println("cgHighRebateTemp = ", cg_high_rebate_temp)
+		fmt.Println("cgHighRebateTemp = ", cgHighRebateTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
 
-	cgOfficialRebate, err := decimal.NewFromString(cg_official_rebate_temp) //下级最高cg官方彩返点
+	cgOfficialRebate, err := decimal.NewFromString(cgOfficialRebateTemp) //下级最高cg官方彩返点
 	if err != nil || cgOfficialRebate.LessThan(nine) {
-		fmt.Println("cgOfficialRebateTemp = ", cg_official_rebate_temp)
+		fmt.Println("cgOfficialRebateTemp = ", cgOfficialRebateTemp)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
@@ -1147,29 +1190,8 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	recd := g.Record{}
-	if password != "" {
-		if !validator.CheckUPassword(password, 8, 20) {
-			helper.Print(ctx, false, helper.PasswordFMTErr)
-			return
-		}
-		recd["password"] = fmt.Sprintf("%d", model.MurmurHash(password, mb.CreatedAt))
-	}
-
-	if state != 0 {
-		if state > 2 || state < 1 {
-			helper.Print(ctx, false, helper.PasswordFMTErr)
-			return
-		}
-		recd["state"] = state
-	}
-
-	if remarks != "" {
-		recd["remarks"] = remarks
-	}
-
-	// 更新代理
-	err = model.MemberUpdateInfo(mb.UID, planID, recd, mr)
+	// 更新代理返水比例
+	err = model.MemberUpdateRebateInfo(mb.UID, mr)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

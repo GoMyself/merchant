@@ -3,10 +3,39 @@ package model
 import (
 	"fmt"
 	"merchant/contrib/helper"
+	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/shopspring/decimal"
 )
+
+// 是否允许修改下级返水比例
+func MemberRebateEnableMod(enable bool) error {
+
+	key := fmt.Sprintf("%s:rebate:enablemod", meta.Prefix)
+	// 允许修改下级返水比例
+	if enable {
+		pipe := meta.MerchantRedis.TxPipeline()
+		defer pipe.Close()
+
+		pipe.Set(ctx, key, "1", 100*time.Hour)
+		pipe.Persist(ctx, key)
+
+		_, err := pipe.Exec(ctx)
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+	} else { //禁止修改下级返水比例
+		cmd := meta.MerchantRedis.Del(ctx, key)
+		fmt.Println(cmd.String())
+		err := cmd.Err()
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+	}
+
+	return nil
+}
 
 func MemberRebateScale() MemberRebateResult_t {
 	return meta.VenueRebate

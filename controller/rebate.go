@@ -29,3 +29,15 @@ func (that *RebateController) Scale(ctx *fasthttp.RequestCtx) {
 
 	helper.PrintJson(ctx, true, s)
 }
+
+func (that *RebateController) EnableMod(ctx *fasthttp.RequestCtx) {
+
+	enable := ctx.QueryArgs().GetBool("enable")
+	err := model.MemberRebateEnableMod(enable)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
