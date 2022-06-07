@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"merchant/contrib/helper"
+	"merchant/contrib/validator"
 	"strings"
 	"time"
 
@@ -361,6 +362,10 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 func MessageDelete(id, tss string) error {
 
 	if tss == "" {
+		if !validator.CtypeDigit(id) {
+			return errors.New(helper.IDErr)
+		}
+
 		ex := g.Ex{
 			"id":     id,
 			"prefix": meta.Prefix,
