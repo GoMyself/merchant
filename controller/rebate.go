@@ -12,7 +12,7 @@ type RebateController struct{}
 
 func (that *RebateController) Scale(ctx *fasthttp.RequestCtx) {
 
-	vs := model.RebateScale()
+	vs := model.MemberRebateScale()
 	s := fmt.Sprintf(
 		`{"ty":"%s","zr":"%s","dj":"%s","qp":"%s","dz":"%s","cp":"%s","fc":"%s","by":"%s","cg_official_rebate":"%s","cg_high_rebate":"%s"}`,
 		vs.TY.StringFixed(1),

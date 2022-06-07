@@ -8,6 +8,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+func MemberRebateScale() MemberRebateResult_t {
+	return meta.VenueRebate
+}
+
 func MemberRebateCmp(lower, own MemberRebateResult_t) bool {
 
 	if own.QP.LessThan(lower.QP) {

@@ -144,7 +144,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		maintainName = ""
 	}
 
-	vs := model.RebateScale()
+	vs := model.MemberRebateScale()
 	ty, err := decimal.NewFromString(tyTemp)
 	if err != nil || ty.IsNegative() || ty.GreaterThan(vs.TY) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
@@ -1139,7 +1139,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 			return
 		}
 	} else { //总代
-		maxScale := model.RebateScale()
+		maxScale := model.MemberRebateScale()
 		// 高于最高返水比例
 		if ok := model.MemberRebateCmp(maxScale, mr); !ok {
 			helper.Print(ctx, false, helper.RebateOutOfRange)
