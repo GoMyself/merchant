@@ -14,17 +14,6 @@ import (
 	"github.com/wI2L/jettison"
 )
 
-type BlackList_t struct {
-	ID          string `db:"id" json:"id"`
-	Ty          string `db:"ty" json:"ty"`
-	Value       string `db:"value" json:"value"`
-	Remark      string `db:"remark" json:"bankcard_no"`
-	CreatedUid  string `db:"created_uid" json:"created_uid"`
-	CreatedAt   uint64 `db:"created_at" json:"created_at"`
-	CreatedName string `db:"created_name" json:"created_name"`
-	Prefix      string `db:"prefix" json:"prefix"`
-}
-
 // 黑名单列表
 func BlacklistList(page, pageSize uint, startTime, endTime string, ty int, ex g.Ex) (BlacklistData, error) {
 
