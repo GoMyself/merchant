@@ -49,7 +49,6 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	//判断卡号是否存在
 	err = BankCardExistRedis(bankcardNo)
-	fmt.Printf("WARNING BankcardInsert BankCardExistRedis card no:%+v err:%+v \n", bankcardNo, err)
 	if err != nil {
 		return err
 	}
@@ -107,7 +106,6 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 	_, err = tx.Exec(queryInsert)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("queryInsert = ", queryInsert)
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -116,7 +114,6 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 	_, err = tx.Exec(queryUpdate)
 	if err != nil {
 		_ = tx.Rollback()
-		fmt.Println("queryUpdate = ", queryUpdate)
 		return pushLog(err, helper.DBErr)
 	}
 
@@ -127,7 +124,6 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	err = grpc_t.Encrypt(mb.UID, encRes)
 	if err != nil {
-		fmt.Println("grpc_t.Encrypt = ", err)
 		return errors.New(helper.UpdateRPCErr)
 	}
 
@@ -365,7 +361,6 @@ func BankcardUpdateCache(username string) {
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 
-	fmt.Println("WARNING mysql tbl_member_bankcard:", query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println("BankcardUpdateCache err = ", err)
@@ -375,7 +370,6 @@ func BankcardUpdateCache(username string) {
 	key := fmt.Sprintf("%s:merchant:cbc:%s", meta.Prefix, username)
 
 	pipe := meta.MerchantRedis.Pipeline()
-	fmt.Println("WARNING delete redis key:", key)
 
 	pipe.Del(ctx, key)
 	if len(data) > 0 {
@@ -414,19 +408,13 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	// 获取会员真实信息
 	mb, errm := MemberInfo(data.Username)
-	fmt.Printf("WARNING user:%+v BankcardDelete card data:%+v\n", mb, data)
-
 	if errm != nil {
-		fmt.Printf("WARNING user data:%+v BankcardDelete card errm:%+v\n", data, errm)
-
 		return errors.New(helper.InviteUsernameErr)
 	}
 
 	enckey := "bankcard" + bid
 	// encRes:map[bankcard142491282874077388:02312645320]    银行卡hash值  和 银行卡号
 	encRes, err := grpc_t.Decrypt(mb.UID, false, []string{enckey})
-	fmt.Printf("WARNING user:%+v BankcardDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", mb, enckey, encRes, encRes[enckey])
-
 	if err != nil {
 		return errors.New(helper.GetRPCErr)
 	}
@@ -434,12 +422,8 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	// 插入 mysql 黑名单 数据库前 查询redis，如果存在则 不重新插入mysql 并更新 redis
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	cmd := meta.MerchantRedis.Do(ctx, "CF.EXISTS", key, encRes[enckey])
-	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes[enckey])
 	err = cmd.Err()
-	fmt.Println("WARNING redis delete blacklist key:", cmd, "err:", err)
 	ex1 := cmd.Val()
-	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_exist:%+v\n", encRes[enckey], ex1)
-
 	if v, ok := ex1.(int64); ok && v == 1 {
 		// 此卡已经 在 黑名单 中
 		will_update_blacklist = false
@@ -455,11 +439,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	query, _, _ := dialect.Delete("tbl_member_bankcard").Where(g.Ex{"id": bid}).ToSQL()
-	fmt.Printf("WARNING BankcardDelete card tbl_member_bankcard sql:%+v\n", query)
-
 	_, err = tx.Exec(query)
-	fmt.Printf("WARNING BankcardDelete card tbl_member_bankcard sql err:%+v\n", err)
-
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.New(helper.DBErr)
@@ -470,7 +450,6 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 	query, _, _ = dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
-	fmt.Printf("WARNING BankcardDelete card after update tbl_members sql:%+v err:%+v\n", query, err)
 
 	if err != nil {
 		_ = tx.Rollback()
@@ -493,8 +472,6 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		/// 黑名单还没有 该银行卡，更新 mysql tbl_blacklist
 		query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
 		_, err = tx.Exec(query)
-		fmt.Printf("WARNING BankcardDelete card after insert tbl_blacklist sql:%+v err:%+v\n", query, err)
-
 		if err != nil {
 			_ = tx.Rollback()
 			return errors.New(helper.DBErr)
@@ -502,8 +479,6 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	err = tx.Commit()
-	fmt.Printf("WARNING BankcardDelete commit tranalations tbl_blacklist sql:%+v err:%+v\n", query, err)
-
 	if err != nil {
 		return errors.New(helper.DBErr)
 	}
@@ -514,16 +489,12 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	key = fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
 	pipe.Do(ctx, "CF.DEL", key, encRes[enckey])
-	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_exist CF.DEL:%+v encRes:%+v\n", key, encRes)
-
 	if will_update_blacklist {
 		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 		pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
 	}
 
 	_, _ = pipe.Exec(ctx)
-	fmt.Printf("WARNING BankcardDelete commit redis bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
-
 	//key := "cbc:" + data.Username
 	//path := fmt.Sprintf(".$%s", data.ID)
 

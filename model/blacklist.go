@@ -201,28 +201,19 @@ func BlacklistDelete(id string) error {
 		"state": "2",
 	}
 	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	fmt.Printf("WARNING update card state value: %v hash :%v,\n sql:%+v \n", data.Value, valueHash, query)
-
 	_, err2 := meta.MerchantDB.Exec(query)
-
 	if err2 != nil {
 		return errors.New(helper.DBErr)
 	}
 
-	/// 更新redis 黑名单信息
+	/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息
 	card_id := data.Value
 	enckey := "bankcard" + id
-	//encRes:map[bankcard142491282874077388:02312645320]
 	encRes := make(map[string]string)
 	encRes[enckey] = card_id
 	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-
 	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, encRes[enckey])
-	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes[enckey])
-
 	err = cmd.Err()
-
-	fmt.Println("WARNING redis delete blacklist key:", cmd, "err:", err)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -241,7 +232,6 @@ func BlacklistExist(ex g.Ex) bool {
 	t := dialect.From("tbl_blacklist")
 	query, _, _ := t.Select("id").Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&id, query)
-	fmt.Printf("WARNING: bank card blacklist check sql: %+v, now id: %v result err:%v \n", query, id, err)
 	return err != sql.ErrNoRows
 }
 
