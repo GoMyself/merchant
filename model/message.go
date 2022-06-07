@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"strings"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
-	"github.com/wI2L/jettison"
 )
 
 //MessageInsert  站内信新增
@@ -232,17 +232,17 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 		}
 
 		param := map[string]interface{}{
-			"flag":      "1",                            //发送站内信
-			"msg_id":    data.ID,                        //id
-			"title":     data.Title,                     //标题
-			"sub_title": data.SubTitle,                  //副标题
-			"content":   data.Content,                   //内容
-			"is_top":    fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
-			"is_push":   fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
-			"is_vip":    fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
-			"ty":        fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
-			"send_name": data.SendName,                  //发送人名
-			"prefix":    meta.Prefix,                    //商户前缀
+			"flag":       "1",                            //发送站内信
+			"message_id": data.ID,                        //id
+			"title":      data.Title,                     //标题
+			"sub_title":  data.SubTitle,                  //副标题
+			"content":    data.Content,                   //内容
+			"is_top":     fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
+			"is_push":    fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
+			"is_vip":     fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
+			"ty":         fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
+			"send_name":  data.SendName,                  //发送人名
+			"prefix":     meta.Prefix,                    //商户前缀
 		}
 		if data.IsVip == 0 {
 			param["usernames"] = data.Usernames
@@ -257,7 +257,11 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 }
 
 //MessageDetail  已发站内信详情
-func MessageDetail(id string, page, pageSize int) (string, error) {
+func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
+
+	data := MessageTDData{
+		S: pageSize,
+	}
 
 	ex := g.Ex{
 		"id":     id,
@@ -268,92 +272,96 @@ func MessageDetail(id string, page, pageSize int) (string, error) {
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&sendState, query)
 	if err != nil && err != sql.ErrNoRows {
-		return `{"t":0,"d":[]}`, pushLog(err, helper.DBErr)
+		return data, pushLog(err, helper.DBErr)
 	}
 
 	if err == sql.ErrNoRows || sendState != 2 {
-		return `{"t":0,"d":[]}`, errors.New(helper.RecordNotExistErr)
+		return data, errors.New(helper.RecordNotExistErr)
 	}
 
-	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "is_read", "send_name", "send_at", "prefix"}
-	param := map[string]interface{}{
-		"prefix": meta.Prefix,
-		"msg_id": id,
+	ex = g.Ex{
+		"prefix":     meta.Prefix,
+		"message_id": id,
+		"is_delete":  0,
 	}
-	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", false, page, pageSize, fields, param, map[string][]interface{}{}, map[string]string{})
+	t := dialect.From("messages")
+	if page == 1 {
+		query, _, _ = t.Select(g.COUNT("ts")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.MerchantTD.Get(&data.T, query)
+		if err != nil && err != sql.ErrNoRows {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	offset := (page - 1) * pageSize
+	query, _, _ = t.Select(colsMessageTD...).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
-		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
+		return data, pushLog(err, helper.DBErr)
 	}
 
-	data := MessageEsData{}
-	data.S = pageSize
-	data.T = total
-	for _, v := range esData {
-		msg := MessageEs{}
-		msg.ID = v.Id
-		_ = helper.JsonUnmarshal(v.Source, &msg)
-		data.D = append(data.D, msg)
-	}
-
-	b, err := jettison.Marshal(data)
-	if err != nil {
-		return "", errors.New(helper.FormatErr)
-	}
-
-	return string(b), nil
+	return data, nil
 }
 
 //MessageSystemList  已发站系统内信列表
-func MessageSystemList(startTime, endTime string, page, pageSize int) (string, error) {
+func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTDData, error) {
 
+	data := MessageTDData{
+		S: pageSize,
+	}
 	startAt, err := helper.TimeToLoc(startTime, loc) // 毫秒级时间戳
 	if err != nil {
-		return `{"t":0,"d":[]}`, errors.New(helper.DateTimeErr)
+		return data, errors.New(helper.DateTimeErr)
 	}
 	endAt, err := helper.TimeToLoc(endTime, loc) // 毫秒级时间戳
 	if err != nil {
-		return `{"t":0,"d":[]}`, errors.New(helper.DateTimeErr)
+		return data, errors.New(helper.DateTimeErr)
 	}
 
 	if startAt >= endAt {
-		return `{"t":0,"d":[]}`, errors.New(helper.QueryTimeRangeErr)
+		return data, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	fields := []string{"msg_id", "username", "title", "sub_title", "content", "is_top", "is_vip", "ty", "is_read", "send_name", "send_at", "prefix"}
-	param := map[string]interface{}{
+	ex := g.Ex{
 		"prefix":    meta.Prefix,
 		"send_name": "system",
+		"send_at":   g.Op{"between": exp.NewRangeVal(startAt, endAt)},
 	}
-	rangeParam := map[string][]interface{}{
-		"send_at": {startAt, endAt},
+	t := dialect.From("messages")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.MerchantTD.Get(&data.T, query)
+		if err != nil && err != sql.ErrNoRows {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
 	}
-	total, esData, _, err := esSearch(meta.EsPrefix+"messages", "send_at", false, page, pageSize, fields, param, rangeParam, map[string]string{})
+
+	offset := (page - 1) * pageSize
+	query, _, _ := t.Select(colsMessageTD...).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
-		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
+		return data, pushLog(err, helper.DBErr)
 	}
 
-	data := MessageEsData{}
-	data.S = pageSize
-	data.T = total
-	for _, v := range esData {
-		msg := MessageEs{}
-		msg.ID = v.Id
-		_ = helper.JsonUnmarshal(v.Source, &msg)
-		data.D = append(data.D, msg)
-	}
-
-	b, err := jettison.Marshal(data)
-	if err != nil {
-		return "", errors.New(helper.FormatErr)
-	}
-
-	return string(b), nil
+	return data, nil
 }
 
 //MessageDelete  站内信删除
-func MessageDelete(id, msgID string) error {
+func MessageDelete(id, ts string) error {
 
-	if msgID == "" {
+	if ts == "" {
 		ex := g.Ex{
 			"id":     id,
 			"prefix": meta.Prefix,
@@ -370,13 +378,19 @@ func MessageDelete(id, msgID string) error {
 	}
 
 	param := map[string]interface{}{
-		"flag":   "2", //删除站内信
-		"msg_id": id,  //站内信id
+		"flag":       "2", //删除站内信
+		"message_id": id,  //站内信id
 	}
-	if msgID != "" {
-		param["id"] = msgID
+	if ts != "" {
+		for _, v := range strings.Split(ts, ",") {
+			if !validator.CtypeDigit(v) {
+				return errors.New(helper.ParamErr)
+			}
+		}
+		param["ts"] = ts
 	}
-	_, _ = BeanPut("message", param, 0)
+	topic := fmt.Sprintf("%s_message", meta.Prefix)
+	_, _ = BeanPut(topic, param, 0)
 
 	return nil
 }
@@ -384,29 +398,33 @@ func MessageDelete(id, msgID string) error {
 // 发送站内信
 func messageSend(msgID, title, subTitle, content, sendName, prefix string, isTop, isVip, ty int, names []string) error {
 
-	data := MessageEs{
-		MsgID:    msgID,
-		Title:    title,
-		SubTitle: subTitle,
-		Content:  content,
-		IsTop:    isTop,
-		IsVip:    isVip,
-		IsRead:   0,
-		Ty:       ty,
-		SendName: sendName,
-		SendAt:   time.Now().Unix(),
-		Prefix:   prefix,
+	record := g.Record{
+		"message_id": msgID,
+		"title":      title,
+		"sub_title":  subTitle,
+		"content":    content,
+		"send_name":  sendName,
+		"prefix":     prefix,
+		"is_top":     isTop,
+		"is_vip":     isVip,
+		"is_read":    0,
+		"is_delete":  0,
+		"send_at":    time.Now().Unix(),
+		"ty":         ty,
 	}
-	bulkRequest := meta.ES.Bulk().Index(meta.EsPrefix + "messages")
+	var records []g.Record
 	for _, v := range names {
-		data.Username = v
-		doc := elastic.NewBulkIndexRequest().Id(helper.GenId()).Doc(data)
-		bulkRequest = bulkRequest.Add(doc)
+		ts := time.Now()
+		record["ts"] = ts.UnixMilli()
+		record["username"] = v
+		records = append(records, record)
 	}
 
-	_, err := bulkRequest.Refresh("wait_for").Do(ctx)
+	query, _, _ := dialect.Insert("messages").Rows(records).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantTD.Exec(query)
 	if err != nil {
-		return err
+		fmt.Println("insert messages = ", err.Error(), records)
 	}
 
 	return nil

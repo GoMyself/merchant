@@ -99,11 +99,12 @@ type MemberDataOverviewData struct {
 
 // MemberListData 会员列表
 type MemberListData struct {
-	T    int                      `json:"t"`
-	S    int                      `json:"s"`
-	D    []MemberListCol          `json:"d"`
-	Agg  map[string]MemberAggData `json:"agg"`
-	Info map[string]memberInfo    `json:"info"`
+	T         int                      `json:"t"`
+	S         int                      `json:"s"`
+	EnableMod bool                     `json:"enable_mod"`
+	D         []MemberListCol          `json:"d"`
+	Agg       map[string]MemberAggData `json:"agg"`
+	Info      map[string]memberInfo    `json:"info"`
 }
 
 type memberInfo struct {
@@ -632,7 +633,16 @@ func AgencyList(ex exp.ExpressionList, parentID, username, startTime, endTime, s
 
 	// 直属下级人数 新增注册人数
 	data.Agg, err = MemberAgg(ids, startAt, endAt)
-	return data, err
+	if err != nil {
+		return data, err
+	}
+
+	key := fmt.Sprintf("%s:rebate:enablemod", meta.Prefix)
+	if meta.MerchantRedis.Exists(ctx, key).Val() > 0 {
+		data.EnableMod = true
+	}
+
+	return data, nil
 }
 
 // 获取佣金方案
@@ -1742,29 +1752,34 @@ func memberPlatformBalance(username string) []PlatBalance {
 	return p
 }
 
-func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebateResult_t) error {
+func MemberUpdateInfo(uid string, record g.Record) error {
 
-	tx, err := meta.MerchantDB.Begin() // 开启事务
+	ex := g.Ex{
+		"uid":    uid,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.Update("tbl_members").Set(&record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	subEx := g.Ex{
+	_ = MemberUpdateCache(uid, "")
+	return nil
+}
+
+func MemberUpdateRebateInfo(uid string, mr MemberRebateResult_t) error {
+
+	key := fmt.Sprintf("%s:rebate:enablemod", meta.Prefix)
+	if meta.MerchantRedis.Exists(ctx, key).Val() == 0 {
+		return errors.New(helper.MemberRebateModDisable)
+	}
+
+	ex := g.Ex{
 		"uid":    uid,
 		"prefix": meta.Prefix,
 	}
-
-	if len(mbRecord) > 0 {
-		query, _, _ := dialect.Update("tbl_members").Set(&mbRecord).Where(subEx).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(err, helper.DBErr)
-		}
-
-		_ = MemberUpdateCache(uid, "")
-	}
-
 	recd := g.Record{
 		"ty":                 mr.TY.StringFixed(1),
 		"zr":                 mr.ZR.StringFixed(1),
@@ -1777,31 +1792,14 @@ func MemberUpdateInfo(uid, planID string, mbRecord g.Record, mr MemberRebateResu
 		"cg_high_rebate":     mr.CGHighRebate.StringFixed(2),
 		"cg_official_rebate": mr.CGOfficialRebate.StringFixed(2),
 	}
-	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(subEx).ToSQL()
-	_, err = tx.Exec(query)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.DBErr)
-	}
-
-	if planID != "" {
-
-		recd = g.Record{
-			"plan_id": planID,
-		}
-		query, _, _ := dialect.Update("tbl_commission_conf").Set(&recd).Where(subEx).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(err, helper.DBErr)
-		}
-	}
-
-	err = tx.Commit()
+	query, _, _ := dialect.Update("tbl_member_rebate_info").Set(&recd).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
-	MemberRebateUpdateCache1(uid, mr)
+
+	_ = MemberRebateUpdateCache1(uid, mr)
 	return nil
 }
 

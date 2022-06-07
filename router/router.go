@@ -196,8 +196,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	// 代理管理-代理列表
 	post("/merchant/agency/list", memberCtl.Agency)
-	// 代理管理-代理编辑 总代
+	// 代理管理-代理修改密码/开启关闭
 	post("/merchant/agency/update", memberCtl.UpdateTopMember)
+	// 代理管理-代理修改返水比例
+	post("/merchant/agency/updaterebate", memberCtl.UpdateMemberRebate)
 	// 代理管理-代理编辑维护人
 	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
 	// 代理管理-下级成员
@@ -341,6 +343,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	// 获取返水上限
 	get("/merchant/rebate/scale", rebateCtl.Scale)
+	// 是否允许编辑返水比例
+	get("/merchant/rebate/enablemod", rebateCtl.EnableMod)
 
 	// 会员管理-会员列表-账变记录
 	get("/merchant/record/transaction", recordCtl.Transaction)

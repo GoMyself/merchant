@@ -307,13 +307,13 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	s, err := model.MessageDetail(id, page, pageSize)
+	data, err := model.MessageDetail(id, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, s)
+	helper.Print(ctx, true, data)
 }
 
 // 已发系统站内信站内信列表
@@ -329,35 +329,26 @@ func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	s, err := model.MessageSystemList(startTime, endTime, page, pageSize)
+	data, err := model.MessageSystemList(startTime, endTime, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, s)
+	helper.Print(ctx, true, data)
 }
 
 // 站内信删除
 func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-	msgID := string(ctx.PostArgs().Peek("msg_id"))
+	ts := string(ctx.PostArgs().Peek("ts"))
 	if !validator.CtypeDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
-	if msgID != "" {
-		for _, v := range strings.Split(msgID, ",") {
-			if !validator.CtypeDigit(v) {
-				helper.Print(ctx, false, helper.ParamErr)
-				return
-			}
-		}
-	}
-
-	err := model.MessageDelete(id, msgID)
+	err := model.MessageDelete(id, ts)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
