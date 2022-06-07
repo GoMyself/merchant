@@ -161,7 +161,7 @@ func BlacklistUpdate(ex g.Ex, record g.Record) error {
 
 // 删除记录
 func BlacklistDelete(id string) error {
-
+	// id 银行卡号， uid 此卡的用户 uuid
 	ex := g.Ex{
 		"id":     id,
 		"prefix": meta.Prefix,
@@ -190,15 +190,20 @@ func BlacklistDelete(id string) error {
 		"state": "2",
 	}
 	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	fmt.Printf("Warning update card state value: %v hash :%v,\n sql:%+v \n", data.Value, valueHash, query)
-
 	_, err2 := meta.MerchantDB.Exec(query)
-
 	if err2 != nil {
 		return errors.New(helper.DBErr)
 	}
-	///// 更新结束
 
+	/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
+	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
+	err = cmd.Err()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	///// 更新结束
 	_ = LoadBlacklists(data.Ty)
 
 	return nil
@@ -212,7 +217,6 @@ func BlacklistExist(ex g.Ex) bool {
 	t := dialect.From("tbl_blacklist")
 	query, _, _ := t.Select("id").Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&id, query)
-	fmt.Printf("WARNING: bank card blacklist check sql: %+v, now id: %v result err:%v \n", query, id, err)
 	return err != sql.ErrNoRows
 }
 
