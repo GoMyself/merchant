@@ -26,18 +26,18 @@ import (
 	"github.com/spaolacci/murmur3"
 )
 
-type VenueRebateScale struct {
-	ZR               decimal.Decimal
-	QP               decimal.Decimal
-	TY               decimal.Decimal
-	DZ               decimal.Decimal
-	DJ               decimal.Decimal
-	CP               decimal.Decimal
-	FC               decimal.Decimal
-	BY               decimal.Decimal
-	CGOfficialRebate decimal.Decimal
-	CGHighRebate     decimal.Decimal
-}
+//type VenueRebateScale struct {
+//	ZR               decimal.Decimal
+//	QP               decimal.Decimal
+//	TY               decimal.Decimal
+//	DZ               decimal.Decimal
+//	DJ               decimal.Decimal
+//	CP               decimal.Decimal
+//	FC               decimal.Decimal
+//	BY               decimal.Decimal
+//	CGOfficialRebate decimal.Decimal
+//	CGHighRebate     decimal.Decimal
+//}
 
 var grpc_t struct {
 	View       func(uid, field string, hide bool) ([]string, error)
@@ -47,7 +47,7 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	VenueRebate    VenueRebateScale
+	VenueRebate    MemberRebateResult_t
 	MerchantRedis  *redis.ClusterClient
 	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
@@ -133,7 +133,7 @@ func Constructor(mt *MetaTable, rpc string) {
 
 	client.UseService(&grpc_t)
 
-	meta.VenueRebate = VenueRebateScale{
+	meta.VenueRebate = MemberRebateResult_t{
 		ZR:               decimal.NewFromFloat(1.0).Truncate(1),
 		QP:               decimal.NewFromFloat(1.2).Truncate(1),
 		TY:               decimal.NewFromFloat(1.5).Truncate(1),
