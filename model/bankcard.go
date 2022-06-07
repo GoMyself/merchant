@@ -32,17 +32,6 @@ type BankCard_t struct {
 	Prefix       string `db:"prefix" json:"prefix"`
 }
 
-type BlackBankCard_t struct {
-	ID          string `db:"id" json:"id"`
-	Ty          string `db:"ty" json:"ty"`
-	Value       string `db:"value" json:"value"`
-	Remark      string `db:"remark" json:"bankcard_no"`
-	CreatedUid  string `db:"created_uid" json:"created_uid"`
-	CreatedAt   uint64 `db:"created_at" json:"created_at"`
-	CreatedName string `db:"created_name" json:"created_name"`
-	Prefix      string `db:"prefix" json:"prefix"`
-}
-
 func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	encRes := [][]string{}
@@ -165,6 +154,27 @@ func BankCardFindOne(ex g.Ex) (BankCard_t, error) {
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println("BankCardFindOne query = ", query)
 		fmt.Println("BankCardFindOne err = ", err)
+
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	return data, nil
+}
+
+/// 黑名单获取一个
+func BlackListFindOne(ex g.Ex, table string) (BlackList_t, error) {
+
+	data := BlackList_t{}
+
+	ex["prefix"] = meta.Prefix
+
+	//"tbl_blacklist"
+	t := dialect.From(table)
+	query, _, _ := t.Select(colsBankcard...).Where(ex).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println("BlackListFindOne query = ", query)
+		fmt.Println("BlackListFindOne err = ", err)
 
 		return data, pushLog(err, helper.DBErr)
 	}
@@ -382,6 +392,8 @@ func BankcardUpdateCache(username string) {
 }
 
 func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
+	var key string
+	var will_update_blacklist bool
 
 	user, err := AdminToken(fctx)
 	if err != nil {
@@ -417,6 +429,23 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	if err != nil {
 		return errors.New(helper.GetRPCErr)
+	}
+
+	// 插入 mysql 黑名单 数据库前 查询redis，如果存在则 不重新插入mysql 并更新 redis
+	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+	cmd := meta.MerchantRedis.Do(ctx, "CF.EXISTS", key, encRes[enckey])
+	fmt.Printf("WARNING key:%+v BlacklistDelete card enckey:%+v encRes:%+v,encRes[\"enckey\"]:%+v\n", key, enckey, encRes, encRes[enckey])
+	err = cmd.Err()
+	fmt.Println("WARNING redis delete blacklist key:", cmd, "err:", err)
+	ex1 := cmd.Val()
+	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_exist:%+v\n", encRes[enckey], ex1)
+
+	if v, ok := ex1.(int64); ok && v == 1 {
+		// 此卡已经 在 黑名单 中
+		will_update_blacklist = false
+	} else {
+		// 此卡不在黑名单，需要更新
+		will_update_blacklist = true
 	}
 
 	// 删除冻结的银行卡，直接删除
@@ -459,13 +488,17 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		"created_uid":  user["id"],
 		"created_name": user["name"],
 	}
-	query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
-	_, err = tx.Exec(query)
-	fmt.Printf("WARNING BankcardDelete card after insert tbl_blacklist sql:%+v err:%+v\n", query, err)
 
-	if err != nil {
-		_ = tx.Rollback()
-		return errors.New(helper.DBErr)
+	if will_update_blacklist {
+		/// 黑名单还没有 该银行卡，更新 mysql tbl_blacklist
+		query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
+		_, err = tx.Exec(query)
+		fmt.Printf("WARNING BankcardDelete card after insert tbl_blacklist sql:%+v err:%+v\n", query, err)
+
+		if err != nil {
+			_ = tx.Rollback()
+			return errors.New(helper.DBErr)
+		}
 	}
 
 	err = tx.Commit()
@@ -475,15 +508,19 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		return errors.New(helper.DBErr)
 	}
 
+	/// 更新redis
 	pipe := meta.MerchantRedis.Pipeline()
 	defer pipe.Close()
 
-	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	key = fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
 	pipe.Do(ctx, "CF.DEL", key, encRes[enckey])
 	fmt.Printf("WARNING BankcardDelete commit redis merchant:bankcard_exist CF.DEL:%+v encRes:%+v\n", key, encRes)
 
-	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
+	if will_update_blacklist {
+		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+		pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
+	}
+
 	_, _ = pipe.Exec(ctx)
 	fmt.Printf("WARNING BankcardDelete commit redis bankcard_blacklist CF.ADD:%+v encRes:%+v\n", key, encRes)
 
