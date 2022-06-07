@@ -1,5 +1,5 @@
 package model
 
-func RebateScale() VenueRebateScale {
+func RebateScale() MemberRebateResult_t {
 	return meta.VenueRebate
 }

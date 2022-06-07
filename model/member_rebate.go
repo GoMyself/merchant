@@ -8,45 +8,40 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func MemberRebateCmp(uid string, own MemberRebateResult_t) bool {
+func MemberRebateCmp(lower, own MemberRebateResult_t) bool {
 
-	lower, err := MemberMaxRebateFindOne(uid)
-	if err != nil {
+	if own.QP.LessThan(lower.QP) {
+		return false
+	}
+	if own.ZR.LessThan(lower.ZR) {
+		return false
+	}
+	if own.TY.LessThan(lower.TY) {
+		return false
+	}
+	if own.DJ.LessThan(lower.DJ) {
+		return false
+	}
+	if own.DZ.LessThan(lower.DZ) {
+		return false
+	}
+	if own.CP.LessThan(lower.CP) {
+		return false
+	}
+	if own.FC.LessThan(lower.FC) {
+		return false
+	}
+	if own.BY.LessThan(lower.BY) {
+		return false
+	}
+	if own.CGHighRebate.LessThan(lower.CGHighRebate) {
+		return false
+	}
+	if own.CGOfficialRebate.LessThan(lower.CGOfficialRebate) {
 		return false
 	}
 
-	if own.QP.Cmp(lower.QP) == -1 {
-		return false
-	}
-	if own.ZR.Cmp(lower.ZR) == -1 {
-		return false
-	}
-	if own.TY.Cmp(lower.TY) == -1 {
-		return false
-	}
-	if own.DJ.Cmp(lower.DJ) == -1 {
-		return false
-	}
-	if own.DZ.Cmp(lower.DZ) == -1 {
-		return false
-	}
-	if own.CP.Cmp(lower.CP) == -1 {
-		return false
-	}
-	if own.FC.Cmp(lower.FC) == -1 {
-		return false
-	}
-	if own.BY.Cmp(lower.BY) == -1 {
-		return false
-	}
-	if own.CGHighRebate.Cmp(lower.CGHighRebate) == -1 {
-		return false
-	}
-	if own.CGOfficialRebate.Cmp(lower.CGOfficialRebate) == -1 {
-		return false
-	}
 	return true
-
 }
 
 func MemberRebateUpdateCache1(uid string, mr MemberRebateResult_t) error {
