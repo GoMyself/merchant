@@ -1082,7 +1082,7 @@ type TgIpData struct {
 }
 
 type MessageTD struct {
-	Ts        string `json:"ts" db:"ts"`                 //会员站内信id
+	Ts        int64  `json:"ts" db:"ts"`                 //会员站内信id
 	MessageID string `json:"message_id" db:"message_id"` //站内信id
 	Username  string `json:"username" db:"username"`     //会员名
 	Title     string `json:"title" db:"title"`           //标题

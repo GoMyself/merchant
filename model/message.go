@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"merchant/contrib/helper"
+	"merchant/contrib/validator"
+	"strings"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -357,9 +359,9 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 }
 
 //MessageDelete  站内信删除
-func MessageDelete(id, msgID string) error {
+func MessageDelete(id, ts string) error {
 
-	if msgID == "" {
+	if ts == "" {
 		ex := g.Ex{
 			"id":     id,
 			"prefix": meta.Prefix,
@@ -379,8 +381,13 @@ func MessageDelete(id, msgID string) error {
 		"flag":       "2", //删除站内信
 		"message_id": id,  //站内信id
 	}
-	if msgID != "" {
-		param["id"] = msgID
+	if ts != "" {
+		for _, v := range strings.Split(ts, ",") {
+			if !validator.CtypeDigit(v) {
+				return errors.New(helper.ParamErr)
+			}
+		}
+		param["ts"] = ts
 	}
 	topic := fmt.Sprintf("%s_message", meta.Prefix)
 	_, _ = BeanPut(topic, param, 0)
