@@ -279,9 +279,9 @@ func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
 	}
 
 	ex = g.Ex{
-		"prefix":    meta.Prefix,
-		"msg_id":    id,
-		"is_delete": 0,
+		"prefix":     meta.Prefix,
+		"message_id": id,
+		"is_delete":  0,
 	}
 	t := dialect.From("messages")
 	if page == 1 {
