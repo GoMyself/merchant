@@ -365,8 +365,10 @@ func BankcardUpdateCache(username string) {
 }
 
 func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
-	var key string
-	var will_update_blacklist bool
+	var (
+		key       string
+		blacklist bool
+	)
 
 	user, err := AdminToken(fctx)
 	if err != nil {
@@ -405,10 +407,10 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	ex1 := cmd.Val()
 	if v, ok := ex1.(int64); ok && v == 1 {
 		// 此卡已经 在 黑名单 中
-		will_update_blacklist = false
+		blacklist = false
 	} else {
 		// 此卡不在黑名单，需要更新
-		will_update_blacklist = true
+		blacklist = true
 	}
 
 	// 删除冻结的银行卡，直接删除
@@ -447,7 +449,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		"created_name": user["name"],
 	}
 
-	if will_update_blacklist {
+	if blacklist {
 		/// 黑名单还没有 该银行卡，更新 mysql tbl_blacklist
 		query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
 		_, err = tx.Exec(query)
@@ -468,7 +470,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	key = fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
 	pipe.Do(ctx, "CF.DEL", key, encRes[enckey])
-	if will_update_blacklist {
+	if blacklist {
 		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 		pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
 	}

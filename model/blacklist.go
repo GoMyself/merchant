@@ -195,13 +195,9 @@ func BlacklistDelete(id string) error {
 		return errors.New(helper.DBErr)
 	}
 
-	/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息
-	card_id := data.Value
-	enckey := "bankcard" + id
-	encRes := make(map[string]string)
-	encRes[enckey] = card_id
+	/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
 	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, encRes[enckey])
+	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
 	err = cmd.Err()
 	if err != nil {
 		return errors.New(err.Error())
