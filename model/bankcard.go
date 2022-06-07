@@ -49,6 +49,7 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 
 	//判断卡号是否存在
 	err = BankCardExistRedis(bankcardNo)
+	fmt.Printf("WARNING BankcardInsert BankCardExistRedis card no:%+v err:%+v \n", bankcardNo, err)
 	if err != nil {
 		return err
 	}
@@ -341,6 +342,7 @@ func BankcardUpdateCache(username string) {
 	t := dialect.From("tbl_member_bankcard")
 	query, _, _ := t.Select(colsBankcard...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 
+	fmt.Println("WARNING mysql tbl_member_bankcard:", query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println("BankcardUpdateCache err = ", err)
@@ -350,6 +352,8 @@ func BankcardUpdateCache(username string) {
 	key := fmt.Sprintf("%s:merchant:cbc:%s", meta.Prefix, username)
 
 	pipe := meta.MerchantRedis.Pipeline()
+	fmt.Println("WARNING delete redis key:", key)
+
 	pipe.Del(ctx, key)
 	if len(data) > 0 {
 
