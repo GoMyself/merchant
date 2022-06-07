@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"merchant/contrib/helper"
-	"merchant/contrib/validator"
 	"strings"
 	"time"
 
@@ -383,7 +382,8 @@ func MessageDelete(id, ts string) error {
 	}
 	if ts != "" {
 		for _, v := range strings.Split(ts, ",") {
-			if !validator.CtypeDigit(v) {
+			_, err := time.ParseInLocation(time.RFC3339, v, loc)
+			if err != nil {
 				return errors.New(helper.ParamErr)
 			}
 		}
