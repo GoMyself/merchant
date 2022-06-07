@@ -251,15 +251,13 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.QueryArgs().Peek("id"))
-	fmt.Printf("WARNGIN BlacklistController Delete bank card:%+v\n", id)
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
 	}
 
+	/// 从数据库 和 redis删除黑名单
 	err := model.BlacklistDelete(id)
-	fmt.Printf("WARNGIN BlacklistController BlacklistDelete bank card:%+v\n", id)
-
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
