@@ -307,13 +307,13 @@ func (that *MessageController) Detail(ctx *fasthttp.RequestCtx) {
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	s, err := model.MessageDetail(id, page, pageSize)
+	data, err := model.MessageDetail(id, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, s)
+	helper.Print(ctx, true, data)
 }
 
 // 已发系统站内信站内信列表
@@ -329,13 +329,13 @@ func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	s, err := model.MessageSystemList(startTime, endTime, page, pageSize)
+	data, err := model.MessageSystemList(startTime, endTime, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, s)
+	helper.Print(ctx, true, data)
 }
 
 // 站内信删除

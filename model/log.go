@@ -51,7 +51,6 @@ func AdminLoginLog(start, end string, page, pageSize int, ex g.Ex) (AdminLoginLo
 	}
 
 	offset := (page - 1) * pageSize
-
 	query, _, _ := t.Select("username", "ip", "device_no", "create_at").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Login Log query = ", query)
 	err := meta.MerchantTD.Select(&data.D, query)

@@ -1081,8 +1081,8 @@ type TgIpData struct {
 	Agg map[string]string `json:"agg"`
 }
 
-type MessageEs struct {
-	ID       string `json:"id"`        //会员站内信id
+type MessageTD struct {
+	Ts       string `json:"ts"`        //会员站内信id
 	MsgID    string `json:"msg_id"`    //站内信id
 	Username string `json:"username"`  //会员名
 	Title    string `json:"title"`     //标题
@@ -1097,10 +1097,10 @@ type MessageEs struct {
 	Prefix   string `json:"prefix"`    //商户前缀
 }
 
-type MessageEsData struct {
+type MessageTDData struct {
 	T int64       `json:"t"`
 	S int         `json:"s"`
-	D []MessageEs `json:"d"`
+	D []MessageTD `json:"d"`
 }
 
 // 站内信
