@@ -12,6 +12,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/producer"
+	"github.com/beanstalkd/go-beanstalk"
 	"github.com/valyala/fasthttp"
 	_ "go.uber.org/automaxprocs"
 )
@@ -23,6 +26,8 @@ var (
 )
 
 func main() {
+
+	var err error
 
 	argc := len(os.Args)
 	if argc != 4 {
@@ -50,14 +55,34 @@ func main() {
 	mt.ReportDB = conn.InitDB(cfg.Db.Report.Addr, cfg.Db.Report.MaxIdleConn, cfg.Db.Report.MaxOpenConn)
 	mt.BetDB = conn.InitDB(cfg.Db.Bet.Addr, cfg.Db.Bet.MaxIdleConn, cfg.Db.Bet.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisCluster(cfg.Redis.Addr, cfg.Redis.Password)
-	mt.BeanPool = conn.InitBeanstalk(cfg.Beanstalkd.Addr, 15, cfg.Beanstalkd.MaxIdle, cfg.Beanstalkd.MaxCap)
-	mt.BeanBetPool = conn.InitBeanstalk(cfg.BeanBet.Addr, 15, cfg.BeanBet.MaxIdle, cfg.BeanBet.MaxCap)
+
 	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
 	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
 
 	bin := strings.Split(os.Args[0], "/")
 	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin
+
+	mt.MerchantBean, err = beanstalk.Dial("tcp", cfg.Beanstalkd)
+	if err != nil {
+		fmt.Printf("beanstalk error: %s", err.Error())
+		os.Exit(1)
+	}
+
+	mt.MerchantMQ, err = rocketmq.NewProducer(
+		producer.WithNameServer(cfg.Rocketmq),
+		producer.WithRetry(2),
+		producer.WithGroupName("merchant"),
+	)
+	if err != nil {
+		fmt.Printf("start NewProducer error: %s", err.Error())
+		os.Exit(1)
+	}
+	err = mt.MerchantMQ.Start()
+	if err != nil {
+		fmt.Printf("start producer error: %s", err.Error())
+		os.Exit(1)
+	}
 
 	model.Constructor(mt, cfg.RPC)
 	session.New(mt.MerchantRedis, cfg.Prefix)

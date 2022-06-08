@@ -3,10 +3,11 @@ package model
 import (
 	"errors"
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
 	"merchant/contrib/helper"
 	"time"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 // MemberTransferSubCheck 检查当前会员是否有下级
@@ -78,7 +79,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		"top_name":    destMb.TopName,
 		"prefix":      meta.Prefix,
 	}
-	_, _ = BeanBetPut("transfer_ag", param, 0)
+	BeanPut("transfer_ag", param)
 
 	// 记录转代日志
 	transRecord := AgencyTransferRecord{

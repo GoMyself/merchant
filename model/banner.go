@@ -93,7 +93,9 @@ func BannerDelete(id string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	fmt.Println("BannerDelete", bannerRefreshToCache(id))
+	bannerRefreshToCache(id)
+
+	//fmt.Println("BannerDelete", bannerRefreshToCache(id))
 
 	return nil
 }
@@ -205,11 +207,11 @@ func BannerUpdate(showAt, hideAt, id string, record g.Record) error {
 	if showType == BannerShowTypeSpecify {
 		// banner自动展示
 		sDelay := st.Sub(now).Seconds()
-		_, _ = BeanPut("Banner", map[string]interface{}{"id": id, "ty": "2"}, int(sDelay)-5)
+		BeanPutDelay("Banner", map[string]interface{}{"id": id, "ty": "2"}, int(sDelay)-5)
 
 		// banner自动隐藏
 		eDelay := et.Sub(now).Seconds()
-		_, _ = BeanPut("Banner", map[string]interface{}{"id": id, "ty": "3"}, int(eDelay)-5)
+		BeanPutDelay("Banner", map[string]interface{}{"id": id, "ty": "3"}, int(eDelay)-5)
 	}
 
 	fmt.Println("BannerUpdate", bannerRefreshToCache(id))
@@ -255,11 +257,11 @@ func BannerInsert(record Banner) error {
 	if record.ShowType == BannerShowTypeSpecify {
 		// banner自动展示
 		sDelay := st.Sub(now).Seconds()
-		_, _ = BeanPut("Banner", map[string]interface{}{"id": record.ID, "ty": "2"}, int(sDelay)-5)
+		BeanPutDelay("Banner", map[string]interface{}{"id": record.ID, "ty": "2"}, int(sDelay)-5)
 
 		// banner自动隐藏
 		eDelay := et.Sub(now).Seconds()
-		_, _ = BeanPut("Banner", map[string]interface{}{"id": record.ID, "ty": "3"}, int(eDelay)-5)
+		BeanPutDelay("Banner", map[string]interface{}{"id": record.ID, "ty": "3"}, int(eDelay)-5)
 	}
 
 	fmt.Println("BannerInsert", bannerRefreshToCache(record.ID))

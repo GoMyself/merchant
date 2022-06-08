@@ -7,12 +7,13 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/beanstalkd/go-beanstalk"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/nats-io/nats.go"
 	"github.com/shopspring/decimal"
-	cpool "github.com/silenceper/pool"
 
 	"time"
 
@@ -51,11 +52,11 @@ type MetaTable struct {
 	MerchantRedis  *redis.ClusterClient
 	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
+	MerchantBean   *beanstalk.Conn
+	MerchantMQ     rocketmq.Producer
 	ReportDB       *sqlx.DB
 	BetDB          *sqlx.DB
 	PromoteConfig  map[string]map[string]interface{}
-	BeanPool       cpool.Pool
-	BeanBetPool    cpool.Pool
 	ES             *elastic.Client
 	AccessEs       *elastic.Client
 	NatsConn       *nats.Conn

@@ -250,7 +250,7 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 			param["level"] = data.Level
 		}
 		topic := fmt.Sprintf("%s_message", meta.Prefix)
-		_, _ = BeanPut(topic, param, int(sDelay))
+		BeanPutDelay(topic, param, int(sDelay))
 	}
 
 	return nil
@@ -302,6 +302,7 @@ func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
 	query, _, _ = t.Select(colsMessageTD...).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantTD.Select(&data.D, query)
+	//b, err := helper.JsonMarshal	(data)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
@@ -394,8 +395,8 @@ func MessageDelete(id, tss string) error {
 		}
 		param["ts"] = tss
 	}
-	topic := fmt.Sprintf("%s_message", meta.Prefix)
-	_, _ = BeanPut(topic, param, 0)
+	//topic := fmt.Sprintf("%s_message", meta.Prefix)
+	BeanPut("message", param)
 
 	return nil
 }

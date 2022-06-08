@@ -17,17 +17,9 @@ type conf struct {
 		Username string   `json:"username"`
 		Password string   `json:"password"`
 	} `json:"nats"`
-	Beanstalkd struct {
-		Addr    string `json:"addr"`
-		MaxIdle int    `json:"maxIdle"`
-		MaxCap  int    `json:"maxCap"`
-	} `json:"beanstalkd"`
-	BeanBet struct {
-		Addr    string `json:"addr"`
-		MaxIdle int    `json:"maxIdle"`
-		MaxCap  int    `json:"maxCap"`
-	} `json:"bean_bet"`
-	Db struct {
+	Rocketmq   []string `json:"rocketmq"`
+	Beanstalkd string   `json:"beanstalkd"`
+	Db         struct {
 		Master struct {
 			Addr        string `json:"addr"`
 			MaxIdleConn int    `json:"max_idle_conn"`
