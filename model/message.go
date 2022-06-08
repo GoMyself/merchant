@@ -398,17 +398,24 @@ func MessageDelete(id, tss string) error {
 		return nil
 	}
 
+	var records []g.Record
 	for _, v := range strings.Split(tss, ",") {
-		_, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", v, loc)
+		// 2022-06-07T16:28:26.285+07:00
+		t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", v, loc)
 		if err != nil {
 			return errors.New(helper.ParamErr)
 		}
+		record := g.Record{
+			"ts":        t.UnixMicro(),
+			"is_delete": 1,
+		}
+		records = append(records, record)
 	}
-	param["ts"] = tss
-
-	err := BeanPut("message", param)
+	query, _, _ := dialect.Insert("messages").Rows(records).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantTD.Exec(query)
 	if err != nil {
-		_ = pushLog(err, helper.ServerErr)
+		fmt.Println("insert messages = ", err.Error(), records)
 	}
 
 	return nil
