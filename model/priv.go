@@ -25,9 +25,9 @@ func PrivList(gid, adminGid string) (string, error) {
 
 	gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, gid)
 	// 运营总监分组
-	if gid == "2" || gid == "10" {
-		gKey = fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	}
+	//if gid == "2" || gid == "10" {
+	//	gKey = fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
+	//}
 	cmd := meta.MerchantRedis.Get(ctx, gKey)
 	//fmt.Println(cmd.String())
 	val, err := cmd.Result()

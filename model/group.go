@@ -310,11 +310,6 @@ func LoadGroups() error {
 		return nil
 	}
 
-	privMap := make(map[string]Priv)
-	for _, v := range privs {
-		privMap[v.ID] = v
-	}
-
 	recs, err := helper.JsonMarshal(groups)
 	if err != nil {
 		return errors.New(helper.FormatErr)
@@ -324,8 +319,22 @@ func LoadGroups() error {
 	defer pipe.Close()
 
 	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
+	g2Key := fmt.Sprintf("%s:priv:list:GM2", meta.Prefix)
 	pipe.Unlink(ctx, key)
 	pipe.Set(ctx, key, string(recs), 0)
+	pipe.Persist(ctx, key)
+
+	// 运营总监
+	var g2Privs []Priv
+	privMap := make(map[string]Priv)
+	pipe.Unlink(ctx, key)
+	for _, v := range privs {
+		privMap[v.ID] = v
+		pipe.HSet(ctx, "2", v, "1")
+		g2Privs = append(g2Privs, v)
+	}
+	g2Recs, _ := helper.JsonMarshal(g2Privs)
+	pipe.Set(ctx, g2Key, string(g2Recs), 0)
 	pipe.Persist(ctx, key)
 
 	for _, val := range groups {
@@ -333,7 +342,7 @@ func LoadGroups() error {
 		id := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, val.Gid)
 		pipe.Unlink(ctx, id)
 		// 只保存开启状态的分组
-		if val.State == 1 {
+		if val.State == 1 && val.Gid != "2" {
 			var gPrivs []Priv
 			data := strings.Split(val.Permission, ",")
 			for _, v := range data {
