@@ -303,6 +303,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 		if uf.Cmp(decimal.Zero) == -1 {
 			uf = decimal.Zero
 		}
+		rvName := v.ReviewName
+		if len(rvName) == 0 {
+			rvName = "系统"
+		}
 		//组装活动的流水稽查
 		data.D = append(data.D, InspectionData{
 			No:               fmt.Sprintf(`%d`, i),
@@ -312,7 +316,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Title:            v.Title,
 			Amount:           fmt.Sprintf(`%.4f`, v.Amount),
 			RewardAmount:     fmt.Sprintf(`%.4f`, v.Bonus),
-			ReviewName:       v.ReviewName,
+			ReviewName:       rvName,
 			FlowMultiple:     fmt.Sprintf(`%d`, v.Multiple),
 			FlowAmount:       fmt.Sprintf(`%.4f`, v.Flow),
 			FinishedAmount:   validBetAmount.StringFixed(4),
@@ -323,8 +327,8 @@ func InspectionList(username string) (Inspection, Member, error) {
 			Platforms:        promoMap[v.Pid].Platforms,
 			RecordId:         v.Id,
 		})
-		needFlowAmount = needFlowAmount.Add(decimal.NewFromFloat(v.Flow))
 
+		needFlowAmount = needFlowAmount.Add(decimal.NewFromFloat(v.Flow))
 		i++
 	}
 	data.T = int64(i) - 1
