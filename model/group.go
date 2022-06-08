@@ -145,8 +145,9 @@ func groupSubs(pid string) ([]string, error) {
 
 func GroupInsert(adminGid string, data Group) error {
 
+	privs := strings.Split(data.Permission, ",")
 	// 检查新增分组的权限是否大于上级分组
-	for _, v := range strings.Split(data.Permission, ",") {
+	for _, v := range privs {
 		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
@@ -174,16 +175,21 @@ func GroupInsert(adminGid string, data Group) error {
 		return errors.New(helper.RecordExistErr)
 	}
 
-	var parentLvl int64
+	var parent Group
 	ex := g.Ex{
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("tbl_admin_group").Select("lvl").Where(ex).ToSQL()
+	query, _, _ := dialect.From(colsGroup...).Select("lvl").Where(ex).ToSQL()
 	fmt.Println(query)
-	err = meta.MerchantDB.Get(&parentLvl, query)
+	err = meta.MerchantDB.Get(&parent, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
+	}
+
+	parentPrivs := strings.Split(parent.Permission, ",")
+	if len(privs) >= len(parentPrivs) {
+		return errors.New(helper.SubPermissionEqualErr)
 	}
 
 	tx, err := meta.MerchantDB.Begin()
@@ -192,7 +198,7 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	gid := helper.GenId()
-	data.Lvl = parentLvl + 1
+	data.Lvl = parent.Lvl + 1
 	data.Gid = gid
 	data.Prefix = meta.Prefix
 	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
