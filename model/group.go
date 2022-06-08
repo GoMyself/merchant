@@ -25,13 +25,18 @@ type Group struct {
 
 func GroupUpdate(gid, adminGid string, data Group) error {
 
+	// 所修改分组的权限map
+	gPrivMap := make(map[string]bool)
+	permissions := strings.Split(data.Permission, ",")
 	// 检查新增分组的权限是否大于上级分组
-	for _, v := range strings.Split(data.Permission, ",") {
+	for _, v := range permissions {
 		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
+
+		gPrivMap[v] = true
 	}
 
 	// 检查当前后台账号是否有权限增加当前分组
@@ -54,20 +59,78 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
+	// 获取当前分组的下级分组
+	subGids, err := groupSubs(data.Gid)
+	if err != nil {
+		return err
+	}
+
+	var subs []Group
+	ex := g.Ex{
+		"prefix": meta.Prefix,
+		"gid":    subGids,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").
+		Select(colsGroup...).Where(ex).Order(g.C("lvl").Asc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&subs, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range subs {
+		privs := ""
+		for _, vv := range strings.Split(v.Permission, "") {
+			// 下级权限在分组权限调整后的范围内保留，不在则一起删除
+			if _, ok := gPrivMap[vv]; ok {
+				if privs != "" {
+					privs += ","
+				}
+				privs += vv
+			}
+		}
+	}
+
 	record := g.Record{
 		"gname":      data.Gname,
 		"noted":      data.Noted,
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
+	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
 	fmt.Println(query)
-	_, err = meta.MerchantDB.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
+	_ = tx.Commit()
+
 	return LoadGroups()
+}
+
+func groupSubs(pid string) ([]string, error) {
+
+	var descendants []string
+	ex := g.Ex{
+		"prefix":     meta.Prefix,
+		"ancestor":   pid,
+		"descendant": g.Op{"neq": pid},
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select("descendant").Where(ex).GroupBy("descendant").Order(g.C("lvl").Asc()).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&descendants, query)
+	if err != nil {
+		return descendants, pushLog(err, helper.DBErr)
+	}
+
+	return descendants, nil
 }
 
 func GroupInsert(adminGid string, data Group) error {
@@ -101,36 +164,28 @@ func GroupInsert(adminGid string, data Group) error {
 		return errors.New(helper.RecordExistErr)
 	}
 
-	//parent := Group{}
-	//err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
-	//if err != nil {
-	//	return pushLog(err, helper.DBErr)
-	//}
+	var parentLvl int64
+	ex := g.Ex{
+		"gid":    data.Pid,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select("lvl").Where(ex).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Get(&parentLvl, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
 
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
-	//if err != nil {
-	//	_ = tx.Rollback()
-	//	return pushLog(err, helper.DBErr)
-	//}
-	//
-	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
-	//if err != nil {
-	//	_ = tx.Rollback()
-	//	return pushLog(err, helper.DBErr)
-	//}
-
 	gid := helper.GenId()
-	//data.Lvl = parent.Lvl + 1
-	//data.Lft = parent.Lft + 1
-	//data.Rgt = parent.Lft + 2
+	data.Lvl = parentLvl + 1
 	data.Gid = gid
 	data.Prefix = meta.Prefix
-	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
+	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
