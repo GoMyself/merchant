@@ -86,13 +86,23 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	for _, v := range subs {
 		privs := ""
 		for _, vv := range strings.Split(v.Permission, "") {
-			// 下级权限在分组权限调整后的范围内保留，不在则一起删除
-			if _, ok := gPrivMap[vv]; ok {
+			// 下级权限在分组权限调整后的范围内保留，不在则删除
+			if _, ok = gPrivMap[vv]; ok {
 				if privs != "" {
 					privs += ","
 				}
 				privs += vv
 			}
+		}
+
+		record := g.Record{
+			"permission": privs,
+		}
+		query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": v.Gid}).ToSQL()
+		fmt.Println(query)
+		_, err = tx.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
 		}
 	}
 
@@ -102,7 +112,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
+	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(ex).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
