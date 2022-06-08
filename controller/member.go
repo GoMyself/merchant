@@ -997,6 +997,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	password := string(ctx.PostArgs().Peek("password"))
 	remarks := string(ctx.PostArgs().Peek("remarks"))
+	groupName := string(ctx.PostArgs().Peek("group_name"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 
 	if !validator.CheckUName(username, 5, 14) && username != "root" {
@@ -1029,6 +1030,14 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 
 	if remarks != "" {
 		recd["remarks"] = remarks
+	}
+
+	if groupName != "" {
+		if len(groupName) > 50 {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+		recd["group_name"] = groupName
 	}
 
 	if len(recd) == 0 {
