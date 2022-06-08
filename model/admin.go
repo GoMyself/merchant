@@ -43,6 +43,7 @@ type AdminLoginResp struct {
 	Allows    string `json:"allows"`    // 用户权限列表
 	AdminName string `json:"user_name"` // 用户名
 	Domain    string `json:"domain"`    // 用户名
+	Prefix    string `json:"prefix"`    //站点前缀
 }
 
 func AdminInsert(data Admin) error {
@@ -205,7 +206,9 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	*/
 
 	data := Admin{}
-	rsp := AdminLoginResp{}
+	rsp := AdminLoginResp{
+		Prefix: meta.Prefix,
+	}
 	t := dialect.From("tbl_admins")
 	query, _, _ := t.Select(colsAdmin...).Where(g.Ex{"name": username, "prefix": meta.Prefix}).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
