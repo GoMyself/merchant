@@ -329,7 +329,7 @@ func LoadGroups() error {
 	g2Key := fmt.Sprintf("%s:priv:GM2", meta.Prefix)
 	for _, v := range privs {
 		privMap[v.ID] = v
-		pipe.HSet(ctx, g2Key, v, "1")
+		pipe.HSet(ctx, g2Key, v.ID, "1")
 		g2Privs = append(g2Privs, v)
 	}
 	pipe.Persist(ctx, g2Key)
