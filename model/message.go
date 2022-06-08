@@ -225,11 +225,6 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 
 	// 审核通过
 	if state == 2 {
-		sDelay := int64(0)
-		// 1 定时发送 2立即发送
-		if flag == 2 {
-			sDelay = data.SendAt - ns
-		}
 
 		param := map[string]interface{}{
 			"flag":       "1",                            //发送站内信
@@ -249,8 +244,18 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 		} else {
 			param["level"] = data.Level
 		}
-		topic := fmt.Sprintf("%s_message", meta.Prefix)
-		BeanPutDelay(topic, param, int(sDelay))
+
+		sDelay := int64(0)
+		// 1 定时发送 2立即发送
+		if flag == 2 {
+			sDelay = data.SendAt - ns
+			err = BeanPutDelay("message", param, int(sDelay))
+		} else {
+			err = BeanPut("message", param)
+		}
+		if err != nil {
+			_ = pushLog(err, helper.ServerErr)
+		}
 	}
 
 	return nil
@@ -395,8 +400,11 @@ func MessageDelete(id, tss string) error {
 		}
 		param["ts"] = tss
 	}
-	//topic := fmt.Sprintf("%s_message", meta.Prefix)
-	BeanPut("message", param)
+
+	err := BeanPut("message", param)
+	if err != nil {
+		_ = pushLog(err, helper.ServerErr)
+	}
 
 	return nil
 }
