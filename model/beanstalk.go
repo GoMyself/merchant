@@ -51,7 +51,6 @@ func BeanPutDelay(name string, param map[string]interface{}, delay int) error {
 	}
 
 	topic := meta.Prefix + "_" + name
-
 	tube := &beanstalk.Tube{Conn: meta.MerchantBean, Name: topic}
 	_, err := tube.Put(m.QueryString(), 1, time.Duration(delay)*time.Second, 10*time.Minute)
 	if err != nil {

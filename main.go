@@ -63,7 +63,7 @@ func main() {
 	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin
 
-	mt.MerchantBean, err = beanstalk.Dial("tcp", cfg.Beanstalkd)
+	mt.MerchantBean, err = beanstalk.Dial("tcp", cfg.Beanstalkd.Addr)
 	if err != nil {
 		fmt.Printf("beanstalk error: %s", err.Error())
 		os.Exit(1)
