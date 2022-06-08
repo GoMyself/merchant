@@ -29,7 +29,7 @@ func PrivList(gid, adminGid string) (string, error) {
 		gKey = fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
 	}
 	cmd := meta.MerchantRedis.Get(ctx, gKey)
-	fmt.Println(cmd.String())
+	//fmt.Println(cmd.String())
 	val, err := cmd.Result()
 	if err != nil && err != redis.Nil {
 		return val, pushLog(err, helper.RedisErr)
