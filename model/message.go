@@ -367,6 +367,9 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 //MessageDelete  站内信删除
 func MessageDelete(id, tss string) error {
 
+	param := map[string]interface{}{
+		"flag": "2", //删除站内信
+	}
 	if tss == "" {
 		if !validator.CtypeDigit(id) {
 			return errors.New(helper.IDErr)
@@ -385,21 +388,23 @@ func MessageDelete(id, tss string) error {
 		if err != nil {
 			return pushLog(err, helper.DBErr)
 		}
+
+		param["message_id"] = id //站内信id
+		err = BeanPut("message", param)
+		if err != nil {
+			_ = pushLog(err, helper.ServerErr)
+		}
+
+		return nil
 	}
 
-	param := map[string]interface{}{
-		"flag":       "2", //删除站内信
-		"message_id": id,  //站内信id
-	}
-	if tss != "" {
-		for _, v := range strings.Split(tss, ",") {
-			_, err := time.ParseInLocation("2006-01-02T15:04:05.999999 07:00", v, loc)
-			if err != nil {
-				return errors.New(helper.ParamErr)
-			}
+	for _, v := range strings.Split(tss, ",") {
+		_, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", v, loc)
+		if err != nil {
+			return errors.New(helper.ParamErr)
 		}
-		param["ts"] = tss
 	}
+	param["ts"] = tss
 
 	err := BeanPut("message", param)
 	if err != nil {
