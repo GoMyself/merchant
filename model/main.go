@@ -7,12 +7,13 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/beanstalkd/go-beanstalk"
 	"github.com/hprose/hprose-golang/v3/rpc/core"
 	rpchttp "github.com/hprose/hprose-golang/v3/rpc/http"
 	. "github.com/hprose/hprose-golang/v3/rpc/http/fasthttp"
 	"github.com/nats-io/nats.go"
 	"github.com/shopspring/decimal"
-	cpool "github.com/silenceper/pool"
 
 	"time"
 
@@ -51,11 +52,11 @@ type MetaTable struct {
 	MerchantRedis  *redis.ClusterClient
 	MerchantTD     *sqlx.DB
 	MerchantDB     *sqlx.DB
+	MerchantBean   *beanstalk.Conn
+	MerchantMQ     rocketmq.Producer
 	ReportDB       *sqlx.DB
 	BetDB          *sqlx.DB
 	PromoteConfig  map[string]map[string]interface{}
-	BeanPool       cpool.Pool
-	BeanBetPool    cpool.Pool
 	ES             *elastic.Client
 	AccessEs       *elastic.Client
 	NatsConn       *nats.Conn
@@ -111,6 +112,7 @@ var (
 	colsPromoInspection      = helper.EnumFields(PromoInspection{})
 	colsLink                 = helper.EnumFields(Link_t{})
 	colsMessageTD            = helper.EnumFields(MessageTD{})
+	colsBankcardLog          = helper.EnumFields(BankcardLog{})
 	dividendFields           = []string{"id", "uid", "prefix", "ty", "username", "top_uid", "top_name", "parent_uid", "parent_name", "amount", "review_at", "review_uid", "review_name", "water_multiple", "water_flow"}
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
@@ -200,7 +202,7 @@ func pushLog(err error, code string) error {
 		"project":  meta.Program,
 		"flags":    code,
 		"filename": path,
-		"ts":       ts.In(loc).UnixMilli(),
+		"ts":       ts.In(loc).UnixMicro(),
 	}
 	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
 	fmt.Println("insert SMS = sql ", query)

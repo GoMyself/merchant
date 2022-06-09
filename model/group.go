@@ -25,13 +25,18 @@ type Group struct {
 
 func GroupUpdate(gid, adminGid string, data Group) error {
 
+	// 所修改分组的权限map
+	gPrivMap := make(map[string]bool)
+	permissions := strings.Split(data.Permission, ",")
 	// 检查新增分组的权限是否大于上级分组
-	for _, v := range strings.Split(data.Permission, ",") {
+	for _, v := range permissions {
 		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
 			return errors.New(helper.MethodNoPermission)
 		}
+
+		gPrivMap[v] = true
 	}
 
 	// 检查当前后台账号是否有权限增加当前分组
@@ -54,6 +59,58 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
+	// 获取当前分组的下级分组
+	subGids, err := groupSubs(gid)
+	if err != nil {
+		return err
+	}
+
+	var subs []Group
+	if len(subGids) > 0 {
+		ex := g.Ex{
+			"prefix": meta.Prefix,
+			"gid":    subGids,
+		}
+		query, _, _ := dialect.From("tbl_admin_group").
+			Select(colsGroup...).Where(ex).Order(g.C("lvl").Asc()).ToSQL()
+		fmt.Println(query)
+		err = meta.MerchantDB.Select(&subs, query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if len(subs) > 0 {
+		fmt.Println(subs)
+		for _, v := range subs {
+			privs := ""
+			for _, vv := range strings.Split(v.Permission, ",") {
+				// 下级权限在分组权限调整后的范围内保留，不在则删除
+				if _, ok = gPrivMap[vv]; ok {
+					if privs != "" {
+						privs += ","
+					}
+					privs += vv
+				}
+			}
+
+			record := g.Record{
+				"permission": privs,
+			}
+			query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": v.Gid}).ToSQL()
+			fmt.Println(query)
+			_, err = tx.Exec(query)
+			if err != nil {
+				return pushLog(err, helper.DBErr)
+			}
+		}
+	}
+
 	record := g.Record{
 		"gname":      data.Gname,
 		"noted":      data.Noted,
@@ -62,18 +119,40 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
 	fmt.Println(query)
-	_, err = meta.MerchantDB.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
+	_ = tx.Commit()
+
 	return LoadGroups()
+}
+
+func groupSubs(pid string) ([]string, error) {
+
+	var descendants []string
+	ex := g.Ex{
+		"prefix":     meta.Prefix,
+		"ancestor":   pid,
+		"descendant": g.Op{"neq": pid},
+	}
+	query, _, _ := dialect.From("tbl_admin_group_tree").
+		Select("descendant").Where(ex).GroupBy("descendant").Order(g.C("lvl").Asc()).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&descendants, query)
+	if err != nil {
+		return descendants, pushLog(err, helper.DBErr)
+	}
+
+	return descendants, nil
 }
 
 func GroupInsert(adminGid string, data Group) error {
 
+	privs := strings.Split(data.Permission, ",")
 	// 检查新增分组的权限是否大于上级分组
-	for _, v := range strings.Split(data.Permission, ",") {
+	for _, v := range privs {
 		key := fmt.Sprintf("%s:priv:GM%s", meta.Prefix, data.Pid)
 		exists := meta.MerchantRedis.HExists(ctx, key, v).Val()
 		if !exists {
@@ -101,36 +180,33 @@ func GroupInsert(adminGid string, data Group) error {
 		return errors.New(helper.RecordExistErr)
 	}
 
-	//parent := Group{}
-	//err = meta.MerchantDB.Get(&parent, "SELECT `lvl`,`lft`,`rgt` FROM `tbl_admin_group` WHERE gid = ? and prefix =?;", adminGid, meta.Prefix)
-	//if err != nil {
-	//	return pushLog(err, helper.DBErr)
-	//}
+	var parent Group
+	ex := g.Ex{
+		"gid":    data.Pid,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From(colsGroup...).Select("lvl").Where(ex).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Get(&parent, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	parentPrivs := strings.Split(parent.Permission, ",")
+	if len(privs) >= len(parentPrivs) {
+		return errors.New(helper.SubPermissionEqualErr)
+	}
 
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET lft = lft + 2 WHERE lft > ? and prefix =?", parent.Lft, meta.Prefix)
-	//if err != nil {
-	//	_ = tx.Rollback()
-	//	return pushLog(err, helper.DBErr)
-	//}
-	//
-	//_, err = tx.Exec("UPDATE `tbl_admin_group` SET rgt = rgt + 2 WHERE rgt > ? and prefix =?", parent.Lft, meta.Prefix)
-	//if err != nil {
-	//	_ = tx.Rollback()
-	//	return pushLog(err, helper.DBErr)
-	//}
-
 	gid := helper.GenId()
-	//data.Lvl = parent.Lvl + 1
-	//data.Lft = parent.Lft + 1
-	//data.Rgt = parent.Lft + 2
+	data.Lvl = parent.Lvl + 1
 	data.Gid = gid
 	data.Prefix = meta.Prefix
-	query, _, _ := dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
+	query, _, _ = dialect.Insert("tbl_admin_group").Rows(data).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -325,7 +401,7 @@ func LoadGroups() error {
 
 	key := fmt.Sprintf("%s:priv:GroupAll", meta.Prefix)
 	pipe.Unlink(ctx, key)
-	pipe.Set(ctx, key, string(recs), 0)
+	pipe.Set(ctx, key, string(recs), 100*time.Hour)
 	pipe.Persist(ctx, key)
 
 	for _, val := range groups {
@@ -334,16 +410,24 @@ func LoadGroups() error {
 		pipe.Unlink(ctx, id)
 		// 只保存开启状态的分组
 		if val.State == 1 {
-			var gPrivs []Priv
-			data := strings.Split(val.Permission, ",")
-			for _, v := range data {
-				pipe.HSet(ctx, id, v, "1")
-				gPrivs = append(gPrivs, privMap[v])
-			}
-			gRecs, _ := helper.JsonMarshal(gPrivs)
 			gKey := fmt.Sprintf("%s:priv:list:GM%s", meta.Prefix, val.Gid)
+			pipe.Unlink(ctx, gKey)
+			if val.Gid != "2" {
+				var gPrivs []Priv
+				for _, v := range strings.Split(val.Permission, ",") {
+					pipe.HSet(ctx, id, v, "1")
+					gPrivs = append(gPrivs, privMap[v])
+				}
+				gRecs, _ := helper.JsonMarshal(gPrivs)
+				pipe.Set(ctx, gKey, string(gRecs), 100*time.Hour)
+			} else {
+				for _, v := range privs {
+					pipe.HSet(ctx, id, v.ID, "1")
+				}
+				gRecs, _ := helper.JsonMarshal(privs)
+				pipe.Set(ctx, gKey, string(gRecs), 100*time.Hour)
+			}
 			pipe.Persist(ctx, id)
-			pipe.Set(ctx, gKey, string(gRecs), 100*time.Hour)
 			pipe.Persist(ctx, gKey)
 		}
 	}

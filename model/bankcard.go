@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/doug-martin/goqu/v9/exp"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 
@@ -476,11 +477,62 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 
 	_, _ = pipe.Exec(ctx)
-	//key := "cbc:" + data.Username
-	//path := fmt.Sprintf(".$%s", data.ID)
-
-	//meta.MerchantRedis.Do(ctx, "JSON.DEL", key, path).Err()
 
 	BankcardUpdateCache(data.Username)
 	return nil
+}
+
+// 会员管理-会员银行卡概览 模糊查询 分页查询
+func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (BankcardLogData, error) {
+
+	data := BankcardLogData{}
+	if len(ex) == 0 && startTime == "" && endTime == "" {
+		return data, errors.New(helper.ParamNull)
+	}
+
+	if startTime != "" && endTime != "" {
+		startAt, err := helper.TimeToLoc(startTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		endAt, err := helper.TimeToLoc(endTime, loc)
+		if err != nil {
+			return data, errors.New(helper.TimeTypeErr)
+		}
+
+		if startAt >= endAt {
+			return data, errors.New(helper.QueryTimeRangeErr)
+		}
+
+		ex["created_at"] = g.Op{
+			"between": exp.NewRangeVal(startAt, endAt),
+		}
+	}
+
+	t := dialect.From("bankcard_log")
+	if page == 1 {
+		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
+		err := meta.MerchantTD.Get(&data.T, query)
+		if err != nil && err != sql.ErrNoRows {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		if data.T == 0 {
+			return data, nil
+		}
+	}
+
+	// 分页查
+	offset := (page - 1) * pageSize
+	query, _, _ := t.Select(colsBankcardLog...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	fmt.Println("Cards Check Log query = ", query)
+	err := meta.MerchantTD.Select(&data.D, query)
+	if err != nil {
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
+	}
+
+	data.S = pageSize
+	return data, nil
 }

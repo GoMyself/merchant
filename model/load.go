@@ -75,9 +75,9 @@ func LoadMembers() {
 
 	for i := 0; i < p; i++ {
 
-		pd := data[i*LOAD_PAGE : (i+1)*LOAD_PAGE]
-		if i == p-1 {
-			pd = data[i*LOAD_PAGE:]
+		pd := data[i*LOAD_PAGE:]
+		if i != p-1 {
+			pd = data[i*LOAD_PAGE : (i+1)*LOAD_PAGE]
 		}
 		pipe := meta.MerchantRedis.TxPipeline()
 		for _, v := range pd {

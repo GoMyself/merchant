@@ -734,65 +734,6 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, helper.Success)
 }
 
-/**
- * @Description: // 查询会员 银行卡 校验记录
- * @Author: starc
- * @Date: 2022/05/31 12:38
- * @LastEditTime: 2022/6/2 19:00
- * @LastEditors: starc
- */
-func (that *MemberController) MemberCardLogList(ctx *fasthttp.RequestCtx) {
-	page := string(ctx.PostArgs().Peek("page"))
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
-	username := string(ctx.PostArgs().Peek("username"))
-	bankName := string(ctx.PostArgs().Peek("bankname"))
-	bankNo := string(ctx.PostArgs().Peek("bankno"))
-	device := ctx.PostArgs().GetUintOrZero("device")
-	//  分页默认10
-	var (
-		// exs  []g.Expression
-		size uint = 10
-	)
-	if pageSize > 0 {
-		size = uint(pageSize)
-	}
-	ex := g.Ex{}
-	cpage, err := strconv.ParseUint(page, 10, 64)
-	if err != nil {
-		cpage = 1
-	}
-	if cpage < 1 {
-		cpage = 1
-	}
-
-	if username == "" && device == 0 && bankName == "" && bankNo == "" {
-		helper.Print(ctx, false, helper.UsernameErr)
-		return
-	}
-	if username != "" && validator.CheckUName(username, 1, 20) {
-		ex["username"] = username
-	}
-	if device != 0 {
-		ex["device"] = device
-	}
-	if bankName != "" {
-		ex["bankname"] = bankName
-	}
-	if bankNo != "" && validator.CheckStringDigit(bankNo) {
-		ex["bank_no"] = bankNo
-	}
-	// if len(ex) > 0 {
-	// 	exs = append(exs, ex)
-	// }
-	viewData, err2 := model.CardOverviewList(uint(cpage), size, ex)
-	if err2 != nil {
-		helper.Print(ctx, false, err2.Error())
-		return
-	}
-
-	helper.Print(ctx, true, viewData)
-}
-
 // 会员管理-会员列表-数据概览
 func (that MemberController) Overview(ctx *fasthttp.RequestCtx) {
 
@@ -997,6 +938,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	password := string(ctx.PostArgs().Peek("password"))
 	remarks := string(ctx.PostArgs().Peek("remarks"))
+	groupName := string(ctx.PostArgs().Peek("group_name"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 
 	if !validator.CheckUName(username, 5, 14) && username != "root" {
@@ -1029,6 +971,14 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 
 	if remarks != "" {
 		recd["remarks"] = remarks
+	}
+
+	if groupName != "" {
+		if len(groupName) > 50 {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+		recd["group_name"] = groupName
 	}
 
 	if len(recd) == 0 {
