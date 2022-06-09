@@ -344,6 +344,11 @@ func (that *MessageController) Delete(ctx *fasthttp.RequestCtx) {
 	id := string(ctx.PostArgs().Peek("id"))
 	tss := string(ctx.PostArgs().Peek("tss"))
 
+	if id == "" && tss == "" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
 	err := model.MessageDelete(id, tss)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

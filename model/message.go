@@ -225,11 +225,6 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 
 	// 审核通过
 	if state == 2 {
-		sDelay := int64(0)
-		// 1 定时发送 2立即发送
-		if flag == 2 {
-			sDelay = data.SendAt - ns
-		}
 
 		param := map[string]interface{}{
 			"flag":       "1",                            //发送站内信
@@ -249,8 +244,18 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 		} else {
 			param["level"] = data.Level
 		}
-		topic := fmt.Sprintf("%s_message", meta.Prefix)
-		BeanPutDelay(topic, param, int(sDelay))
+
+		sDelay := int64(0)
+		// 1 定时发送 2立即发送
+		if flag == 2 {
+			sDelay = data.SendAt - ns
+			err = BeanPutDelay("message", param, int(sDelay))
+		} else {
+			err = BeanPut("message", param)
+		}
+		if err != nil {
+			_ = pushLog(err, helper.ServerErr)
+		}
 	}
 
 	return nil
@@ -362,6 +367,9 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 //MessageDelete  站内信删除
 func MessageDelete(id, tss string) error {
 
+	param := map[string]interface{}{
+		"flag": "2", //删除站内信
+	}
 	if tss == "" {
 		if !validator.CtypeDigit(id) {
 			return errors.New(helper.IDErr)
@@ -380,23 +388,35 @@ func MessageDelete(id, tss string) error {
 		if err != nil {
 			return pushLog(err, helper.DBErr)
 		}
+
+		param["message_id"] = id //站内信id
+		err = BeanPut("message", param)
+		if err != nil {
+			_ = pushLog(err, helper.ServerErr)
+		}
+
+		return nil
 	}
 
-	param := map[string]interface{}{
-		"flag":       "2", //删除站内信
-		"message_id": id,  //站内信id
-	}
-	if tss != "" {
-		for _, v := range strings.Split(tss, ",") {
-			_, err := time.ParseInLocation("2006-01-02T15:04:05.999999 07:00", v, loc)
-			if err != nil {
-				return errors.New(helper.ParamErr)
-			}
+	var records []g.Record
+	for _, v := range strings.Split(tss, ",") {
+		// 2022-06-07T16:28:26.285+07:00
+		t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", v, loc)
+		if err != nil {
+			return errors.New(helper.ParamErr)
 		}
-		param["ts"] = tss
+		record := g.Record{
+			"ts":        t.UnixMicro(),
+			"is_delete": 1,
+		}
+		records = append(records, record)
 	}
-	//topic := fmt.Sprintf("%s_message", meta.Prefix)
-	BeanPut("message", param)
+	query, _, _ := dialect.Insert("messages").Rows(records).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantTD.Exec(query)
+	if err != nil {
+		fmt.Println("insert messages = ", err.Error(), records)
+	}
 
 	return nil
 }

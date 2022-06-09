@@ -68,19 +68,6 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	_ = tx.Commit()
-
-	param := map[string]interface{}{
-		"uid":         mb.UID,
-		"username":    mb.Username,
-		"parent_uid":  destMb.UID,
-		"parent_name": destMb.Username,
-		"top_uid":     destMb.TopUid,
-		"top_name":    destMb.TopName,
-		"prefix":      meta.Prefix,
-	}
-	BeanPut("transfer_ag", param)
-
 	// 记录转代日志
 	transRecord := AgencyTransferRecord{
 		Id:            helper.GenLongId(),
@@ -103,10 +90,28 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		Prefix:        meta.Prefix,
 	}
 	query, _, _ = dialect.Insert("tbl_agency_transfer_record").Rows(transRecord).ToSQL()
-	_, err = meta.MerchantDB.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
+		_ = tx.Rollback()
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
+
+	_ = tx.Commit()
+
+	param := map[string]interface{}{
+		"uid":         mb.UID,
+		"username":    mb.Username,
+		"parent_uid":  destMb.UID,
+		"parent_name": destMb.Username,
+		"top_uid":     destMb.TopUid,
+		"top_name":    destMb.TopName,
+		"prefix":      meta.Prefix,
+	}
+	err = BeanPut("transfer_ag", param)
+	if err != nil {
+		_ = pushLog(err, helper.ServerErr)
+	}
+
 	return nil
 }
 
