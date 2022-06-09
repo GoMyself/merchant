@@ -5,7 +5,6 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
-	"sort"
 	"strings"
 	"time"
 )
@@ -90,9 +89,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		fmt.Println(subs)
 		for _, v := range subs {
 			privs := ""
-			pms := strings.Split(v.Permission, ",")
-			sort.Strings(pms)
-			for _, vv := range pms {
+			for _, vv := range strings.Split(v.Permission, ",") {
 				// 下级权限在分组权限调整后的范围内保留，不在则删除
 				if _, ok = gPrivMap[vv]; ok {
 					if privs != "" {
