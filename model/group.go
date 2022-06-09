@@ -72,6 +72,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 
 	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(len(permissions), len(parentPrivs))
 	fmt.Println(permissions, parentPrivs)
 	if len(permissions) >= len(parentPrivs) {
 		return errors.New(helper.SubPermissionEqualErr)
@@ -211,6 +212,7 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(len(privs), len(parentPrivs))
 	fmt.Println(privs, parentPrivs)
 	if len(privs) >= len(parentPrivs) {
 		return errors.New(helper.SubPermissionEqualErr)
