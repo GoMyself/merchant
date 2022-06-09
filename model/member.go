@@ -64,6 +64,7 @@ type memberTag struct {
 type BankcardLog struct {
 	Ts        string `db:"ts" json:"ts"`
 	Username  string `db:"username" json:"username"`
+	Uid       string `db:"uid" json:"uid"`
 	BankName  string `db:"bank_name" json:"bank_name"`
 	BankNo    string `db:"bankcard_no" json:"bankcard_no"`
 	RealName  string `db:"realname" json:"realname"`
