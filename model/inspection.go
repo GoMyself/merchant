@@ -570,7 +570,7 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 
 	filters = append(filters, rg)
 	boolQuery.Filter(filters...)
-
+    
 	terms := make([]elastic.Query, 0)
 	terms = append(terms, elastic.NewTermQuery("name", username))
 	fmt.Println("pid:", pid)
