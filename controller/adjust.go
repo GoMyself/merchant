@@ -1,15 +1,13 @@
 package controller
 
 import (
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/shopspring/decimal"
+	"github.com/valyala/fasthttp"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
 	"strconv"
-	"time"
-
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/shopspring/decimal"
-	"github.com/valyala/fasthttp"
 )
 
 type AdjustController struct{}
@@ -143,17 +141,17 @@ func (that *AdjustController) List(ctx *fasthttp.RequestCtx) {
 
 	page, _ := strconv.Atoi(sPage)
 	pageSize, _ := strconv.Atoi(sPageSize)
-	_, err := time.Parse("2006-01-02 15:04:05", startTime)
-	if err != nil {
-		helper.Print(ctx, false, helper.TimeTypeErr)
-		return
-	}
-
-	_, err = time.Parse("2006-01-02 15:04:05", endTime)
-	if err != nil {
-		helper.Print(ctx, false, helper.TimeTypeErr)
-		return
-	}
+	//_, err := time.Parse("2006-01-02 15:04:05", startTime)
+	//if err != nil {
+	//	helper.Print(ctx, false, helper.TimeTypeErr)
+	//	return
+	//}
+	//
+	//_, err = time.Parse("2006-01-02 15:04:05", endTime)
+	//if err != nil {
+	//	helper.Print(ctx, false, helper.TimeTypeErr)
+	//	return
+	//}
 
 	ex := g.Ex{}
 	if id != "" {
