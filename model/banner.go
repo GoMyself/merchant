@@ -157,8 +157,6 @@ func BannerList(startTime, endTime string, page, pageSize uint, exs exp.Expressi
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	fmt.Printf("BANNER 查询 %s \n", query)
-
 	return data, nil
 }
 
