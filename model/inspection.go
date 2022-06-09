@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"merchant/contrib/helper"
@@ -132,6 +133,7 @@ type PagePromoInspection struct {
 func InspectionList(username string) (Inspection, Member, error) {
 
 	var data Inspection
+	var history map[string]string
 	i := 1
 	now := time.Now().Unix()
 	//查用户
@@ -144,9 +146,9 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	cutTime = int64(mb.LastWithdrawAt)
 
-	lastInspection, err := getInspectionLast(username)
-	if cutTime < lastInspection.InspectAt {
-		cutTime = lastInspection.InspectAt
+	lastInspection, err := getInspectionLast(username, cutTime, now)
+	for _, v := range lastInspection {
+		history[v.Id] = v.State
 	}
 
 	//查活动记录
@@ -183,6 +185,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	if dividendData.T > 0 {
 		for _, v := range dividendData.D {
+			//完成流水或者解锁过的跳过
+			if _, ok := history[v.ID]; ok {
+				continue
+			}
 			dividendAmount := decimal.NewFromFloat(v.Amount)
 			flow := decimal.NewFromFloat(v.WaterFlow)
 			//组装红利的流水稽查
@@ -220,6 +226,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	if adjustData.T > 0 {
 		for _, v := range adjustData.D {
+			//完成流水或者解锁过的跳过
+			if _, ok := history[v.ID]; ok {
+				continue
+			}
 			adjustAmount := decimal.NewFromFloat(v.Amount)
 			multi := decimal.NewFromInt(int64(v.TurnoverMulti))
 			//组装vip礼金的流水稽查
@@ -260,6 +270,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if depostList.T > 0 {
 		//组装存款的流水稽查
 		for _, v := range depostList.D {
+			//完成流水或者解锁过的跳过
+			if _, ok := history[v.ID]; ok {
+				continue
+			}
 			depostAmount := decimal.NewFromFloat(v.Amount)
 			uf := depostAmount.Sub(totalVaild)
 			if uf.Cmp(decimal.Zero) < 0 {
@@ -291,6 +305,10 @@ func InspectionList(username string) (Inspection, Member, error) {
 
 	//查活动对应场馆的流水总和
 	for _, v := range recordList {
+		//完成流水或者解锁过的跳过
+		if _, ok := history[v.Id]; ok {
+			continue
+		}
 		apitype := ""
 		if promoMap[v.Pid].Flag != "rescue" {
 			apitype = promoMap[v.Pid].Platforms
@@ -376,7 +394,7 @@ func InspectionReview(username, inspectState, billNo, remark string, admin map[s
 	}
 	for _, v := range inspection.D {
 		data := &PromoInspection{
-			Id:               helper.GenId(),
+			Id:               v.RecordId,
 			Uid:              mb.UID,
 			Username:         mb.Username,
 			TopUid:           mb.TopUid,
@@ -529,24 +547,24 @@ func getWithdrawLast(username string) (Withdraw, error) {
 	return data, sql.ErrNoRows
 }
 
-func getInspectionLast(username string) (PromoInspection, error) {
+func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection, error) {
+
+	var data []PromoInspection
 
 	ex := g.Ex{
 		"username": username,
 		"state":    []int{2, 3},
 	}
-	w := PromoInspection{}
+	ex["review_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 
-	query, _, _ := dialect.From("tbl_promo_inspection").Select(colsPromoInspection...).Where(ex).Order(g.C("inspect_at").Desc()).Limit(1).ToSQL()
+	query, _, _ := dialect.From("tbl_promo_inspection").Select(colsPromoInspection...).Where(ex).Order(g.C("inspect_at").Desc()).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantDB.Get(&w, query)
-	if err != nil && err != sql.ErrNoRows {
-		return w, pushLog(err, helper.DBErr)
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
 	}
-	if err == sql.ErrNoRows {
-		return w, nil
-	}
-	return w, nil
+	return data, nil
+
 }
 
 // EsPlatValidBet 获取指定会员指定场馆的有效投注
