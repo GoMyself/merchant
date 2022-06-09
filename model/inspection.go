@@ -133,7 +133,7 @@ type PagePromoInspection struct {
 func InspectionList(username string) (Inspection, Member, error) {
 
 	var data Inspection
-	var history map[string]string
+	history := map[string]string{}
 	i := 1
 	now := time.Now().Unix()
 	//查用户
