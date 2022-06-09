@@ -64,7 +64,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From(colsGroup...).Select("lvl").Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Order(g.C("lvl").Asc()).Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Get(&parent, query)
 	if err != nil {
@@ -203,7 +203,7 @@ func GroupInsert(adminGid string, data Group) error {
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From(colsGroup...).Select("lvl").Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Order(g.C("lvl").Asc()).Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Get(&parent, query)
 	if err != nil {
