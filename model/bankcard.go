@@ -514,6 +514,7 @@ func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (B
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
 		err := meta.MerchantTD.Get(&data.T, query)
+		fmt.Printf("query:%+v err:%+v\n", query, err)
 		if err != nil && err != sql.ErrNoRows {
 			return data, pushLog(err, helper.DBErr)
 		}

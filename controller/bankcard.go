@@ -160,12 +160,11 @@ func (that *BankcardController) Delete(ctx *fasthttp.RequestCtx) {
 
 func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 
-	page := ctx.PostArgs().GetUintOrZero("page")
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
-	username := string(ctx.PostArgs().Peek("username"))
-	bankName := string(ctx.PostArgs().Peek("bank_name"))
-	bankNo := string(ctx.PostArgs().Peek("bank_no"))
-	devices := string(ctx.PostArgs().Peek("device"))
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	username := string(ctx.QueryArgs().Peek("username"))
+	bankCardNo := string(ctx.QueryArgs().Peek("bankcard_no"))
+	devices := string(ctx.QueryArgs().Peek("device"))
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
@@ -202,16 +201,13 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 		}
 		ex["device"] = ds
 	}
-	if bankName != "" {
-		ex["bankname"] = bankName
-	}
 
-	if bankNo != "" {
-		if !validator.CheckStringDigit(bankNo) {
+	if bankCardNo != "" {
+		if !validator.CheckStringDigit(bankCardNo) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
-		ex["bank_no"] = bankNo
+		ex["bankcard_no"] = bankCardNo
 	}
 
 	data, err := model.BankcardLogList(uint(page), uint(pageSize), startTime, endTime, ex)

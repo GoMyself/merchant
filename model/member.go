@@ -59,12 +59,13 @@ type memberTag struct {
 }
 
 /*
-会员银行卡 校验数据概览
+会员银行卡 校验日志数据概览
 */
 type BankcardLog struct {
+	Ts        string `db:"ts" json:"ts"`
 	Username  string `db:"username" json:"username"`
 	BankName  string `db:"bank_name" json:"bank_name"`
-	BankNo    string `db:"bank_no" json:"bank_no"`
+	BankNo    string `db:"bankcard_no" json:"bankcard_no"`
 	RealName  string `db:"realname" json:"realname"`
 	Ip        string `db:"ip" json:"ip"`
 	Status    int    `db:"status" json:"status"`
