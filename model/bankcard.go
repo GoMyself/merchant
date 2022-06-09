@@ -510,7 +510,7 @@ func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (B
 		}
 	}
 
-	t := dialect.From("bankcard_log")
+	t := dialect.From("bandcardcheck_log")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
 		err := meta.MerchantTD.Get(&data.T, query)
