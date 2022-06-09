@@ -412,8 +412,9 @@ func LoadGroups() error {
 	for _, v := range privs {
 		privMap[v.ID] = v
 		if permission != "" {
-			permission += v.ID
+			permission += ","
 		}
+		permission += v.ID
 	}
 
 	record := g.Ex{
