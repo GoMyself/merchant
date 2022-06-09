@@ -163,7 +163,7 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 	page := ctx.QueryArgs().GetUintOrZero("page")
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	username := string(ctx.QueryArgs().Peek("username"))
-	bankNo := string(ctx.QueryArgs().Peek("bank_no"))
+	bankCardNo := string(ctx.QueryArgs().Peek("bankcard_no"))
 	devices := string(ctx.QueryArgs().Peek("device"))
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
@@ -202,12 +202,12 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 		ex["device"] = ds
 	}
 
-	if bankNo != "" {
-		if !validator.CheckStringDigit(bankNo) {
+	if bankCardNo != "" {
+		if !validator.CheckStringDigit(bankCardNo) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
-		ex["bank_no"] = bankNo
+		ex["bankcard_no"] = bankCardNo
 	}
 
 	data, err := model.BankcardLogList(uint(page), uint(pageSize), startTime, endTime, ex)
