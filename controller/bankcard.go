@@ -2,10 +2,12 @@ package controller
 
 import (
 	"fmt"
+	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
 	"strconv"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -154,4 +156,65 @@ func (that *BankcardController) Delete(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, helper.Success)
+}
+
+func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
+
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	username := string(ctx.QueryArgs().Peek("username"))
+	bankCardNo := string(ctx.QueryArgs().Peek("bankcard_no"))
+	devices := string(ctx.QueryArgs().Peek("device"))
+	startTime := string(ctx.QueryArgs().Peek("start_time"))
+	endTime := string(ctx.QueryArgs().Peek("end_time"))
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 10 {
+		pageSize = 10
+	}
+
+	ex := g.Ex{}
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex["username"] = username
+	}
+
+	if devices != "" {
+		d := map[string]bool{
+			"24": true, //web
+			"25": true, //h5
+			"35": true, //android
+			"36": true, //ios
+		}
+		ds := strings.Split(devices, ",")
+		for _, v := range ds {
+			if _, ok := d[v]; !ok {
+				helper.Print(ctx, false, helper.DeviceTypeErr)
+				return
+			}
+		}
+		ex["device"] = ds
+	}
+
+	if bankCardNo != "" {
+		if !validator.CheckStringDigit(bankCardNo) {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+		ex["bankcard_no"] = bankCardNo
+	}
+
+	data, err := model.BankcardLogList(uint(page), uint(pageSize), startTime, endTime, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
 }

@@ -582,7 +582,6 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 					shouldQuery.Should(elastic.NewTermQuery("api_type", v))
 				}
 			}
-
 			boolQuery.Must(shouldQuery)
 		}
 	} else if len(pid) > 0 {

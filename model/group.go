@@ -59,6 +59,24 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		return errors.New(helper.RecordNotExistErr)
 	}
 
+	var parent Group
+	ex := g.Ex{
+		"gid":    data.Pid,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Order(g.C("lvl").Asc()).Where(ex).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Get(&parent, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(permissions, parentPrivs)
+	if len(permissions) >= len(parentPrivs) {
+		return errors.New(helper.SubPermissionEqualErr)
+	}
+
 	// 获取当前分组的下级分组
 	subGids, err := groupSubs(gid)
 	if err != nil {
@@ -117,7 +135,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
+	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -185,7 +203,7 @@ func GroupInsert(adminGid string, data Group) error {
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From(colsGroup...).Select("lvl").Where(ex).ToSQL()
+	query, _, _ := dialect.From("tbl_admin_group").Select(colsGroup...).Order(g.C("lvl").Asc()).Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantDB.Get(&parent, query)
 	if err != nil {
@@ -193,6 +211,7 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(privs, parentPrivs)
 	if len(privs) >= len(parentPrivs) {
 		return errors.New(helper.SubPermissionEqualErr)
 	}

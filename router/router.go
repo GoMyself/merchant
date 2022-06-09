@@ -147,9 +147,6 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 站点管理-场馆管理-游戏列表-上线下线
 	post("/merchant/slots/updatestate", slotsCtl.UpdateState)
 
-	// 后台会员管理-会员银行卡 - 日志记录查询
-	post("/merchant/log/bankcard/list", memberCtl.MemberCardLogList)
-
 	// 会员管理-会员列表-新增总代
 	post("/merchant/member/insert", memberCtl.Insert)
 	// 会员管理-会员列表-帐户信息
@@ -256,6 +253,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/bankcard/update", bankCtl.Update)
 	//删除银行卡
 	get("/merchant/bankcard/delete", bankCtl.Delete)
+	// 后台管理-银行卡校验日志记录查询
+	get("/merchant/bankcard/log/list", bankCtl.Log)
 
 	// 运营管理-红利管理-单会员发放
 	post("/merchant/dividend/insert", dividendCtl.Insert)

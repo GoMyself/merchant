@@ -58,33 +58,25 @@ type memberTag struct {
 	Tags []tag  `json:"tags"`
 }
 
-type memberDeviceReg struct {
-	RegDevice string `db:"reg_device" json:"reg_device"`
-	Uid       uint64 `db:"uid" json:"uid"`
+/*
+会员银行卡 校验日志数据概览
+*/
+type BankcardLog struct {
+	Ts        string `db:"ts" json:"ts"`
+	Username  string `db:"username" json:"username"`
+	BankName  string `db:"bank_name" json:"bank_name"`
+	BankNo    string `db:"bankcard_no" json:"bankcard_no"`
+	RealName  string `db:"realname" json:"realname"`
+	Ip        string `db:"ip" json:"ip"`
+	Status    int    `db:"status" json:"status"`
+	Device    int    `db:"device" json:"device"`
+	CreatedAt uint32 `db:"created_at" json:"created_at"`
 }
 
-/*
-会员银行卡 校验数据概览
-*/
-type MemberCardLogOverviewData struct {
-	//Ts       string `db:"ts" json:"ts"`
-	Username string `db:"username" json:"username" rule:"none" msg:"username error"`
-	BankName string `db:"bankname" json:"bankname" rule:"none"  msg:"bankname error"`
-	BankNo   string `db:"bank_no" json:"bank_no" rule:"none" msg:"bankno error"`
-	RealName string `db:"realname" json:"realname" rule:"none" msg:"realname error"`
-	Ip       string `db:"ip" json:"ip" rule:"none" msg:"ip error"`
-	Status   int    `db:"status" json:"status" rule:"digit" min:"0" max:"1" default:"1" msg:"status error"`
-	Device   int    `db:"device" json:"device" rule:"digit" min:"0" max:"100" default:"24" msg:"device error"`
-	Ts       uint32 `db:"create_at" json:"ts"`
-}
-
-/*
-MemberCardOverviewData 分页数据
-*/
-type MemberCardLogOverviews struct {
-	D []MemberCardLogOverviewData `json:"d"`
-	T int64                       `json:"t"`
-	S uint                        `json:"s"`
+type BankcardLogData struct {
+	D []BankcardLog `json:"d"`
+	T int64         `json:"t"`
+	S uint          `json:"s"`
 }
 
 // MemberDataOverviewData 会员管理-会员列表-数据概览 response structure
@@ -1361,44 +1353,6 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	return data, nil
 }
 
-// starc 会员管理-会员银行卡概览 模糊查询 分页查询
-func CardOverviewList(page, pageSize uint, ex g.Expression) (MemberCardLogOverviews, error) {
-	data := MemberCardLogOverviews{}
-	t := dialect.From("bandcardcheck_log")
-
-	if page == 1 {
-		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-		err0 := meta.MerchantTD.Get(&data.T, query)
-		if err0 == sql.ErrNoRows {
-			return data, nil
-		}
-		if err0 != nil && err0 != sql.ErrNoRows {
-			fmt.Println("Cards Check Log err = ", err0.Error())
-			fmt.Println("Cards Check Log query = ", query)
-			return data, pushLog(err0, helper.DBErr)
-		}
-		if data.T == 0 {
-			return data, nil
-		}
-	}
-
-	// 分页查
-	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("username", "bankname", "bank_no", "realname", "ip", "status", "device", "create_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-	fmt.Println("Cards Check Log query = ", query)
-	err := meta.MerchantTD.Select(&data.D, query)
-	if err != nil {
-		fmt.Println("Cards Check Log err = ", err.Error())
-		fmt.Println("Cards Check Log query = ", query)
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
-
-	data.S = pageSize
-	return data, nil
-
-}
-
 func MemberUpdatePwd(username, pwd string, ty int, ctx *fasthttp.RequestCtx) error {
 
 	mb, err := MemberFindOne(username)
@@ -1853,6 +1807,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("cg_high_rebate").As("cg_high_rebate"),
 		g.MAX("cg_official_rebate").As("cg_official_rebate"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err == sql.ErrNoRows {
 
