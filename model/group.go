@@ -84,9 +84,10 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 
 	if len(subs) > 0 {
+		fmt.Println(subs)
 		for _, v := range subs {
 			privs := ""
-			for _, vv := range strings.Split(v.Permission, "") {
+			for _, vv := range strings.Split(v.Permission, ",") {
 				// 下级权限在分组权限调整后的范围内保留，不在则删除
 				if _, ok = gPrivMap[vv]; ok {
 					if privs != "" {
