@@ -408,8 +408,22 @@ func LoadGroups() error {
 	}
 
 	privMap := make(map[string]Priv)
+	permission := ""
 	for _, v := range privs {
 		privMap[v.ID] = v
+		if permission != "" {
+			permission += v.ID
+		}
+	}
+
+	record := g.Ex{
+		"permission": permission,
+	}
+	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": 2, "prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
 	}
 
 	recs, err := helper.JsonMarshal(groups)
