@@ -1853,6 +1853,7 @@ func MemberMaxRebateFindOne(uid string) (MemberRebateResult_t, error) {
 		g.MAX("cg_high_rebate").As("cg_high_rebate"),
 		g.MAX("cg_official_rebate").As("cg_official_rebate"),
 	).Where(g.Ex{"parent_uid": uid, "prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err == sql.ErrNoRows {
 
