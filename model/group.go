@@ -66,16 +66,18 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 
 	var subs []Group
-	ex := g.Ex{
-		"prefix": meta.Prefix,
-		"gid":    subGids,
-	}
-	query, _, _ := dialect.From("tbl_admin_group").
-		Select(colsGroup...).Where(ex).Order(g.C("lvl").Asc()).ToSQL()
-	fmt.Println(query)
-	err = meta.MerchantDB.Select(&subs, query)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
+	if len(subGids) > 0 {
+		ex := g.Ex{
+			"prefix": meta.Prefix,
+			"gid":    subGids,
+		}
+		query, _, _ := dialect.From("tbl_admin_group").
+			Select(colsGroup...).Where(ex).Order(g.C("lvl").Asc()).ToSQL()
+		fmt.Println(query)
+		err = meta.MerchantDB.Select(&subs, query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
 	}
 
 	tx, err := meta.MerchantDB.Begin()
@@ -100,7 +102,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 			record := g.Record{
 				"permission": privs,
 			}
-			query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": v.Gid}).ToSQL()
+			query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": v.Gid}).ToSQL()
 			fmt.Println(query)
 			_, err = tx.Exec(query)
 			if err != nil {
@@ -115,7 +117,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 		"state":      data.State,
 		"permission": data.Permission,
 	}
-	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
+	query, _, _ := dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": gid}).ToSQL()
 	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
