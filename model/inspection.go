@@ -524,29 +524,6 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	return data, nil
 }
 
-func getWithdrawLast(username string) (Withdraw, error) {
-
-	data := Withdraw{}
-
-	query := elastic.NewBoolQuery()
-	query.Filter(elastic.NewTermQuery("state", WithdrawSuccess))
-	query.Filter(elastic.NewTermQuery("username", username))
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	_, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_withdraw"), "created_at", 1, 1, withdrawFields, query, nil)
-	if err != nil {
-		return data, pushLog(err, helper.ESErr)
-	}
-	for _, v := range esResult {
-
-		record := Withdraw{}
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		data = record
-		return data, nil
-	}
-	return data, sql.ErrNoRows
-}
-
 func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection, error) {
 
 	var data []PromoInspection
@@ -564,7 +541,6 @@ func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection
 		return data, pushLog(err, helper.DBErr)
 	}
 	return data, nil
-
 }
 
 // EsPlatValidBet 获取指定会员指定场馆的有效投注
