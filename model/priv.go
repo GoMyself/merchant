@@ -93,20 +93,46 @@ func LoadPrivs() error {
 		return pushLog(err, helper.RedisErr)
 	}
 
-	pipe2 := meta.MerchantRedis.TxPipeline()
-	defer pipe2.Close()
+	l := len(records)
+	p := l / 100
+	for i := 0; i < p; i++ {
 
-	privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
-	pipe2.Unlink(ctx, privMapKey)
-	for _, val := range records {
-		pipe2.HSet(ctx, privMapKey, val.Module, val.ID)
-		fmt.Println(privMapKey, val.Module, val.ID)
+		offset := i * 100
+		pipe2 := meta.MerchantRedis.TxPipeline()
+		privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
+		pipe2.Unlink(ctx, privMapKey)
+		for _, val := range records[offset : offset+100] {
+			pipe2.HSet(ctx, privMapKey, val.Module, val.ID)
+			fmt.Println(privMapKey, val.Module, val.ID)
+		}
+		pipe2.Persist(ctx, privMapKey)
+
+		_, err = pipe2.Exec(ctx)
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+
+		_ = pipe2.Close()
 	}
-	pipe2.Persist(ctx, privMapKey)
+	left := l % 100
+	if left > 0 {
 
-	_, err = pipe2.Exec(ctx)
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
+		offset := left * 100
+		pipe2 := meta.MerchantRedis.TxPipeline()
+		privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
+		pipe2.Unlink(ctx, privMapKey)
+		for _, val := range records[offset:] {
+			pipe2.HSet(ctx, privMapKey, val.Module, val.ID)
+			fmt.Println(privMapKey, val.Module, val.ID)
+		}
+		pipe2.Persist(ctx, privMapKey)
+
+		_, err = pipe2.Exec(ctx)
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+
+		_ = pipe2.Close()
 	}
 
 	return nil
