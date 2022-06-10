@@ -29,7 +29,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	if len(title) < 1 || len(title) > 255 ||
 		len(subTitle) < 1 || len(subTitle) > 255 ||
 		len(content) == 0 ||
-		len(sendName) < 1 || len(sendName) > 20 {
+		len(sendName) < 1 || len(sendName) > 30 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
