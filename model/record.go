@@ -70,7 +70,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex 
 
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(g.SUM("amount").As("agg")).Where(ex).ToSQL()
-	fmt.Println(query)
+	//fmt.Println(query)
 	err := meta.MerchantDB.Get(&data.Agg, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
