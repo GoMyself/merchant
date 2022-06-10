@@ -72,6 +72,7 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 
 	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(len(permissions), len(parentPrivs))
 	fmt.Println(permissions, parentPrivs)
 	if len(permissions) >= len(parentPrivs) {
 		return errors.New(helper.SubPermissionEqualErr)
@@ -211,6 +212,7 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	parentPrivs := strings.Split(parent.Permission, ",")
+	fmt.Println(len(privs), len(parentPrivs))
 	fmt.Println(privs, parentPrivs)
 	if len(privs) >= len(parentPrivs) {
 		return errors.New(helper.SubPermissionEqualErr)
@@ -406,8 +408,23 @@ func LoadGroups() error {
 	}
 
 	privMap := make(map[string]Priv)
+	permission := ""
 	for _, v := range privs {
 		privMap[v.ID] = v
+		if permission != "" {
+			permission += ","
+		}
+		permission += v.ID
+	}
+
+	record := g.Ex{
+		"permission": permission,
+	}
+	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": 2, "prefix": meta.Prefix}).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
 	}
 
 	recs, err := helper.JsonMarshal(groups)
