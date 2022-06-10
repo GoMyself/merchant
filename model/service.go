@@ -73,11 +73,11 @@ func (s BuildInfo) keepAlive() error {
 		"gitReversion":   s.GitReversion,
 		"buildGoVersion": s.BuildGoVersion,
 		"created_at":     now.Unix(),
-		"prefix":         prefix,
+		"prefix":         meta.Prefix,
 	}
 
 	query, _, _ := dialect.Insert("services").Rows(recs).ToSQL()
-	_, err := merchantTD.Exec(query)
+	_, err := meta.MerchantTD.Exec(query)
 
 	if err != nil {
 		fmt.Println("insert service failed query ", query)
