@@ -80,23 +80,31 @@ func LoadPrivs() error {
 		return errors.New(helper.FormatErr)
 	}
 
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
+	pipe1 := meta.MerchantRedis.TxPipeline()
+	defer pipe1.Close()
+
+	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
+	pipe1.Unlink(ctx, privAllKey)
+	pipe1.Set(ctx, privAllKey, string(recs), 0)
+	pipe1.Persist(ctx, privAllKey)
+
+	_, err = pipe1.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	pipe2 := meta.MerchantRedis.TxPipeline()
+	defer pipe2.Close()
 
 	privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
-	privAllKey := fmt.Sprintf("%s:priv:PrivAll", meta.Prefix)
-	pipe.Unlink(ctx, privAllKey)
-	pipe.Unlink(ctx, privMapKey)
-	pipe.Set(ctx, privAllKey, string(recs), 0)
-
+	pipe2.Unlink(ctx, privMapKey)
 	for _, val := range records {
-		pipe.HSet(ctx, privMapKey, val.Module, val.ID)
+		pipe2.HSet(ctx, privMapKey, val.Module, val.ID)
 		fmt.Println(privMapKey, val.Module, val.ID)
 	}
-	pipe.Persist(ctx, privAllKey)
-	pipe.Persist(ctx, privMapKey)
+	pipe2.Persist(ctx, privMapKey)
 
-	_, err = pipe.Exec(ctx)
+	_, err = pipe2.Exec(ctx)
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
