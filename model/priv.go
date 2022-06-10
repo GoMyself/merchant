@@ -91,6 +91,7 @@ func LoadPrivs() error {
 
 	for _, val := range records {
 		pipe.HSet(ctx, privMapKey, val.Module, val.ID)
+		fmt.Println(privMapKey, val.Module, val.ID)
 	}
 	pipe.Persist(ctx, privAllKey)
 	pipe.Persist(ctx, privMapKey)
