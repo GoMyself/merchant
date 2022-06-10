@@ -117,7 +117,7 @@ func LoadPrivs() error {
 	left := l % 100
 	if left > 0 {
 
-		offset := left * 100
+		offset := p * 100
 		pipe2 := meta.MerchantRedis.TxPipeline()
 		privMapKey := fmt.Sprintf("%s:priv:PrivMap", meta.Prefix)
 		pipe2.Unlink(ctx, privMapKey)
