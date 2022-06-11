@@ -193,18 +193,21 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 			"36": true, //ios
 		}
 		ds := strings.Split(devices, ",")
-		if len(ds) > 1 {
-			fmt.Println("list ds:", ds)
+		if len(ds) >= 1 {
+			var di []int
 			for _, v := range ds {
 				if _, ok := d[v]; !ok {
 					helper.Print(ctx, false, helper.DeviceTypeErr)
 					return
+				} else {
+					i, _ := strconv.Atoi(v)
+					di = append(di, i)
 				}
 			}
-			for _, d := range ds {
-				ex["device"] = d
-			}
+			ex["device"] = di
 		}
+	} else { // 空字符表示查询 全部设备
+		ex["device"] = []int{24, 25, 35, 36}
 	}
 
 	if bankCardNo != "" {
@@ -214,7 +217,6 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 		}
 		ex["bankcard_no"] = bankCardNo
 	}
-
 	data, err := model.BankcardLogList(uint(page), uint(pageSize), startTime, endTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
