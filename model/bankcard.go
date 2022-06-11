@@ -527,8 +527,9 @@ func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (B
 	// 分页查
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select(colsBankcardLog...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
-	fmt.Println("Cards Check Log query = ", query)
 	err := meta.MerchantTD.Select(&data.D, query)
+	fmt.Println("Cards Check Log query = ", query, "err:", err, "after query D len:", len(data.D))
+
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
 		return data, pushLog(body, helper.DBErr)
