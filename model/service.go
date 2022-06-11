@@ -21,13 +21,13 @@ type BuildInfo struct {
 	Hostname       string
 }
 
-func NewService(name, gitReversion, buildTime, buildGoVersion string, flag int) BuildInfo {
+func NewService(gitReversion, buildTime, buildGoVersion string, flag int) BuildInfo {
 
 	ts := time.Now().UnixMicro()
 	b := BuildInfo{
 		id:             ts,
 		Flag:           flag,
-		Name:           name,
+		Name:           meta.Program,
 		GitReversion:   gitReversion,
 		BuildTime:      buildTime,
 		BuildGoVersion: buildGoVersion,

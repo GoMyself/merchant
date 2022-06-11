@@ -113,7 +113,7 @@ func main() {
 	//fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
 	//fmt.Println("Merchant2 running", cfg.Port.Merchant)
 
-	service := model.NewService(os.Args[0], gitReversion, buildTime, buildGoVersion, 1)
+	service := model.NewService(gitReversion, buildTime, buildGoVersion, 1)
 	go service.Start()
 
 	if err := srv.ListenAndServe(cfg.Port.Merchant); err != nil {
