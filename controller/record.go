@@ -112,6 +112,8 @@ type RecordController struct{}
 func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
 	ty := ctx.QueryArgs().GetUintOrZero("ty")               // 1中心钱包 2佣金钱包
+	username := string(ctx.QueryArgs().Peek("username"))    // 用户名
+	billNo := string(ctx.QueryArgs().Peek("bill_no"))       // 订单号
 	uid := string(ctx.QueryArgs().Peek("uid"))              //
 	types := string(ctx.QueryArgs().Peek("types"))          // 账变类型
 	startTime := string(ctx.QueryArgs().Peek("start_time")) // 查询开始时间
@@ -179,6 +181,19 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 			}
 		}
 
+	}
+
+	if billNo != "" {
+		ex["bill_no"] = billNo
+	} else {
+		// 用户名校验
+		if username != "" {
+			if !validator.CheckUName(username, 5, 14) {
+				helper.Print(ctx, false, helper.UsernameErr)
+				return
+			}
+			ex["username"] = username
+		}
 	}
 
 	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, tableName, ex)
