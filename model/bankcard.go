@@ -509,7 +509,7 @@ func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (B
 			"between": exp.NewRangeVal(startAt, endAt),
 		}
 	}
-
+	ex["prefix"] = meta.Prefix
 	t := dialect.From("bankcard_log")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
