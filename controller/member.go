@@ -948,7 +948,7 @@ func (that *MemberController) FullField(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-	
+
 	if field == "bankcard" {
 		field = string(ctx.PostArgs().Peek("field"))
 	}
@@ -1179,6 +1179,7 @@ func (that *MemberController) UpdateMemberRebate(ctx *fasthttp.RequestCtx) {
 
 	// 低于下级最高返点
 	if ok := model.MemberRebateCmp(maxSubRebate, mr); !ok {
+		fmt.Println("maxSubRebate = ", maxSubRebate)
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 		return
 	}
@@ -1199,7 +1200,8 @@ func (that *MemberController) UpdateMemberRebate(ctx *fasthttp.RequestCtx) {
 	} else { //总代
 		maxScale := model.MemberRebateScale()
 		// 高于最高返水比例
-		if ok := model.MemberRebateCmp(maxScale, mr); !ok {
+		if ok := model.MemberRebateCmp(mr, maxScale); !ok {
+			fmt.Println("maxScale = ", maxScale)
 			helper.Print(ctx, false, helper.RebateOutOfRange)
 			return
 		}
