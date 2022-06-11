@@ -112,17 +112,14 @@ type RecordController struct{}
 func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
 	ty := ctx.QueryArgs().GetUintOrZero("ty")               // 1中心钱包 2佣金钱包
+	username := string(ctx.QueryArgs().Peek("username"))    // 用户名
+	billNo := string(ctx.QueryArgs().Peek("bill_no"))       // 订单号
 	uid := string(ctx.QueryArgs().Peek("uid"))              //
 	types := string(ctx.QueryArgs().Peek("types"))          // 账变类型
 	startTime := string(ctx.QueryArgs().Peek("start_time")) // 查询开始时间
 	endTime := string(ctx.QueryArgs().Peek("end_time"))     // 查询结束时间
 	page := ctx.QueryArgs().GetUintOrZero("page")           // 页码
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")  // 页大小
-
-	if !validator.CheckStringDigit(uid) {
-		helper.Print(ctx, false, helper.UIDErr)
-		return
-	}
 
 	if ty < 1 || ty > 2 {
 		helper.Print(ctx, false, helper.ParamErr)
@@ -138,50 +135,48 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ex := g.Ex{"uid": uid}
-	tableName := "tbl_balance_transaction"
-
-	// 中心钱包余额账变
-	if ty == 1 {
-		// 账变类型筛选
-		if types != "" {
-			cashTypes := strings.Split(types, ",")
-			for _, v := range cashTypes {
-				ct, err := strconv.Atoi(v)
-				if err != nil || !(ct >= helper.TransactionIn && ct <= helper.TransactionPromoPayout) &&
-					!(ct >= helper.TransactionEBetTCPrize && ct <= helper.TransactionOfflineDeposit) {
-					helper.Print(ctx, false, helper.CashTypeErr)
-					return
-				}
-			}
-
-			if len(cashTypes) > 0 {
-				ex["cash_type"] = cashTypes
-			}
-		}
-	} else {
-
-		tableName = "tbl_commission_transaction"
-
-		// 佣金钱包账变
-		if types != "" {
-			cashTypes := strings.Split(types, ",")
-			//for _, v := range cashTypes {
-			//	v, err := strconv.Atoi(v)
-			//	if err != nil || v < model.COTransactionReceive || v > model.COTransactionRation {
-			//		helper.Print(ctx, false, helper.CashTypeErr)
-			//		return
-			//	}
-			//}
-
-			if len(cashTypes) > 0 {
-				ex["cash_type"] = types
+	ex := g.Ex{}
+	// 账变类型筛选
+	if types != "" {
+		cashTypes := strings.Split(types, ",")
+		for _, v := range cashTypes {
+			ct, err := strconv.Atoi(v)
+			if err != nil || !(ct >= helper.TransactionIn && ct <= helper.TransactionPromoPayout) &&
+				!(ct >= helper.TransactionEBetTCPrize && ct <= helper.TransactionOfflineDeposit) {
+				helper.Print(ctx, false, helper.CashTypeErr)
+				return
 			}
 		}
 
+		if len(cashTypes) > 0 {
+			ex["cash_type"] = cashTypes
+		}
 	}
 
-	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, tableName, ex)
+	if billNo != "" {
+		ex = g.Ex{
+			"bill_no": billNo,
+		}
+	} else if uid != "" {
+		if !validator.CheckStringDigit(uid) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex = g.Ex{
+			"uid": uid,
+		}
+	} else if username != "" { // 用户名校验
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex = g.Ex{
+			"username": username,
+		}
+	}
+	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
