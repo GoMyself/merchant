@@ -194,6 +194,7 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 		}
 		ds := strings.Split(devices, ",")
 		if len(ds) > 1 {
+			fmt.Println("list ds:", ds)
 			for _, v := range ds {
 				if _, ok := d[v]; !ok {
 					helper.Print(ctx, false, helper.DeviceTypeErr)
