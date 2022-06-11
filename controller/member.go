@@ -888,6 +888,9 @@ func (that *MemberController) HistoryField(ctx *fasthttp.RequestCtx) {
 	id := string(ctx.PostArgs().Peek("id"))
 	encrypt := ctx.PostArgs().GetBool("encrypt")
 	field := ctx.UserValue("field").(string)
+	if field == "bankcard" {
+		field = string(ctx.PostArgs().Peek("field"))
+	}
 
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
@@ -940,6 +943,9 @@ func (that *MemberController) FullField(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	field := ctx.UserValue("field").(string)
+	if field == "bankcard" {
+		field = string(ctx.PostArgs().Peek("field"))
+	}
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
