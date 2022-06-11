@@ -136,53 +136,42 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
-	if validator.CheckStringDigit(uid) {
-		ex["uid"] = uid
-	}
-	tableName := "tbl_balance_transaction"
-
-	// 中心钱包余额账变
-	if ty == 1 {
-		// 账变类型筛选
-		if types != "" {
-			cashTypes := strings.Split(types, ",")
-			for _, v := range cashTypes {
-				ct, err := strconv.Atoi(v)
-				if err != nil || !(ct >= helper.TransactionIn && ct <= helper.TransactionPromoPayout) &&
-					!(ct >= helper.TransactionEBetTCPrize && ct <= helper.TransactionOfflineDeposit) {
-					helper.Print(ctx, false, helper.CashTypeErr)
-					return
-				}
-			}
-
-			if len(cashTypes) > 0 {
-				ex["cash_type"] = cashTypes
-			}
-		}
-	} else {
-
-		tableName = "tbl_commission_transaction"
-
-		// 佣金钱包账变
-		if types != "" {
-			cashTypes := strings.Split(types, ",")
-			//for _, v := range cashTypes {
-			//	v, err := strconv.Atoi(v)
-			//	if err != nil || v < model.COTransactionReceive || v > model.COTransactionRation {
-			//		helper.Print(ctx, false, helper.CashTypeErr)
-			//		return
-			//	}
-			//}
-
-			if len(cashTypes) > 0 {
-				ex["cash_type"] = types
+	// 账变类型筛选
+	if types != "" {
+		cashTypes := strings.Split(types, ",")
+		for _, v := range cashTypes {
+			ct, err := strconv.Atoi(v)
+			if err != nil || !(ct >= helper.TransactionIn && ct <= helper.TransactionPromoPayout) &&
+				!(ct >= helper.TransactionEBetTCPrize && ct <= helper.TransactionOfflineDeposit) {
+				helper.Print(ctx, false, helper.CashTypeErr)
+				return
 			}
 		}
 
+		if len(cashTypes) > 0 {
+			ex["cash_type"] = cashTypes
+		}
 	}
 
+	var (
+		data = model.TransactionData{}
+		err  error
+	)
 	if billNo != "" {
-		ex["bill_no"] = billNo
+		ex = g.Ex{
+			"bill_no": billNo,
+		}
+		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
+	} else if uid != "" {
+		if !validator.CheckStringDigit(uid) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex = g.Ex{
+			"uid": uid,
+		}
+		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
 	} else {
 		// 用户名校验
 		if username != "" {
@@ -190,11 +179,13 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 				helper.Print(ctx, false, helper.UsernameErr)
 				return
 			}
-			ex["username"] = username
-		}
-	}
 
-	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, tableName, ex)
+			ex = g.Ex{
+				"username": username,
+			}
+		}
+		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
+	}
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

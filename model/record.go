@@ -32,7 +32,7 @@ type GameGroupData struct {
 	S   int                 `json:"s"`
 }
 
-func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex g.Ex) (TransactionData, error) {
+func RecordTransaction(page, pageSize int, startTime, endTime string, ex g.Ex) (TransactionData, error) {
 
 	data := TransactionData{}
 	ex["prefix"] = meta.Prefix
@@ -54,7 +54,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime, table string, ex 
 		ex["created_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	}
 
-	t := dialect.From(table)
+	t := dialect.From("tbl_balance_transaction")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
 		fmt.Println(query)
