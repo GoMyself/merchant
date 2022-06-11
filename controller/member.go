@@ -1250,6 +1250,7 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 }
 
 func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
+
 	param := model.MemberListParam{}
 	err := validator.Bind(ctx, &param)
 	if err != nil {
@@ -1278,4 +1279,32 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, data)
+}
+
+func (that *MemberController) ShortUrl(ctx *fasthttp.RequestCtx) {
+
+	data, err := model.ShortUrl()
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+func (that *MemberController) UpdateShortUrl(ctx *fasthttp.RequestCtx) {
+
+	shortUrl := string(ctx.PostArgs().Peek("short_url"))
+	if len(shortUrl) == 0 || !strings.HasPrefix(shortUrl, "http") {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	err := model.UpdateShortUrl(shortUrl)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }

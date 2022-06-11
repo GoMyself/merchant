@@ -2060,3 +2060,23 @@ func MemberSumByRange(start, end string, uids []string) (map[string]AgencyBaseSu
 
 	return nil, nil
 }
+
+func ShortUrl() (string, error) {
+
+	key := fmt.Sprintf("%s:agency:shorturl", meta.Prefix)
+	if meta.MerchantRedis.Exists(ctx, key).Val() > 0 {
+		return meta.MerchantRedis.Get(ctx, key).Val(), nil
+	}
+	return "", nil
+}
+
+func UpdateShortUrl(shortUrl string) error {
+
+	key := fmt.Sprintf("%s:agency:shorturl", meta.Prefix)
+
+	ok, err := meta.MerchantRedis.SetNX(ctx, key, shortUrl, -1).Result()
+	if err != nil || !ok {
+		return errors.New(helper.RedisErr)
+	}
+	return nil
+}
