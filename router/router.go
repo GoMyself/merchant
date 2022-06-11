@@ -184,8 +184,12 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/member/remark/list", memberCtl.RemarkLogList)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
 	post("/merchant/member/history", memberCtl.History)
+	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
+	post("/merchant/member/history/{field}", memberCtl.HistoryField)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
 	post("/merchant/member/full", memberCtl.Full)
+	// 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
+	post("/merchant/member/full/{field}", memberCtl.FullField)
 	// 跳线转代
 	post("/merchant/member/transfer", memberTransferCtl.Transfer)
 	// 钱包余额冲正

@@ -882,12 +882,70 @@ func (that *MemberController) History(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, data)
 }
 
+// History 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
+func (that *MemberController) HistoryField(ctx *fasthttp.RequestCtx) {
+
+	id := string(ctx.PostArgs().Peek("id"))
+	encrypt := ctx.PostArgs().GetBool("encrypt")
+	field := ctx.UserValue("field").(string)
+
+	if !validator.CheckStringDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
+
+	if _, ok := model.MemberHistoryField[field]; !ok {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	data, err := model.MemberHistory(id, field, encrypt)
+	if err != nil {
+		helper.Print(ctx, false, helper.ServerErr)
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
 // Full 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
 func (that *MemberController) Full(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	field := string(ctx.PostArgs().Peek("field"))
 	if !validator.CheckStringDigit(id) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if _, ok := model.MemberHistoryField[field]; !ok {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	data, err := model.MemberFull(id, []string{field})
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	//fmt.Println("grpc_t.Decrypt data = ", data)
+	//fmt.Println("grpc_t.Decrypt field = ", field)
+
+	helper.Print(ctx, true, data[field])
+}
+
+// Full 查询用户真实姓名/邮箱/手机号/银行卡号明文信息
+func (that *MemberController) FullField(ctx *fasthttp.RequestCtx) {
+
+	id := string(ctx.PostArgs().Peek("id"))
+	field := ctx.UserValue("field").(string)
+	if !validator.CheckStringDigit(id) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if _, ok := model.MemberHistoryField[field]; !ok {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
