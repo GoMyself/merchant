@@ -121,11 +121,6 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 	page := ctx.QueryArgs().GetUintOrZero("page")           // 页码
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")  // 页大小
 
-	if !validator.CheckStringDigit(uid) {
-		helper.Print(ctx, false, helper.UIDErr)
-		return
-	}
-
 	if ty < 1 || ty > 2 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
@@ -140,7 +135,10 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ex := g.Ex{"uid": uid}
+	ex := g.Ex{}
+	if validator.CheckStringDigit(uid) {
+		ex["uid"] = uid
+	}
 	tableName := "tbl_balance_transaction"
 
 	// 中心钱包余额账变
