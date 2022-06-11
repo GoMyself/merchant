@@ -193,13 +193,17 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 			"36": true, //ios
 		}
 		ds := strings.Split(devices, ",")
-		for _, v := range ds {
-			if _, ok := d[v]; !ok {
-				helper.Print(ctx, false, helper.DeviceTypeErr)
-				return
+		if len(ds) > 1 {
+			for _, v := range ds {
+				if _, ok := d[v]; !ok {
+					helper.Print(ctx, false, helper.DeviceTypeErr)
+					return
+				}
+			}
+			for _, d := range ds {
+				ex["device"] = d
 			}
 		}
-		ex["device"] = ds
 	}
 
 	if bankCardNo != "" {

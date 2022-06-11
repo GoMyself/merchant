@@ -523,8 +523,8 @@ func BankcardLogList(page, pageSize uint, startTime, endTime string, ex g.Ex) (B
 		}
 	}
 
-	//ex["prefix"] = meta.Prefix
 	// 分页查
+	ex["profix"] = meta.Prefix
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select(colsBankcardLog...).Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
