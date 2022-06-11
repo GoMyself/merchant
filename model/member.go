@@ -1729,10 +1729,10 @@ func MemberUpdateInfo(uid string, record g.Record) error {
 
 func MemberUpdateRebateInfo(uid string, mr MemberRebateResult_t) error {
 
-	key := fmt.Sprintf("%s:rebate:enablemod", meta.Prefix)
-	if meta.MerchantRedis.Exists(ctx, key).Val() == 0 {
-		return errors.New(helper.MemberRebateModDisable)
-	}
+	//key := fmt.Sprintf("%s:rebate:enablemod", meta.Prefix)
+	//if meta.MerchantRedis.Exists(ctx, key).Val() == 0 {
+	//	return errors.New(helper.MemberRebateModDisable)
+	//}
 
 	ex := g.Ex{
 		"uid":    uid,
