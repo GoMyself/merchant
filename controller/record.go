@@ -153,15 +153,10 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	var (
-		data = model.TransactionData{}
-		err  error
-	)
 	if billNo != "" {
 		ex = g.Ex{
 			"bill_no": billNo,
 		}
-		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
 	} else if uid != "" {
 		if !validator.CheckStringDigit(uid) {
 			helper.Print(ctx, false, helper.UsernameErr)
@@ -171,21 +166,17 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		ex = g.Ex{
 			"uid": uid,
 		}
-		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
-	} else {
-		// 用户名校验
-		if username != "" {
-			if !validator.CheckUName(username, 5, 14) {
-				helper.Print(ctx, false, helper.UsernameErr)
-				return
-			}
-
-			ex = g.Ex{
-				"username": username,
-			}
+	} else if username != "" { // 用户名校验
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
 		}
-		data, err = model.RecordTransaction(page, pageSize, startTime, endTime, ex)
+
+		ex = g.Ex{
+			"username": username,
+		}
 	}
+	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
