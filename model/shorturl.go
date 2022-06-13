@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
+	"time"
 )
 
 func ShortURLSet(uri string) error {
 
 	key := meta.Prefix + ":shorturl:domain"
-	cmd := meta.MerchantRedis.Set(ctx, key, uri, -1)
+	cmd := meta.MerchantRedis.Set(ctx, key, uri, 100*time.Hour)
 	fmt.Println(cmd.String())
 	err := cmd.Err()
 	if err != nil {
