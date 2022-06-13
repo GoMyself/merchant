@@ -51,8 +51,8 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 
 	// 检查当前分组名是否已存在
 	ex := g.Ex{
-		"gid":    g.Op{"neq": gid},
-		"ganame": data.Gname,
+		"gid":   g.Op{"neq": gid},
+		"gname": data.Gname,
 	}
 	ok, err = groupExistCheck(ex)
 	if err != nil {
@@ -195,7 +195,7 @@ func GroupInsert(adminGid string, data Group) error {
 
 	// 检查当前分组名是否已存在
 	ex := g.Ex{
-		"ganame": data.Gname,
+		"gname": data.Gname,
 	}
 	ok, err = groupExistCheck(ex)
 	if err != nil {
