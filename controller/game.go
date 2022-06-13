@@ -21,6 +21,9 @@ type GameListUpdateParams struct {
 	ImgCover   string `name:"img_cover" rule:"none"`                                  // 封面图
 	ID         string `rule:"digit" msg:"id error" name:"id"`
 	Sorting    int    `name:"sorting" rule:"digit" msg:"sorting error"`
+	Name       string `name:"name" rule:"none"`
+	EnName     string `name:"en_name" rule:"none"`
+	VnAlias    string `name:"vn_alias" rule:"none"`
 }
 
 // 维护游戏on_line参数
@@ -113,9 +116,12 @@ func (that *SlotsController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	record := g.Record{
-		"online": params.OnLine,
-		"is_new": isNew,
-		"is_hot": isHot,
+		"online":   params.OnLine,
+		"is_new":   isNew,
+		"is_hot":   isHot,
+		"en_name":  params.EnName,
+		"name":     params.Name,
+		"vn_alias": params.VnAlias,
 	}
 
 	// 处理 支持类型 多选 1:pc 2:h5 4:app 0 全部
