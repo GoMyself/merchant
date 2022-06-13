@@ -50,17 +50,21 @@ func GroupUpdate(gid, adminGid string, data Group) error {
 	}
 
 	// 检查当前分组名是否已存在
-	ok, err = groupExistCheck(data.Gname)
+	ex := g.Ex{
+		"gid":   g.Op{"neq": gid},
+		"gname": data.Gname,
+	}
+	ok, err = groupExistCheck(ex)
 	if err != nil {
 		return err
 	}
 
-	if !ok {
-		return errors.New(helper.RecordNotExistErr)
+	if ok {
+		return errors.New(helper.RecordExistErr)
 	}
 
 	var parent Group
-	ex := g.Ex{
+	ex = g.Ex{
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
@@ -190,7 +194,10 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	// 检查当前分组名是否已存在
-	ok, err = groupExistCheck(data.Gname)
+	ex := g.Ex{
+		"gname": data.Gname,
+	}
+	ok, err = groupExistCheck(ex)
 	if err != nil {
 		return err
 	}
@@ -200,7 +207,7 @@ func GroupInsert(adminGid string, data Group) error {
 	}
 
 	var parent Group
-	ex := g.Ex{
+	ex = g.Ex{
 		"gid":    data.Pid,
 		"prefix": meta.Prefix,
 	}
@@ -251,13 +258,10 @@ func GroupInsert(adminGid string, data Group) error {
 	return LoadGroups()
 }
 
-func groupExistCheck(gname string) (bool, error) {
+func groupExistCheck(ex g.Ex) (bool, error) {
 
 	var count int
-	ex := g.Ex{
-		"gname":  gname,
-		"prefix": meta.Prefix,
-	}
+	ex["prefix"] = meta.Prefix
 	query, _, _ := dialect.From("tbl_admin_group").Select(g.COUNT("gid")).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&count, query)
 	fmt.Println(query)
