@@ -154,7 +154,9 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 	}
 
 	if billNo != "" {
-		ex["bill_no"] = billNo
+		ex = g.Ex{
+			"bill_no": billNo,
+		}
 	} else if uid != "" {
 		if !validator.CheckStringDigit(uid) {
 			helper.Print(ctx, false, helper.UsernameErr)
