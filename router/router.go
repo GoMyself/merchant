@@ -206,10 +206,6 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/agency/updatemaintain", memberCtl.UpdateMaintainName)
 	// 代理管理-下级成员
 	post("/merchant/agency/memberlist", memberCtl.MemberList)
-	// 代理管理-短链接查询
-	get("/merchant/agency/shorurl", memberCtl.ShortUrl)
-	// 代理管理-短链接设置
-	post("/merchant/agency/shorturl/update", memberCtl.UpdateShortUrl)
 
 	// 代理管理-团队转代-列表
 	post("/merchant/agency/transfer/list", memberTransferCtl.List)
