@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	"errors"
-
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
@@ -119,8 +117,6 @@ func Constructor(mt *MetaTable, rpc string) {
 	RegisterTransport()
 
 	client := core.NewClient(rpc)
-	//client.Use(log.Plugin)
-
 	client.UseService(&grpc_t)
 
 	meta.VenueRebate = MemberRebateResult_t{
@@ -135,10 +131,6 @@ func Constructor(mt *MetaTable, rpc string) {
 		CGHighRebate:     decimal.NewFromFloat(10.00).Truncate(2),
 		CGOfficialRebate: decimal.NewFromFloat(10.00).Truncate(2),
 	}
-
-	//_, _ = meta.NatsConn.Subscribe(meta.Prefix+":merchant_notify", func(m *nats.Msg) {
-	//	fmt.Printf("Nats received a message: %s\n", string(m.Data))
-	//})
 }
 
 func Load() {
@@ -199,8 +191,7 @@ func pushLog(err error, code string) error {
 		fmt.Println("insert SMS = error ", err1.Error())
 	}
 
-	note := fmt.Sprintf("Hệ thống lỗi %s", id)
-	return errors.New(note)
+	return fmt.Errorf("hệ thống lỗi %s", id)
 }
 
 func PushMerchantNotify(format, applyName, username, amount string) error {

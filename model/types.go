@@ -774,14 +774,14 @@ type memberListShow struct {
 }
 
 type AgencyBaseSumField struct {
-	DepositAmount  float64 `json:"deposit_amount"`   // 存款
-	WithdrawAmount float64 `json:"withdraw_amount"`  // 提款
-	ValidBetAmount float64 `json:"valid_bet_amount"` // 有效流水
-	NetAmount      float64 `json:"net_amount"`       // 输赢
-	DividendAmount float64 `json:"dividend_amount"`  // 红利
-	DividendAgency float64 `json:"dividend_agency"`  // 代理红利
-	RebateAmount   float64 `json:"rebate_amount"`    // 返水
-	AdjustAmount   float64 `json:"adjust_amount"`    // 调整
+	DepositAmount    float64 `json:"deposit_amount"`     // 存款
+	WithdrawAmount   float64 `json:"withdraw_amount"`    // 提款
+	ValidBetAmount   float64 `json:"valid_bet_amount"`   // 有效流水
+	CompanyNetAmount float64 `json:"company_net_amount"` // 输赢
+	DividendAmount   float64 `json:"dividend_amount"`    // 红利
+	DividendAgency   float64 `json:"dividend_agency"`    // 代理红利
+	RebateAmount     float64 `json:"rebate_amount"`      // 返水
+	AdjustAmount     float64 `json:"adjust_amount"`      // 调整
 }
 
 type MemReport struct {
@@ -801,15 +801,15 @@ type MemReport struct {
 
 type memberListData struct {
 	memberListShow
-	Withdraw       float64 `json:"withdraw"`
-	Deposit        float64 `json:"deposit"`
-	NetAmount      float64 `json:"net_amount"`
-	BetAmount      float64 `json:"bet_amount"`
-	Balance        string  `json:"balance"`
-	RebateAmount   float64 `json:"rebate_amount"`
-	DividendAmount float64 `json:"dividend_amount"`
-	DividendAgency float64 `json:"dividend_agency"`
-	IsRisk         int     `json:"is_risk"`
+	WithdrawalAmount float64 `json:"withdrawal_amount"`
+	DepositAmount    float64 `json:"deposit_amount"`
+	CompanyNetAmount float64 `json:"company_net_amount"`
+	ValidBetAmount   float64 `json:"valid_bet_amount"`
+	Balance          string  `json:"balance"`
+	RebateAmount     float64 `json:"rebate_amount"`
+	DividendAmount   float64 `json:"dividend_amount"`
+	DividendAgency   float64 `json:"dividend_agency"`
+	IsRisk           int     `json:"is_risk"`
 }
 
 type AgencyMemberData struct {

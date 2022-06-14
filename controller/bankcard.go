@@ -186,20 +186,23 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 	}
 
 	if devices != "" {
-		d := map[string]bool{
-			"24": true, //web
-			"25": true, //h5
-			"35": true, //android
-			"36": true, //ios
-		}
 		ds := strings.Split(devices, ",")
-		for _, v := range ds {
-			if _, ok := d[v]; !ok {
-				helper.Print(ctx, false, helper.DeviceTypeErr)
-				return
+		if len(ds) > 0 {
+			var di []int
+			for _, v := range ds {
+				i, _ := strconv.Atoi(v)
+				if _, ok := model.DeviceMap[i]; !ok {
+					helper.Print(ctx, false, helper.DeviceTypeErr)
+					return
+				}
+
+				di = append(di, i)
 			}
+
+			ex["device"] = di
 		}
-		ex["device"] = ds
+	} else { // 空字符表示查询 全部设备
+		ex["device"] = []int{model.DeviceTypeWeb, model.DeviceTypeH5, model.DeviceTypeAndroidFlutter, model.DeviceTypeIOSFlutter}
 	}
 
 	if bankCardNo != "" {
@@ -207,9 +210,9 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
+
 		ex["bankcard_no"] = bankCardNo
 	}
-
 	data, err := model.BankcardLogList(uint(page), uint(pageSize), startTime, endTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

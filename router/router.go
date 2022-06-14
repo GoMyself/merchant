@@ -73,7 +73,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	memberCtl := new(controller.MemberController)
 	//会员转代
 	memberTransferCtl := new(controller.MemberTransferController)
-
+	//短链域名设置
+	shortURLCtl := new(controller.ShortURLController)
 	//会员等级设置
 	levelCtl := new(controller.MemberLevelController)
 	// 账户调整
@@ -299,6 +300,11 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/app/update", appUpCtl.Update)
 	// App 升级配置列表
 	get("/merchant/app/list", appUpCtl.List)
+
+	// 短链接-域名设置
+	post("/merchant/shorturl/set", shortURLCtl.Set)
+	// 短链接-域名查询
+	get("/merchant/shorturl/get", shortURLCtl.Get)
 
 	//查询会员登录日志
 	get("/merchant/blacklist/assoclog", blacklistCtl.AssociateList)
