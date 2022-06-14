@@ -524,11 +524,11 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 
 	if sortField != "" {
 		sortFields := map[string]bool{
-			"deposit":      true,
-			"withdraw":     true,
-			"valid_amount": true,
-			"rebate":       true,
-			"net_amount":   true,
+			"deposit_amount":     true,
+			"withdrawal_amount":  true,
+			"dividend_amount":    true,
+			"rebate_amount":      true,
+			"company_net_amount": true,
 		}
 
 		if _, ok := sortFields[sortField]; !ok {
