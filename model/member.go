@@ -118,12 +118,12 @@ type memberInfo struct {
 
 type MemberListCol struct {
 	UID              string  `json:"uid" db:"uid"`
-	Deposit          float64 `json:"deposit" db:"deposit"`
-	Withdraw         float64 `json:"withdraw" db:"withdraw"`
-	ValidAmount      float64 `json:"valid_amount" db:"valid_amount"`
-	Rebate           float64 `json:"rebate" db:"rebate"`
+	DepositAmount    float64 `json:"deposit_amount" db:"deposit_amount"`
+	WithdrawAmount   float64 `json:"withdrawal_amount" db:"withdrawal_amount"`
+	ValidBetAmount   float64 `json:"valid_bet_amount" db:"valid_bet_amount"`
+	RebateAmount     float64 `json:"rebate_amount" db:"rebate_amount"`
 	RebatePoint      float64 `json:"rebate_point" db:"rebate_point"`
-	NetAmount        float64 `json:"net_amount" db:"net_amount"`
+	CompanyNetAmount float64 `json:"company_net_amount" db:"company_net_amount"`
 	TY               string  `json:"ty" db:"ty"`
 	ZR               string  `json:"zr" db:"zr"`
 	QP               string  `json:"qp" db:"qp"`
@@ -781,11 +781,11 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 	offset := (page - 1) * pageSize
 	query, _, _ := dialect.From("tbl_report_agency").Select(
 		"uid",
-		g.SUM("deposit_amount").As("deposit"),
-		g.SUM("withdrawal_amount").As("withdraw"),
-		g.SUM("valid_bet_amount").As("valid_amount"),
-		g.SUM("rebate_amount").As("rebate"),
-		g.SUM("company_net_amount").As("net_amount"),
+		g.SUM("deposit_amount").As("deposit_amount"),
+		g.SUM("withdrawal_amount").As("withdrawal_amount"),
+		g.SUM("valid_bet_amount").As("valid_bet_amount"),
+		g.SUM("rebate_amount").As("rebate_amount"),
+		g.SUM("company_net_amount").As("company_net_amount"),
 	).GroupBy("uid").
 		Where(and).
 		Offset(uint(offset)).
@@ -880,12 +880,12 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	query, _, _ = dialect.From("tbl_report_agency").Where(and).
 		Select(
 			"uid",
-			g.SUM("deposit_amount").As("deposit"),
-			g.SUM("withdrawal_amount").As("withdraw"),
-			g.SUM("valid_bet_amount").As("valid_amount"),
-			g.SUM("rebate_amount").As("rebate"),
+			g.SUM("deposit_amount").As("deposit_amount"),
+			g.SUM("withdrawal_amount").As("withdrawal_amount"),
+			g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("rebate_amount").As("rebate_amount"),
 			g.SUM("rebate_point").As("rebate_point"),
-			g.SUM("company_net_amount").As("net_amount"),
+			g.SUM("company_net_amount").As("company_net_amount"),
 		).GroupBy("uid").
 		ToSQL()
 	err = meta.ReportDB.Select(&data, query)
@@ -1981,10 +1981,10 @@ func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
 
 		val := memberListData{memberListShow: m}
 		if md, ok := md[m.UID]; ok {
-			val.NetAmount, _ = decimal.NewFromFloat(md.NetAmount).Truncate(4).Float64()
-			val.Deposit, _ = decimal.NewFromFloat(md.DepositAmount).Truncate(4).Float64()
-			val.Withdraw, _ = decimal.NewFromFloat(md.WithdrawAmount).Truncate(4).Float64()
-			val.BetAmount, _ = decimal.NewFromFloat(md.ValidBetAmount).Truncate(4).Float64()
+			val.CompanyNetAmount, _ = decimal.NewFromFloat(md.CompanyNetAmount).Truncate(4).Float64()
+			val.DepositAmount, _ = decimal.NewFromFloat(md.DepositAmount).Truncate(4).Float64()
+			val.WithdrawalAmount, _ = decimal.NewFromFloat(md.WithdrawAmount).Truncate(4).Float64()
+			val.ValidBetAmount, _ = decimal.NewFromFloat(md.ValidBetAmount).Truncate(4).Float64()
 			val.RebateAmount, _ = decimal.NewFromFloat(md.RebateAmount).Truncate(4).Float64()
 			val.DividendAmount, _ = decimal.NewFromFloat(md.DividendAmount).Truncate(4).Float64()
 			val.DividendAgency, _ = decimal.NewFromFloat(md.DividendAgency).Truncate(4).Float64()
@@ -2044,13 +2044,13 @@ func MemberSumByRange(start, end string, uids []string) (map[string]AgencyBaseSu
 			}
 			for _, v := range data {
 				obj := AgencyBaseSumField{
-					DepositAmount:  v.DepositAmount,
-					WithdrawAmount: v.WithdrawalAmount,
-					ValidBetAmount: v.ValidBetAmount,
-					NetAmount:      v.CompanyNetAmount,
-					DividendAmount: v.DividendAmount,
-					RebateAmount:   v.RebateAmount,
-					AdjustAmount:   v.AdjustAmount,
+					DepositAmount:    v.DepositAmount,
+					WithdrawAmount:   v.WithdrawalAmount,
+					ValidBetAmount:   v.ValidBetAmount,
+					CompanyNetAmount: v.CompanyNetAmount,
+					DividendAmount:   v.DividendAmount,
+					RebateAmount:     v.RebateAmount,
+					AdjustAmount:     v.AdjustAmount,
 				}
 				result[v.Uid] = obj
 			}
