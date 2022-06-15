@@ -65,35 +65,39 @@ func BlacklistList(page, pageSize uint, startTime, endTime string, ty int, ex g.
 }
 
 // 黑名单添加
-func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.Record) error {
+func BlacklistInsert(fCtx *fasthttp.RequestCtx, ty int, value string, record g.Record) error {
 
 	var (
 		data []BankCard_t
 		key  string
 	)
-	user, err := AdminToken(fctx)
+	user, err := AdminToken(fCtx)
 	if err != nil {
 		return errors.New(helper.AccessTokenExpires)
 	}
 
 	ex := g.Ex{
-		"ty":    ty,
-		"value": value,
+		"ty":     ty,
+		"value":  value,
+		"prefix": meta.Prefix,
 	}
-	if BlacklistExist(ex) {
+	ok, err := BlacklistExist(ex)
+	if err != nil {
+		return err
+	}
+
+	if ok {
 		return errors.New(helper.RecordExistErr)
 	}
 
-	record["created_at"] = fctx.Time().In(loc).Unix()
+	record["created_at"] = fCtx.Time().In(loc).Unix()
 	record["created_uid"] = user["id"]
 	record["created_name"] = user["name"]
 	record["prefix"] = meta.Prefix
 
 	query, _, _ := dialect.Insert("tbl_blacklist").Rows(record).ToSQL()
-
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
-		//fmt.Println("Warning BlacklistInsert Exec err = ", err.Error())
 		return errors.New(helper.DBErr)
 	}
 
@@ -110,46 +114,50 @@ func BlacklistInsert(fctx *fasthttp.RequestCtx, ty int, value string, record g.R
 		key = fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
 	case TyCGRebate:
 		key = fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
+	case TyWhiteIP:
+		key = fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 	}
 
 	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
-	valueHash := fmt.Sprintf("%d", MurmurHash(value, 0))
 
-	ex = g.Ex{
-		"prefix":         meta.Prefix,
-		"bank_card_hash": valueHash,
-	}
-	recs := g.Record{
-		"state": "3",
-	}
-	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	fmt.Printf("Warning update card state value: %v hash :%v,\n sql:%+v \n", value, valueHash, query)
+	if ty == TyBankcard {
+		ex = g.Ex{
+			"prefix":         meta.Prefix,
+			"bank_card_hash": fmt.Sprintf("%d", MurmurHash(value, 0)),
+		}
+		recs := g.Record{
+			"state": "3",
+		}
+		query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
+		_, err = meta.MerchantDB.Exec(query)
+		if err != nil {
+			return errors.New(helper.DBErr)
+		}
 
-	_, err2 := meta.MerchantDB.Exec(query)
+		query, _, _ = dialect.From("tbl_member_bankcard").Select(colsBankcard...).Where(ex).ToSQL()
+		err = meta.MerchantDB.Select(&data, query)
+		if err != nil && err != sql.ErrNoRows {
+			return err
+		}
 
-	if err2 != nil {
-		return errors.New(helper.DBErr)
-	}
-
-	t := dialect.From("tbl_member_bankcard")
-	query, _, _ = t.Select(colsBankcard...).Where(ex).ToSQL()
-	err = meta.MerchantDB.Select(&data, query)
-	if err != nil && err != sql.ErrNoRows {
-		//fmt.Println("Warning BankcardUpdateCache err = ", err)
-		return err
-	}
-
-	for _, v := range data {
-		BankcardUpdateCache(v.Username)
+		for _, v := range data {
+			BankcardUpdateCache(v.Username)
+		}
 	}
 
 	return nil
 }
 
-// 黑名单更新
-func BlacklistUpdate(ex g.Ex, record g.Record) error {
+// 黑名单更新备注
+func BlacklistUpdate(id, remark string) error {
 
-	ex["prefix"] = meta.Prefix
+	ex := g.Ex{
+		"id":     id,
+		"prefix": meta.Prefix,
+	}
+	record := g.Record{
+		"remark": remark,
+	}
 	query, _, _ := dialect.Update("tbl_blacklist").Set(record).Where(ex).ToSQL()
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -161,7 +169,7 @@ func BlacklistUpdate(ex g.Ex, record g.Record) error {
 
 // 删除记录
 func BlacklistDelete(id string) error {
-	// id 银行卡号， uid 此卡的用户 uuid
+
 	ex := g.Ex{
 		"id":     id,
 		"prefix": meta.Prefix,
@@ -180,44 +188,53 @@ func BlacklistDelete(id string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	//// 银行卡从黑名单移出后，修改卡状态为停用
-	valueHash := fmt.Sprintf("%d", MurmurHash(data.Value, 0))
-	ex = g.Ex{
-		"prefix":         meta.Prefix,
-		"bank_card_hash": valueHash,
-	}
-	recs := g.Record{
-		"state": "2",
-	}
-	query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-	_, err2 := meta.MerchantDB.Exec(query)
-	if err2 != nil {
-		return errors.New(helper.DBErr)
+	// id 银行卡删除黑名单
+	if data.Ty == TyBankcard {
+		//// 银行卡从黑名单移出后，修改卡状态为停用
+		valueHash := fmt.Sprintf("%d", MurmurHash(data.Value, 0))
+		ex = g.Ex{
+			"prefix":         meta.Prefix,
+			"bank_card_hash": valueHash,
+		}
+		recs := g.Record{
+			"state": "2",
+		}
+		query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
+		_, err2 := meta.MerchantDB.Exec(query)
+		if err2 != nil {
+			return errors.New(helper.DBErr)
+		}
+
+		/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
+		key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
+		cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
+		err = cmd.Err()
+		if err != nil {
+			return errors.New(err.Error())
+		}
 	}
 
-	/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
-	key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
-	err = cmd.Err()
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	///// 更新结束
+	// 更新结束
 	_ = LoadBlacklists(data.Ty)
 
 	return nil
 }
 
 // 满足条件的黑名单数量
-func BlacklistExist(ex g.Ex) bool {
+func BlacklistExist(ex g.Ex) (bool, error) {
 
-	var id string
-	ex["prefix"] = meta.Prefix
-	t := dialect.From("tbl_blacklist")
-	query, _, _ := t.Select("id").Where(ex).Limit(1).ToSQL()
-	err := meta.MerchantDB.Get(&id, query)
-	return err != sql.ErrNoRows
+	var count int
+	query, _, _ := dialect.From("tbl_blacklist").Select(g.COUNT("id")).Where(ex).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&count, query)
+	if err != nil {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func LoadBlacklists(ty int) error {
@@ -250,6 +267,7 @@ func LoadBlacklists(ty int) error {
 	bankcardKey := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	rebateKey := fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
 	cgrebateKey := fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
+	ipWhiteKey := fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 
 	if ty != 0 {
 		key := ""
@@ -266,6 +284,8 @@ func LoadBlacklists(ty int) error {
 			key = rebateKey
 		case TyCGRebate:
 			key = cgrebateKey
+		case TyWhiteIP:
+			key = ipWhiteKey
 		}
 		pipe.Unlink(ctx, key)
 	} else {
@@ -275,6 +295,7 @@ func LoadBlacklists(ty int) error {
 		pipe.Unlink(ctx, bankcardKey)
 		pipe.Unlink(ctx, rebateKey)
 		pipe.Unlink(ctx, cgrebateKey)
+		pipe.Unlink(ctx, ipWhiteKey)
 	}
 
 	for _, v := range data {
@@ -292,6 +313,8 @@ func LoadBlacklists(ty int) error {
 			key = rebateKey
 		case TyCGRebate:
 			key = cgrebateKey
+		case TyWhiteIP:
+			key = ipWhiteKey
 		}
 
 		pipe.Do(ctx, "CF.ADD", key, v.Value)

@@ -209,21 +209,23 @@ var (
 		TyPhone:          true, //电话号码
 		TyBankcard:       true, //银行卡
 		TyVirtualAccount: true, //虚拟币地址
-		TyRebate:         true,
-		TyCGRebate:       true,
+		TyRebate:         true, //返水
+		TyCGRebate:       true, //返点
+		TyWhiteIP:        true, //后台ip白名单
 	}
 )
 
 // 黑名单类型
 const (
-	TyDevice         = 1 //设备号
-	TyIP             = 2 //ip地址
-	TyEmail          = 3 //邮箱地址
-	TyPhone          = 4 //电话号码
-	TyBankcard       = 5 //银行卡
-	TyVirtualAccount = 6 //虚拟币地址
-	TyRebate         = 7 //场馆返水
-	TyCGRebate       = 8 //cg彩票返点
+	TyDevice         = 1  //设备号
+	TyIP             = 2  //ip地址
+	TyEmail          = 3  //邮箱地址
+	TyPhone          = 4  //电话号码
+	TyBankcard       = 5  //银行卡
+	TyVirtualAccount = 6  //虚拟币地址
+	TyRebate         = 7  //场馆返水
+	TyCGRebate       = 8  //cg彩票返点
+	TyWhiteIP        = 11 //后台访问ip白名单
 )
 
 const (
