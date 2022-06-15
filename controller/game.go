@@ -140,6 +140,8 @@ func (that *SlotsController) Update(ctx *fasthttp.RequestCtx) {
 
 	if params.ImgCover != "" {
 		record["img_cover"] = params.ImgCover
+		record["img_pc"] = params.ImgCover
+		record["img_phone"] = params.ImgCover
 	}
 
 	record["sorting"] = params.Sorting
