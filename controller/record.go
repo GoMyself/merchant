@@ -162,19 +162,13 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		ex = g.Ex{
-			"uid": uid,
-		}
+		ex["uid"] = uid
 	} else if username != "" { // 用户名校验
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		ex = g.Ex{
-			"username": username,
-		}
+		ex["username"] = username
 	}
 	data, err := model.RecordTransaction(page, pageSize, startTime, endTime, ex)
 	if err != nil {
