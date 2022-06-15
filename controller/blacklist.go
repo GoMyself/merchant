@@ -221,7 +221,6 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
-
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -233,13 +232,8 @@ func (that *BlacklistController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ex := g.Ex{
-		"id": id,
-	}
-	record := g.Record{
-		"remark": validator.FilterInjection(remark),
-	}
-	err := model.BlacklistUpdate(ex, record)
+	remark = validator.FilterInjection(remark)
+	err := model.BlacklistUpdate(id, remark)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
