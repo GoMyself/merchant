@@ -190,7 +190,7 @@ func BlacklistDelete(id string) error {
 
 	// id 银行卡删除黑名单
 	if data.Ty == TyBankcard {
-		//// 银行卡从黑名单移出后，修改卡状态为停用
+		// 银行卡从黑名单移出后，修改卡状态为停用
 		valueHash := fmt.Sprintf("%d", MurmurHash(data.Value, 0))
 		ex = g.Ex{
 			"prefix":         meta.Prefix,
@@ -200,12 +200,12 @@ func BlacklistDelete(id string) error {
 			"state": "2",
 		}
 		query, _, _ = dialect.Update("tbl_member_bankcard").Set(recs).Where(ex).ToSQL()
-		_, err2 := meta.MerchantDB.Exec(query)
-		if err2 != nil {
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
 			return errors.New(helper.DBErr)
 		}
 
-		/// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
+		// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
 		key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 		cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
 		err = cmd.Err()
