@@ -137,12 +137,12 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{}
 	// 账变类型筛选
+
 	if types != "" {
 		cashTypes := strings.Split(types, ",")
 		for _, v := range cashTypes {
 			ct, err := strconv.Atoi(v)
-			if err != nil || !(ct >= helper.TransactionIn && ct <= helper.TransactionPromoPayout) &&
-				!(ct >= helper.TransactionEBetTCPrize && ct <= helper.TransactionOfflineDeposit) {
+			if _, ok := helper.CashTypes[ct]; !ok || err != nil {
 				helper.Print(ctx, false, helper.CashTypeErr)
 				return
 			}
