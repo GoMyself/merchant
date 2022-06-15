@@ -96,6 +96,13 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
+	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(g.Record{"parent_uid": destMb.UID}).Where(g.Ex{"uid": mb.UID}).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
 	_ = tx.Commit()
 
 	param := map[string]interface{}{
