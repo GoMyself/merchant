@@ -58,7 +58,7 @@ func LoadLinks() {
 
 func LoadMembers() {
 
-	query := "update tbl_member_rebate_info set zr = 0.4,ty=0.4,fc=0.4,qp=0.4,dj=0.4,dz=0.4,`by`=0.4,cg_high_rebate=9.8,cg_official_rebate=9.7 where uid = 4722355249852325 or parent_uid = 4722355249852325;"
+	query := "update tbl_member_rebate_info set zr = 0.4,ty=0.4,fc=0.4,qp=0.4,dj=0.3,dz=0.2,`by`=0.2,cg_high_rebate=9.8,cg_official_rebate=9.7 where uid = 4722355249852325 or parent_uid = 4722355249852325;"
 	_, _ = meta.MerchantDB.Exec(query)
 
 	var data []Member
