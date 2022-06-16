@@ -1248,6 +1248,7 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 }
 
 func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
+
 	param := model.MemberListParam{}
 	err := validator.Bind(ctx, &param)
 	if err != nil {

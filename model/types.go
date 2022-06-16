@@ -369,6 +369,7 @@ type GameLists struct {
 	PlatformId string `db:"platform_id" json:"platform_id"`
 	Name       string `db:"name" json:"name"`
 	EnName     string `db:"en_name" json:"en_name"`
+	VnAlias    string `db:"vn_alias" json:"vn_alias"`
 	ClientType string `db:"client_type" json:"client_type"`
 	GameType   int64  `db:"game_type" json:"game_type"`
 	GameId     string `db:"game_id" json:"game_id"`
