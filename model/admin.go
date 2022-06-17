@@ -222,6 +222,7 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 
 	slat := helper.TOTP(data.Seamo, otpTimeout)
 	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
+		fmt.Println(err, s, slat)
 		return rsp, errors.New(helper.DynamicVerificationCodeErr)
 	}
 
