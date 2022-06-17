@@ -202,12 +202,6 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	rsp := AdminLoginResp{
 		Prefix: meta.Prefix,
 	}
-	slat := helper.TOTP(seamo, otpTimeout)
-	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
-		fmt.Println(err, s, slat)
-		return rsp, errors.New(helper.CaptchaErr)
-	}
-
 	data := Admin{}
 	t := dialect.From("tbl_admins")
 	query, _, _ := t.Select(colsAdmin...).Where(g.Ex{"name": username, "prefix": meta.Prefix}).Limit(1).ToSQL()
@@ -224,6 +218,11 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 
 	if data.State == 0 {
 		return rsp, errors.New(helper.Blocked)
+	}
+
+	slat := helper.TOTP(data.Seamo, otpTimeout)
+	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
+		return rsp, errors.New(helper.DynamicVerificationCodeErr)
 	}
 
 	pwd := fmt.Sprintf("%d", MurmurHash(password, data.CreateAt))
