@@ -1202,7 +1202,6 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 		//if err != nil {
 		//	fmt.Println("member write member_remarks_log error")
 		//}
-
 		rc := g.Record{
 			"id":           helper.GenId(),
 			"uid":          member.UID,
@@ -1212,7 +1211,7 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 			"created_name": adminName,
 			"created_at":   createdAt,
 			"prefix":       meta.Prefix,
-			"ts":           time.Now().In(loc).UnixMilli(),
+			"ts":           time.Now().In(loc).UnixMicro(),
 		}
 
 		query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
