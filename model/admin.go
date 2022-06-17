@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"merchant/contrib/helper"
 	"merchant/contrib/session"
+	"strconv"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"
@@ -198,17 +199,15 @@ func AdminToken(ctx *fasthttp.RequestCtx) (map[string]string, error) {
 
 func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime uint32) (AdminLoginResp, error) {
 
-	/*
-		slat := helper.TOTP(seamo, otpTimeout)
-		if s, err := strconv.Atoi(seamo); err != nil || s != slat {
-			return "", "", errors.New(helper.CaptchaErr)
-		}
-	*/
-
-	data := Admin{}
 	rsp := AdminLoginResp{
 		Prefix: meta.Prefix,
 	}
+	slat := helper.TOTP(seamo, otpTimeout)
+	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
+		return rsp, errors.New(helper.CaptchaErr)
+	}
+
+	data := Admin{}
 	t := dialect.From("tbl_admins")
 	query, _, _ := t.Select(colsAdmin...).Where(g.Ex{"name": username, "prefix": meta.Prefix}).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
@@ -230,11 +229,6 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 	if pwd != data.Pwd {
 		return rsp, errors.New(helper.UsernameOrPasswordErr)
 	}
-
-	//slat := helper.TOTP(data.Seamo, otpTimeout)
-	//if s, err := strconv.Atoi(seamo); err != nil || s != slat {
-	//	return rsp, errors.New(helper.DynamicVerificationCodeErr)
-	//}
 
 	record := g.Record{
 		"last_login_ip":   ip,
