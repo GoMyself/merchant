@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant/contrib/helper"
-	"merchant/contrib/session"
-	"strconv"
-
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
+	"merchant/contrib/helper"
+	"merchant/contrib/session"
+	"strconv"
 )
 
 // Admin 用户数据库结构体
@@ -220,10 +219,12 @@ func AdminLogin(deviceNo, username, password, seamo, ip string, lastLoginTime ui
 		return rsp, errors.New(helper.Blocked)
 	}
 
-	slat := helper.TOTP(data.Seamo, otpTimeout)
-	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
-		fmt.Println(err, s, slat)
-		return rsp, errors.New(helper.DynamicVerificationCodeErr)
+	if !meta.IsDev {
+		slat := helper.TOTP(data.Seamo, otpTimeout)
+		if s, err := strconv.Atoi(seamo); err != nil || s != slat {
+			fmt.Println(err, s, slat)
+			return rsp, errors.New(helper.DynamicVerificationCodeErr)
+		}
 	}
 
 	pwd := fmt.Sprintf("%d", MurmurHash(password, data.CreateAt))

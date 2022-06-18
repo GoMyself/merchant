@@ -33,25 +33,25 @@ var grpc_t struct {
 }
 
 type MetaTable struct {
-	VenueRebate    MemberRebateResult_t
-	MerchantRedis  *redis.ClusterClient
-	MerchantTD     *sqlx.DB
-	MerchantDB     *sqlx.DB
-	MerchantBean   *beanstalk.Conn
-	MerchantMQ     rocketmq.Producer
-	ReportDB       *sqlx.DB
-	BetDB          *sqlx.DB
-	PromoteConfig  map[string]map[string]interface{}
-	ES             *elastic.Client
-	AccessEs       *elastic.Client
-	NatsConn       *nats.Conn
-	AutoCommission bool
-	Prefix         string
-	EsPrefix       string
-	PullPrefix     string
-	Lang           string
-	GcsDoamin      string
-	Program        string
+	VenueRebate   MemberRebateResult_t
+	MerchantRedis *redis.ClusterClient
+	MerchantTD    *sqlx.DB
+	MerchantDB    *sqlx.DB
+	MerchantBean  *beanstalk.Conn
+	MerchantMQ    rocketmq.Producer
+	ReportDB      *sqlx.DB
+	BetDB         *sqlx.DB
+	PromoteConfig map[string]map[string]interface{}
+	ES            *elastic.Client
+	AccessEs      *elastic.Client
+	NatsConn      *nats.Conn
+	IsDev         bool
+	Prefix        string
+	EsPrefix      string
+	PullPrefix    string
+	Lang          string
+	GcsDoamin     string
+	Program       string
 }
 
 var (

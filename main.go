@@ -48,7 +48,7 @@ func main() {
 	mt.Prefix = cfg.Prefix
 	mt.EsPrefix = cfg.EsPrefix
 	mt.PullPrefix = cfg.PullPrefix
-	mt.AutoCommission = cfg.AutoCommission
+	mt.IsDev = cfg.IsDev
 
 	mt.MerchantTD = conn.InitTD(cfg.Td.Addr, cfg.Td.MaxIdleConn, cfg.Td.MaxOpenConn)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Master.Addr, cfg.Db.Master.MaxIdleConn, cfg.Db.Master.MaxOpenConn)
