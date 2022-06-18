@@ -853,6 +853,10 @@ func (that *RecordController) Order(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
+		if len(ids) == 0 {
+			helper.Print(ctx, false, helper.Processing)
+			return
+		}
 		ex["plan_id"] = ids
 	}
 
