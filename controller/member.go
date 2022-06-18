@@ -35,7 +35,7 @@ type setTagParam struct {
 
 // setSVipParam 解除密码限制/解除短信限制 parameters structure
 type retryResetParam struct {
-	Username string `rule:"uname" min:"4" max:"9" msg:"username error" name:"username"`
+	Username string `rule:"uname" min:"5" max:"14" msg:"username error" name:"username"`
 	Ty       uint8  `rule:"digit" min:"1" max:"3" msg:"ty error" name:"ty"` // 1解除密码限制 2解除短信限制 3解除场馆钱包限制
 	Pid      string `rule:"none" msg:"pid error" name:"pid"`                // 场馆id(解除场馆钱包限制时需要)
 }
