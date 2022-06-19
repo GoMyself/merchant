@@ -24,9 +24,9 @@ type dividendInsertParam struct {
 
 // 红利审核列表参数
 type dividendUpdateParam struct {
-	IDS          string `rule:"sDigit" name:"ids" msg:"ids error"`                               // 订单号
-	ReviewRemark string `rule:"filter" name:"review_remark" max:"300" msg:"review_remark error"` // 审核备注
-	State        int    `name:"state" rule:"digit" min:"232" max:"233" msg:"state error"`        // 231 审核中 232 审核不通过  232 审核通过
+	IDS          string `rule:"sDigit" name:"ids" msg:"ids error"`                             // 订单号
+	ReviewRemark string `rule:"none" name:"review_remark" max:"300" msg:"review_remark error"` // 审核备注
+	State        int    `name:"state" rule:"digit" min:"232" max:"233" msg:"state error"`      // 231 审核中 232 审核不通过  232 审核通过
 }
 
 // 修改红利审核备注
