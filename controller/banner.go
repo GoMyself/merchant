@@ -82,6 +82,7 @@ func (that *BannerController) Insert(ctx *fasthttp.RequestCtx) {
 	}
 
 	params.Title, _ = url.QueryUnescape(params.Title)
+	fmt.Println("banner Insert", params)
 	if params.ShowType == model.BannerShowTypeSpecify {
 		_, err := time.Parse("2006-01-02 15:04:05", params.ShowAt)
 		if err != nil {
@@ -141,6 +142,7 @@ func (that *BannerController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	params.Title, _ = url.QueryUnescape(params.Title)
+	fmt.Println("banner Update", params)
 	record := g.Record{}
 	if len(params.Title) > 0 {
 		record["title"] = params.Title
