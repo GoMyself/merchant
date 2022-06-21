@@ -400,7 +400,10 @@ func bannerRefreshToCache(id string) error {
 	query, _, _ := dialect.From("tbl_banner").Select(colsBanner...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&record, query)
 	if err != nil {
-		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+		if err != sql.ErrNoRows {
+			err = pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+		}
+		return err
 	}
 
 	pipe := meta.MerchantRedis.TxPipeline()
