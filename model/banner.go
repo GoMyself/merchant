@@ -342,9 +342,10 @@ func LoadBanners() error {
 
 		results := map[string][]string{}
 		for _, val := range recs {
-
+			val.Title = strings.ReplaceAll(val.Title, "&nbsp;", " ")
 			img := fastjson.GetBytes([]byte(val.Images), "ad")
-			str := fmt.Sprintf(`{"id":"%s", "title":"%s", "url":"%s", "sort":"%s", "img":"%s", "flags":"%s"}`, val.ID, val.Title, val.RedirectURL, val.Seq, string(img), val.URLType)
+			str := fmt.Sprintf(`{"id":"%s", "title":"%s", "url":"%s", "sort":"%s", "img":"%s", "flags":"%s"}`,
+				val.ID, val.Title, val.RedirectURL, val.Seq, string(img), val.URLType)
 
 			if val.Device == "0" {
 				for k := range DeviceMap {
