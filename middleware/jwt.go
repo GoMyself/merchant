@@ -94,7 +94,7 @@ func otp(ctx *fasthttp.RequestCtx, data []byte) bool {
 
 	fmt.Println("seamo= ", seamo)
 	fmt.Println("key= ", key)
-	slat := helper.TOTP(key, 15)
+	slat := helper.TOTP(key, 60)
 	if s, err := strconv.Atoi(seamo); err != nil || s != slat {
 		fmt.Println(s, slat)
 		return false

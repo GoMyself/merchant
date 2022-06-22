@@ -12,7 +12,7 @@ const (
 
 //动态验证码的有效时间
 const (
-	otpTimeout = 15
+	otpTimeout = 60
 )
 
 var (
