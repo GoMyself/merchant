@@ -374,6 +374,7 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 	}
 	if ty == GameMemberDayGroup {
 		param["name"] = params["username"]
+
 		other := map[string]string{
 			"index":           "tbl_game_record",
 			"range_field":     rangeField,
@@ -438,7 +439,7 @@ func groupByEs(page, pageSize int, other map[string]string, param map[string]int
 	offset := (page - 1) * pageSize
 	//打印es查询json
 	esService := meta.ES.Search().Query(boolQuery).TrackTotalHits(true).Size(0).Sort(other["range_field"], false)
-
+	fmt.Println("boolQuery:", boolQuery)
 	if len(other["interal"]) > 0 {
 		//"1d"
 		timeAgg := elastic.NewDateHistogramAggregation().Field(other["agg_group_field"]).FixedInterval(other["interal"]).MinDocCount(1) //.Keyed(true) //.Format("yyyy-MM-dd")
@@ -531,6 +532,8 @@ func recordGameESQuery(index, sortField string, ascending bool, page, pageSize i
 	param map[string]interface{}, rangeParam map[string][]interface{}, aggField map[string]string) (GameRecordData, error) {
 
 	data := GameRecordData{Agg: map[string]string{}}
+	param["tester"] = "1"
+	fmt.Println("param:", param)
 	total, esData, aggData, err := esSearch(index, sortField, ascending, page, pageSize, gameRecordFields, param, rangeParam, aggField)
 	if err != nil {
 		return data, err
@@ -573,7 +576,7 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize int, query 
 		return data, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix),
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"),
 		elastic.NewRangeQuery(betTimeFlags[flag]).Gte(startAt).Lte(endAt))
 
 	t, esResult, _, err := EsQuerySearch(pullPrefixIndex("tbl_game_record"), "bet_time", page, pageSize, gameRecordFields, query, nil)
@@ -656,7 +659,7 @@ func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic
 		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_deposit"), "created_at", page, pageSize, depositFields, query, nil)
 	if err != nil {
@@ -701,7 +704,7 @@ func RecordDividend(page, pageSize int, startTime, endTime string, query *elasti
 		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_member_dividend"), "review_at", page, pageSize, dividendFields, query, nil)
 	if err != nil {
@@ -791,7 +794,7 @@ func RecordAdjust(page, pageSize int, startTime, endTime string, query *elastic.
 		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_member_adjust"), "apply_at", page, pageSize, adjustFields, query, nil)
 	if err != nil {
@@ -854,7 +857,7 @@ func RecordWithdraw(page, pageSize int, startTime, endTime, applyStartTime, appl
 		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_withdraw"), "created_at", page, pageSize, withdrawFields, query, nil)
 	if err != nil {

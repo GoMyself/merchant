@@ -60,6 +60,7 @@ func AdjustInsert(data MemberAdjust) error {
 		"top_name":       data.TopName,
 		"parent_uid":     data.ParentUid,
 		"parent_name":    data.ParentName,
+		"tester":         data.Tester,
 	}
 	// 下分
 	err := AdjustUpDownPoint(meta.Prefix, data.UID, data.Username, data.AdjustType, DownPointApply, amount, record)
@@ -210,6 +211,12 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 			return pushLog(err, helper.DBErr)
 		}
 
+		member, err := MemberFindOne(username)
+		if err != nil {
+			_ = tx.Rollback()
+			return pushLog(err, helper.DBErr)
+		}
+
 		// 离线转卡存款
 		if adjustType == 3 {
 			now := fmt.Sprintf("%d", time.Now().Unix())
@@ -232,6 +239,7 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 				"confirm_uid":   "0",
 				"confirm_name":  "",
 				"review_remark": "",
+				"tester":        member.Tester,
 			}
 			query, _, _ = dialect.Insert("tbl_deposit").Rows(dr).ToSQL()
 			_, err = tx.Exec(query)
