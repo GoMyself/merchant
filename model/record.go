@@ -576,7 +576,7 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize int, query 
 		return data, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix),
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"),
 		elastic.NewRangeQuery(betTimeFlags[flag]).Gte(startAt).Lte(endAt))
 
 	t, esResult, _, err := EsQuerySearch(pullPrefixIndex("tbl_game_record"), "bet_time", page, pageSize, gameRecordFields, query, nil)
@@ -659,7 +659,7 @@ func RecordDeposit(page, pageSize int, startTime, endTime string, query *elastic
 		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_deposit"), "created_at", page, pageSize, depositFields, query, nil)
 	if err != nil {
@@ -704,7 +704,7 @@ func RecordDividend(page, pageSize int, startTime, endTime string, query *elasti
 		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_member_dividend"), "review_at", page, pageSize, dividendFields, query, nil)
 	if err != nil {
@@ -794,7 +794,7 @@ func RecordAdjust(page, pageSize int, startTime, endTime string, query *elastic.
 		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_member_adjust"), "apply_at", page, pageSize, adjustFields, query, nil)
 	if err != nil {
@@ -857,7 +857,7 @@ func RecordWithdraw(page, pageSize int, startTime, endTime, applyStartTime, appl
 		query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
 	}
 
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
+	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix), elastic.NewTermQuery("tester", "1"))
 	t, esResult, _, err := EsQuerySearch(
 		esPrefixIndex("tbl_withdraw"), "created_at", page, pageSize, withdrawFields, query, nil)
 	if err != nil {
