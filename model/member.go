@@ -808,6 +808,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	ex = ex.Append(g.C("prefix").Eq(meta.Prefix))
 	if agencyType == "391" {
 		ex = ex.Append(g.C("agency_type").Eq(391))
+		ex = ex.Append(g.C("tester").Eq(1))
 	}
 	if page == 1 {
 		query, _, _ := dialect.From("tbl_members").Select(g.COUNT(1)).Where(ex).ToSQL()
@@ -1884,7 +1885,7 @@ func AgencyMemberList(param MemberListParam) (AgencyMemberData, error) {
 
 	res := AgencyMemberData{}
 	//查询MySQL,必须是代理的下级会员
-	ex := g.Ex{}
+	ex := g.Ex{"tester": 1}
 
 	if param.ParentName != "" {
 		ex["parent_name"] = param.ParentName

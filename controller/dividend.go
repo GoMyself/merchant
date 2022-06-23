@@ -126,6 +126,7 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 		"apply_name":     admin["name"],
 		"automatic":      1, //手动发放
 		"state":          model.DividendReviewing,
+		"tester":         m.Tester,
 	}
 
 	if param.Ty == model.DividendPromo {
@@ -216,6 +217,7 @@ func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 	if flag == 1 {
 		ex["state"] = model.DividendReviewing //红利审核中
 	} else { //
+		ex["tester"] = 1
 		// 默认为红利历史列表
 		s := map[int]bool{
 			model.DividendReviewPass:   true, //红利审核通过

@@ -47,7 +47,7 @@ type navJson struct {
 
 func PlatformUpdate(ex g.Ex, record g.Record) error {
 
-	query, _, _ := dialect.Update("tbl_platforms").Set(record).Where(ex).ToSQL()
+	query, _, _ := dialect.Update("tbl_platforms").Set(record).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
@@ -94,7 +94,7 @@ func PlatformList(ex g.Ex, page, pageSize int) (PlatformData, error) {
 
 	}
 
-	query, _, _ := t.Select(colsPlatform...).Where(ex).Order(g.C("created_at").Asc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
+	query, _, _ := t.Select(colsPlatform...).Where(ex).Order(g.C("created_at").Desc()).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)

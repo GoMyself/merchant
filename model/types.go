@@ -241,6 +241,7 @@ type MemberAdjust struct {
 	ReviewUid     string  `db:"review_uid" json:"review_uid"`         // 审核人uid
 	ReviewName    string  `db:"review_name" json:"review_name"`       // 审核人
 	IsRisk        int     `db:"-" json:"is_risk"`
+	Tester        string  `db:"tester" json:"tester"`
 }
 
 type DividendData struct {
@@ -301,6 +302,7 @@ type MemberDividend struct {
 	ReviewUid     string  `db:"review_uid" json:"review_uid"`
 	ReviewName    string  `db:"review_name" json:"review_name"`
 	IsRisk        int     `db:"-" json:"is_risk"`
+	Tester        string  `db:"tester" json:"tester"`
 }
 
 type BannerData struct {

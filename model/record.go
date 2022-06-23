@@ -374,6 +374,7 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 	}
 	if ty == GameMemberDayGroup {
 		param["name"] = params["username"]
+
 		other := map[string]string{
 			"index":           "tbl_game_record",
 			"range_field":     rangeField,
@@ -438,7 +439,7 @@ func groupByEs(page, pageSize int, other map[string]string, param map[string]int
 	offset := (page - 1) * pageSize
 	//打印es查询json
 	esService := meta.ES.Search().Query(boolQuery).TrackTotalHits(true).Size(0).Sort(other["range_field"], false)
-
+	fmt.Println("boolQuery:", boolQuery)
 	if len(other["interal"]) > 0 {
 		//"1d"
 		timeAgg := elastic.NewDateHistogramAggregation().Field(other["agg_group_field"]).FixedInterval(other["interal"]).MinDocCount(1) //.Keyed(true) //.Format("yyyy-MM-dd")
@@ -531,6 +532,8 @@ func recordGameESQuery(index, sortField string, ascending bool, page, pageSize i
 	param map[string]interface{}, rangeParam map[string][]interface{}, aggField map[string]string) (GameRecordData, error) {
 
 	data := GameRecordData{Agg: map[string]string{}}
+	param["tester"] = "1"
+	fmt.Println("param:", param)
 	total, esData, aggData, err := esSearch(index, sortField, ascending, page, pageSize, gameRecordFields, param, rangeParam, aggField)
 	if err != nil {
 		return data, err

@@ -106,6 +106,7 @@ func (that *AdjustController) Insert(ctx *fasthttp.RequestCtx) {
 		ApplyUid:      admin["id"],   // 申请人
 		ApplyName:     admin["name"], // 申请人
 		ReviewUid:     "0",
+		Tester:        m.Tester,
 	}
 	data.Amount, _ = amount.Float64()
 	err = model.AdjustInsert(data)

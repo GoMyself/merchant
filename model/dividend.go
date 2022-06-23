@@ -71,6 +71,7 @@ func DividendList(page, pageSize int, startTime, endTime, reviewStartTime, revie
 		ex["review_at"] = g.Op{"between": exp.NewRangeVal(rStart, rEnd)}
 	}
 	ex["prefix"] = meta.Prefix
+
 	t := dialect.From("tbl_member_dividend")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
