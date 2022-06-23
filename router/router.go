@@ -103,8 +103,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 	recordCtl := new(controller.RecordController)
 	//内容管理
 	msgCtl := new(controller.MessageController)
-	//验证码管理
+	//短信验证码管理
 	smsCtl := new(controller.SmsRecordController)
+	//邮箱验证码管理
+	mailCtl := new(controller.EmailRecordController)
 	// 短信通道管理
 	smsChannelCtl := new(controller.SMSChannelController)
 
@@ -346,9 +348,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/sms/update", smsChannelCtl.Update)
 	// 运营管理-短信通道-更新短信通道状态
 	post("/merchant/sms/update/state", smsChannelCtl.UpdateState)
+	// 运营管理-验证码查询-短信验证码列表
 	get("/merchant/member/sms/list", smsCtl.List)
-	// 运营管理-短信通道-删除
-	//get("/merchant/sms/delete", smsChannelCtl.Delete)
+	// 运营管理-验证码查询-邮箱验证码列表
+	get("/merchant/member/mail/list", mailCtl.List)
 
 	// 获取返水上限
 	get("/merchant/rebate/scale", rebateCtl.Scale)
