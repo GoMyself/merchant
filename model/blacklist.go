@@ -439,7 +439,7 @@ func BlacklistClearPhone(phone string) error {
 	}
 	query, _, _ := dialect.From("tbl_members").Select(g.COUNT("uid")).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&count, query)
-	if err == nil {
+	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
