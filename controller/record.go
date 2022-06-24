@@ -137,6 +137,9 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{}
 	// 账变类型筛选
+	if uid == "" {
+		ex["tester"] = 1
+	}
 
 	if types != "" {
 		cashTypes := strings.Split(types, ",")
