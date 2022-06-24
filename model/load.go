@@ -111,11 +111,11 @@ func LoadMembers() {
 			pipe.Persist(ctx, key)
 		}
 		_, err = pipe.Exec(ctx)
+		_ = pipe.Close()
 		if err != nil {
 			_ = pushLog(err, helper.RedisErr)
 			return
 		}
-		_ = pipe.Close()
 
 		d, err := grpc_t.DecryptAll(uids, false, []string{"realname", "email", "phone", "zalo"})
 		if err != nil {
@@ -143,20 +143,18 @@ func LoadMembers() {
 			}
 		}
 		_, err = pipe1.Exec(ctx)
+		_ = pipe1.Close()
 		if err != nil {
 			_ = pushLog(err, helper.RedisErr)
 			return
 		}
-		_ = pipe1.Close()
 	}
 }
 
 func LoadBankcards() error {
 
 	var (
-		data      []BankCard_t
-		ids       []string
-		encFields []string
+		data []BankCard_t
 	)
 	query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).ToSQL()
 	fmt.Println(query)
@@ -165,29 +163,48 @@ func LoadBankcards() error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	for _, v := range data {
-		ids = append(ids, v.UID)
-		encFields = append(encFields, "bankcard"+v.ID)
-	}
-	encRes, err := grpc_t.DecryptAll(ids, false, encFields)
-	if err != nil {
-		fmt.Println("grpc_t.Decrypt err = ", err)
-		return errors.New(helper.GetRPCErr)
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	_ = meta.MerchantRedis.Unlink(ctx, key).Err()
+
+	total := len(data)
+	p := total / LOAD_PAGE
+	if total%LOAD_PAGE > 0 {
+		p += 1
 	}
 
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
-	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	pipe.Unlink(ctx, key)
-	for _, v := range data {
-		if encRes[v.UID]["bankcard"+v.ID] != "" {
-			fmt.Println(key, encRes[v.UID]["bankcard"+v.ID])
-			pipe.SAdd(ctx, key, encRes[v.UID]["bankcard"+v.ID])
+	for i := 0; i < p; i++ {
+
+		pd := data[i*LOAD_PAGE:]
+		if i != p-1 {
+			pd = data[i*LOAD_PAGE : (i+1)*LOAD_PAGE]
 		}
-	}
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
+
+		var (
+			ids       []string
+			encFields []string
+		)
+		for _, v := range pd {
+			ids = append(ids, v.UID)
+			encFields = append(encFields, "bankcard"+v.ID)
+		}
+		encRes, err := grpc_t.DecryptAll(ids, false, encFields)
+		if err != nil {
+			fmt.Println("grpc_t.Decrypt err = ", err)
+			return errors.New(helper.GetRPCErr)
+		}
+
+		pipe := meta.MerchantRedis.TxPipeline()
+		for _, v := range pd {
+			if encRes[v.UID]["bankcard"+v.ID] != "" {
+				fmt.Println(key, encRes[v.UID]["bankcard"+v.ID])
+				pipe.SAdd(ctx, key, encRes[v.UID]["bankcard"+v.ID])
+			}
+		}
+		_, err = pipe.Exec(ctx)
+		_ = pipe.Close()
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
 	}
 
 	return nil
