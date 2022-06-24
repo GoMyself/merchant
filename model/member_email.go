@@ -19,7 +19,6 @@ type Email_t struct {
 	Ty        string `json:"ty" db:"ty"`
 	CreateAt  string `json:"create_at" db:"create_at"`
 	UpdatedAt string `json:"updated_at" db:"updated_at"`
-	Flags     string `json:"flags" db:"flags"`
 	Source    string `json:"source" db:"source"`
 	ID        string `json:"id" db:"id"`
 }
@@ -86,7 +85,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "mail", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "source", "mail", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
