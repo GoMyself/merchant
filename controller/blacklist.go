@@ -259,3 +259,19 @@ func (that *BlacklistController) Delete(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, helper.Success)
 }
+
+func (that *BlacklistController) ClearPhone(ctx *fasthttp.RequestCtx) {
+
+	phone := string(ctx.PostArgs().Peek("phone"))
+	if !validator.IsVietnamesePhone(phone) {
+		helper.Print(ctx, false, helper.PhoneFMTErr)
+		return
+	}
+
+	err := model.BlacklistClearPhone(phone)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+	}
+
+	helper.Print(ctx, true, "success")
+}

@@ -428,3 +428,27 @@ func MemberAssocLoginLogList(page, pageSize int, aggField string, q *elastic.Boo
 
 	return string(b), nil
 }
+
+// 解锁手机号码（确认没有会员账号绑定的情况）
+func BlacklistClearPhone(phone string) error {
+
+	var count uint64
+	ex := g.Ex{
+		"phone_hash": fmt.Sprintf("%d", MurmurHash(phone, 0)),
+		"prefix":     meta.Prefix,
+	}
+	query, _, _ := dialect.From("tbl_members").Select(g.COUNT("uid")).Where(ex).ToSQL()
+	err := meta.MerchantDB.Get(&count, query)
+	if err == nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	if count == 0 {
+		key := fmt.Sprintf("%s:phoneExist", meta.Prefix)
+		meta.MerchantRedis.Do(ctx, "CF.DEL", key, phone).Val()
+	} else {
+		return errors.New(helper.PhoneBindAlreadyErr)
+	}
+
+	return nil
+}

@@ -317,6 +317,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/blacklist/update", blacklistCtl.Update)
 	//风控管理-黑名单删除
 	get("/merchant/blacklist/delete", blacklistCtl.Delete)
+	//风控管理-黑名单-手机号码解锁
+	post("/merchant/blacklist/clear/phone", blacklistCtl.ClearPhone)
+
 	//风控管理-流水稽查查询
 	get("/merchant/inspection/list", inspectionCtl.List)
 	//风控管理-流水稽查审核
