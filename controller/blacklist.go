@@ -270,6 +270,7 @@ func (that *BlacklistController) ClearPhone(ctx *fasthttp.RequestCtx) {
 	err := model.BlacklistClearPhone(phone)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
+		return
 	}
 
 	helper.Print(ctx, true, "success")
