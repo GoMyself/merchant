@@ -169,7 +169,7 @@ func LoadBankcards() error {
 		ids = append(ids, v.UID)
 		encFields = append(encFields, "bankcard"+v.ID)
 	}
-	encRes, err := grpc_t.DecryptAll(ids, true, encFields)
+	encRes, err := grpc_t.DecryptAll(ids, false, encFields)
 	if err != nil {
 		fmt.Println("grpc_t.Decrypt err = ", err)
 		return errors.New(helper.GetRPCErr)
