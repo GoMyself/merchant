@@ -178,6 +178,7 @@ func LoadBankcards() error {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	pipe.Unlink(ctx, key)
 	for _, v := range data {
 		if encRes[v.UID]["bankcard"+v.ID] != "" {
 			fmt.Println(key, encRes[v.UID]["bankcard"+v.ID])
