@@ -118,7 +118,7 @@ func BlacklistInsert(fCtx *fasthttp.RequestCtx, ty int, value string, record g.R
 		key = fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 	}
 
-	meta.MerchantRedis.Do(ctx, "CF.ADD", key, value).Val()
+	meta.MerchantRedis.SAdd(ctx, key, value).Val()
 
 	if ty == TyBankcard {
 		ex = g.Ex{
@@ -207,7 +207,7 @@ func BlacklistDelete(id string) error {
 
 		// 从黑名单删除银行卡后，更新redis 黑名单的银行卡信息=
 		key := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-		cmd := meta.MerchantRedis.Do(ctx, "CF.DEL", key, data.Value)
+		cmd := meta.MerchantRedis.SRem(ctx, key, data.Value)
 		err = cmd.Err()
 		if err != nil {
 			return errors.New(err.Error())
@@ -266,7 +266,7 @@ func LoadBlacklists(ty int) error {
 	phoneKey := fmt.Sprintf("%s:merchant:phone_blacklist", meta.Prefix)
 	bankcardKey := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	rebateKey := fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
-	cgrebateKey := fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
+	cgRebateKey := fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
 	ipWhiteKey := fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 
 	if ty != 0 {
@@ -283,7 +283,7 @@ func LoadBlacklists(ty int) error {
 		case TyRebate:
 			key = rebateKey
 		case TyCGRebate:
-			key = cgrebateKey
+			key = cgRebateKey
 		case TyWhiteIP:
 			key = ipWhiteKey
 		}
@@ -294,7 +294,7 @@ func LoadBlacklists(ty int) error {
 		pipe.Unlink(ctx, phoneKey)
 		pipe.Unlink(ctx, bankcardKey)
 		pipe.Unlink(ctx, rebateKey)
-		pipe.Unlink(ctx, cgrebateKey)
+		pipe.Unlink(ctx, cgRebateKey)
 		pipe.Unlink(ctx, ipWhiteKey)
 	}
 
@@ -312,12 +312,12 @@ func LoadBlacklists(ty int) error {
 		case TyRebate:
 			key = rebateKey
 		case TyCGRebate:
-			key = cgrebateKey
+			key = cgRebateKey
 		case TyWhiteIP:
 			key = ipWhiteKey
 		}
 
-		pipe.Do(ctx, "CF.ADD", key, v.Value)
+		pipe.SAdd(ctx, key, v.Value)
 	}
 
 	_, err := pipe.Exec(ctx)
@@ -445,7 +445,7 @@ func BlacklistClearPhone(phone string) error {
 
 	if count == 0 {
 		key := fmt.Sprintf("%s:phoneExist", meta.Prefix)
-		meta.MerchantRedis.Do(ctx, "CF.DEL", key, phone).Val()
+		meta.MerchantRedis.SRem(ctx, key, phone).Val()
 	} else {
 		return errors.New(helper.PhoneBindAlreadyErr)
 	}

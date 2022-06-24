@@ -1128,12 +1128,8 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	MemberUpdateCache(uid, "")
 
 	if _, ok := param["phone"]; ok {
-
-		//fmt.Println("update phone = ", param["phone"])
-		//fmt.Println("update phoneHash = ", phoneHash)
 		key := fmt.Sprintf("%s:phoneExist", meta.Prefix)
-		meta.MerchantRedis.Do(ctx, "CF.ADD", key, phoneHash).Val()
-		//fmt.Println("CF.ADD phoneExist v = ", v)
+		meta.MerchantRedis.SAdd(ctx, key, phoneHash).Val()
 	}
 
 	return nil
