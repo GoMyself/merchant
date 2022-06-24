@@ -125,15 +125,19 @@ func LoadMembers() {
 		pipe1 := meta.MerchantRedis.TxPipeline()
 		for _, v := range uids {
 			if d[v]["realname"] != "" {
+				fmt.Println(realnameKey, d[v]["realname"])
 				pipe1.SAdd(ctx, realnameKey, d[v]["realname"])
 			}
 			if d[v]["email"] != "" {
+				fmt.Println(emailKey, d[v]["email"])
 				pipe1.SAdd(ctx, emailKey, d[v]["email"])
 			}
 			if d[v]["phone"] != "" {
+				fmt.Println(phoneKey, d[v]["phone"])
 				pipe1.SAdd(ctx, phoneKey, d[v]["phone"])
 			}
 			if d[v]["zalo"] != "" {
+				fmt.Println(zaloKey, d[v]["zalo"])
 				pipe1.SAdd(ctx, zaloKey, d[v]["zalo"])
 			}
 		}
