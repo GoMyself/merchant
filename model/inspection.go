@@ -313,7 +313,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		if promoMap[v.Pid].Flag != "rescue" {
 			apitype = promoMap[v.Pid].Platforms
 		}
-		validBetAmount, err := EsPlatValidBet(username, apitype, promoMap[v.Pid].StartAt, now)
+		validBetAmount, err := EsPlatValidBet(username, apitype, cutTime, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
