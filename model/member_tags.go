@@ -346,7 +346,7 @@ func TagByNameAndFlag(name, flag string) (Tags, error) {
 
 	ex := g.Ex{
 		"name":   name,
-		"flags":   flag,
+		"flags":  flag,
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_tags").Select(colsTags...).Where(ex).ToSQL()
