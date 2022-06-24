@@ -17,7 +17,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	username := string(ctx.QueryArgs().Peek("username"))
 	phone := string(ctx.QueryArgs().Peek("phone"))
-	state := string(ctx.QueryArgs().Peek("state"))
+	state := ctx.QueryArgs().GetUintOrZero("state")
 	ty := ctx.QueryArgs().GetUintOrZero("ty")
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))

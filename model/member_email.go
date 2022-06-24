@@ -29,7 +29,7 @@ type EmailData_t struct {
 	S uint      `json:"s"`
 }
 
-func EmailList(page, pageSize uint, start, end, username, email, state string, ty int) (EmailData_t, error) {
+func EmailList(page, pageSize uint, start, end, username, email string, state, ty int) (EmailData_t, error) {
 
 	ex := g.Ex{}
 	data := EmailData_t{}
@@ -42,7 +42,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 		ex["mail"] = email
 	}
 
-	if state != "" {
+	if state != 0 {
 		ex["state"] = state
 	}
 

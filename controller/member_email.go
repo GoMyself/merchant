@@ -18,7 +18,7 @@ func (that *EmailRecordController) List(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	username := string(ctx.QueryArgs().Peek("username"))
 	mail := string(ctx.QueryArgs().Peek("mail"))
-	state := string(ctx.QueryArgs().Peek("state"))
+	state := ctx.QueryArgs().GetUintOrZero("state")
 	ty := ctx.QueryArgs().GetUintOrZero("ty")
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))

@@ -30,7 +30,7 @@ type SmsData_t struct {
 	S uint    `json:"s"`
 }
 
-func SmsList(page, pageSize uint, start, end, username, phone, state string, ty int) (SmsData_t, error) {
+func SmsList(page, pageSize uint, start, end, username, phone string, state, ty int) (SmsData_t, error) {
 
 	ex := g.Ex{}
 	data := SmsData_t{}
@@ -43,7 +43,7 @@ func SmsList(page, pageSize uint, start, end, username, phone, state string, ty 
 		ex["phone"] = phone
 	}
 
-	if state != "" {
+	if state != 0 {
 		ex["state"] = state
 	}
 
