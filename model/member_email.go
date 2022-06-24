@@ -12,7 +12,7 @@ import (
 
 type Email_t struct {
 	Username  string `json:"username" db:"username"`
-	Phone     string `json:"phone" db:"phone"`
+	Mail      string `json:"mail" db:"mail"`
 	State     string `json:"state" db:"state"`
 	Code      string `json:"code" db:"code"`
 	IP        string `json:"ip" db:"ip"`
@@ -86,7 +86,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "email", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "flags", "source", "mail", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)
