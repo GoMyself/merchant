@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
@@ -148,6 +149,47 @@ func LoadMembers() {
 		}
 		_ = pipe1.Close()
 	}
+}
+
+func LoadBankcards() error {
+
+	var (
+		data      []BankCard_t
+		ids       []string
+		encFields []string
+	)
+	query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	for _, v := range data {
+		ids = append(ids, v.UID)
+		encFields = append(encFields, "bankcard"+v.ID)
+	}
+	encRes, err := grpc_t.DecryptAll(ids, true, encFields)
+	if err != nil {
+		fmt.Println("grpc_t.Decrypt err = ", err)
+		return errors.New(helper.GetRPCErr)
+	}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	for _, v := range data {
+		if encRes[v.UID]["bankcard"+v.ID] != "" {
+			fmt.Println(key, encRes[v.UID]["bankcard"+v.ID])
+			pipe.SAdd(ctx, key, encRes[v.UID]["bankcard"+v.ID])
+		}
+	}
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	return nil
 }
 
 func LoadMemberRebates() error {
