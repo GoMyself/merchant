@@ -430,7 +430,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if phone != "" {
-		if !validator.CheckStringDigit(phone) {
+		if !validator.IsVietnamesePhone(phone) {
 			helper.Print(ctx, false, helper.PhoneFMTErr)
 			return
 		}
