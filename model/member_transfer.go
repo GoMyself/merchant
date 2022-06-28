@@ -29,7 +29,7 @@ func MemberTransferSubCheck(username string) bool {
 }
 
 //MemberTransferAg 跳线转代
-func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
+func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial bool) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -96,7 +96,28 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(g.Record{"parent_uid": destMb.UID}).Where(g.Ex{"uid": mb.UID}).ToSQL()
+	rebateRecord := g.Record{
+		"parent_uid": destMb.UID,
+	}
+	// 官方会员转代,默认返水比例设置为和转移到的代理一致
+	if isOfficial {
+		dest, err := MemberRebateFindOne(destMb.UID)
+		if err != nil {
+			return err
+		}
+
+		rebateRecord["zr"] = dest.ZR.String()
+		rebateRecord["ty"] = dest.TY.String()
+		rebateRecord["dj"] = dest.DJ.String()
+		rebateRecord["dz"] = dest.DZ.String()
+		rebateRecord["by"] = dest.BY.String()
+		rebateRecord["cp"] = dest.CP.String()
+		rebateRecord["qp"] = dest.QP.String()
+		rebateRecord["fc"] = dest.FC.String()
+		rebateRecord["cg_official_rebate"] = dest.CGOfficialRebate.String()
+		rebateRecord["cg_high_rebate"] = dest.CGHighRebate.String()
+	}
+	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(rebateRecord).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
