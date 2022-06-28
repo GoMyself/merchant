@@ -22,6 +22,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/json-iterator/go v1.1.12
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/meilisearch/meilisearch-go v0.19.1
 	github.com/minio/md5-simd v1.1.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/nats-io/nats.go v1.13.1-0.20211122170419-d7c1d78a50fc
@@ -55,6 +56,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/mock v1.4.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
