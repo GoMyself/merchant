@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
 	"time"
@@ -10,9 +9,12 @@ import (
 func ShortURLSet(uri string) error {
 
 	key := meta.Prefix + ":shorturl:domain"
-	cmd := meta.MerchantRedis.Set(ctx, key, uri, 100*time.Hour)
-	fmt.Println(cmd.String())
-	err := cmd.Err()
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	pipe.Set(ctx, key, uri, 100*time.Hour)
+	pipe.Persist(ctx, key)
+	_, err := pipe.Exec(ctx)
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
@@ -24,7 +26,7 @@ func ShortURLGet() (string, error) {
 
 	key := meta.Prefix + ":shorturl:domain"
 	cmd := meta.MerchantRedis.Get(ctx, key)
-	fmt.Println(cmd.String())
+	//fmt.Println(cmd.String())
 	resc, err := cmd.Result()
 	if err != nil && err != redis.Nil {
 		return "", pushLog(err, helper.RedisErr)
