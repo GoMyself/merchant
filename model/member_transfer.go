@@ -48,6 +48,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 		"tester":      destMb.Tester,
 	}
 	query, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -55,6 +56,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 	}
 
 	query = fmt.Sprintf("delete from tbl_members_tree where descendant = %s and prefix = '%s'", mb.UID, meta.Prefix)
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -62,6 +64,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 	}
 
 	treeNode := MemberClosureInsert(mb.UID, destMb.UID)
+	fmt.Println(query)
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
@@ -90,6 +93,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 		Prefix:        meta.Prefix,
 	}
 	query, _, _ = dialect.Insert("tbl_agency_transfer_record").Rows(transRecord).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -119,6 +123,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 		rebateRecord["cg_high_rebate"] = dest.CGHighRebate.StringFixed(2)
 	}
 	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(rebateRecord).Where(g.Ex{"uid": mb.UID}).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
