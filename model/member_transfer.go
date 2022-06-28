@@ -99,23 +99,24 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 	rebateRecord := g.Record{
 		"parent_uid": destMb.UID,
 	}
+	dest := MemberRebateResult_t{}
 	// 官方会员转代,默认返水比例设置为和转移到的代理一致
 	if isOfficial {
-		dest, err := MemberRebateFindOne(destMb.UID)
+		dest, err = MemberRebateFindOne(destMb.UID)
 		if err != nil {
 			return err
 		}
 
-		rebateRecord["zr"] = dest.ZR.String()
-		rebateRecord["ty"] = dest.TY.String()
-		rebateRecord["dj"] = dest.DJ.String()
-		rebateRecord["dz"] = dest.DZ.String()
-		rebateRecord["by"] = dest.BY.String()
-		rebateRecord["cp"] = dest.CP.String()
-		rebateRecord["qp"] = dest.QP.String()
-		rebateRecord["fc"] = dest.FC.String()
-		rebateRecord["cg_official_rebate"] = dest.CGOfficialRebate.String()
-		rebateRecord["cg_high_rebate"] = dest.CGHighRebate.String()
+		rebateRecord["zr"] = dest.ZR.StringFixed(1)
+		rebateRecord["ty"] = dest.TY.StringFixed(1)
+		rebateRecord["dj"] = dest.DJ.StringFixed(1)
+		rebateRecord["dz"] = dest.DZ.StringFixed(1)
+		rebateRecord["by"] = dest.BY.StringFixed(1)
+		rebateRecord["cp"] = dest.CP.StringFixed(1)
+		rebateRecord["qp"] = dest.QP.StringFixed(1)
+		rebateRecord["fc"] = dest.FC.StringFixed(1)
+		rebateRecord["cg_official_rebate"] = dest.CGOfficialRebate.StringFixed(2)
+		rebateRecord["cg_high_rebate"] = dest.CGHighRebate.StringFixed(2)
 	}
 	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(rebateRecord).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
@@ -125,6 +126,8 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 	}
 
 	_ = tx.Commit()
+
+	_ = MemberRebateUpdateCache1(mb.UID, dest)
 
 	param := map[string]interface{}{
 		"uid":         mb.UID,
