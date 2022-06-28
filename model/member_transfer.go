@@ -64,7 +64,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 	}
 
 	treeNode := MemberClosureInsert(mb.UID, destMb.UID)
-	fmt.Println(query)
+	fmt.Println(treeNode)
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
