@@ -1001,7 +1001,12 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	if _, ok := param["phone"]; ok {
 
 		phoneHash = fmt.Sprintf("%d", MurmurHash(param["phone"], 0))
-		if memberBindCheck(g.Ex{"phone_hash": phoneHash}) {
+		ok, err = memberBindCheck(g.Ex{"phone_hash": phoneHash})
+		if err != nil {
+			return err
+		}
+
+		if ok {
 			return errors.New(helper.PhoneExist)
 		}
 
@@ -1014,7 +1019,12 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	if _, ok := param["email"]; ok {
 
 		emailHash := fmt.Sprintf("%d", MurmurHash(param["email"], 0))
-		if memberBindCheck(g.Ex{"email_hash": emailHash}) {
+		ok, err = memberBindCheck(g.Ex{"email_hash": emailHash})
+		if err != nil {
+			return err
+		}
+
+		if ok {
 			return errors.New(helper.EmailExist)
 		}
 
@@ -1027,7 +1037,12 @@ func MemberUpdate(username, adminID string, param map[string]string, tagsId []st
 	if _, ok := param["zalo"]; ok {
 
 		zaloHash := fmt.Sprintf("%d", MurmurHash(param["zalo"], 0))
-		if memberBindCheck(g.Ex{"zalo_hash": zaloHash}) {
+		ok, err = memberBindCheck(g.Ex{"zalo_hash": zaloHash})
+		if err != nil {
+			return err
+		}
+
+		if ok {
 			return errors.New(helper.ZaloExist)
 		}
 
@@ -1553,14 +1568,19 @@ func memberPlatformRetryReset(username, pid string) error {
 
 // 检测手机号，email，是否已经被会员绑定
 // 仅用来检测会员信息绑定
-func memberBindCheck(ex g.Ex) bool {
+func memberBindCheck(ex g.Ex) (bool, error) {
 
 	var id string
 
 	t := dialect.From("tbl_members")
 	query, _, _ := t.Select("uid").Where(ex).Limit(1).ToSQL()
+	fmt.Println("memberBindCheck", query)
 	err := meta.MerchantDB.Get(&id, query)
-	return err != sql.ErrNoRows
+	if err != nil && err != sql.ErrNoRows {
+		return false, pushLog(err, helper.DBErr)
+	}
+
+	return err != sql.ErrNoRows, nil
 }
 
 // 通过用户名获取用户在redis中的数据
