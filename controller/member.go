@@ -594,12 +594,8 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.PhoneFMTErr)
 			return
 		}
-		if phone[0:1] != "0" {
-			param["phone"] = "0" + phone
-		} else {
-			param["phone"] = phone
-		}
 
+		param["phone"] = phone
 	}
 
 	if email != "" {
