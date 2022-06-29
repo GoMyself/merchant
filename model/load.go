@@ -224,6 +224,7 @@ func LoadBankcards() error {
 		value, err := helper.JsonMarshal(v)
 		if err == nil {
 			cmd := meta.MerchantRedis.Set(ctx, key, string(value), 0)
+			fmt.Println(cmd.String())
 			err = cmd.Err()
 			if err != nil {
 				_ = pushLog(fmt.Errorf("error : %s", cmd.String()), helper.RedisErr)
