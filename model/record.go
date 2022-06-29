@@ -533,7 +533,9 @@ func recordGameESQuery(index, sortField string, ascending bool, page, pageSize i
 
 	data := GameRecordData{Agg: map[string]string{}}
 	param["tester"] = "1"
-	fmt.Println("param:", param)
+	if page > 100 {
+		aggField = map[string]string{}
+	}
 	total, esData, aggData, err := esSearch(index, sortField, ascending, page, pageSize, gameRecordFields, param, rangeParam, aggField)
 	if err != nil {
 		return data, err

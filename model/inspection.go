@@ -152,7 +152,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 
 	//查活动记录
-	recordList, err := promoRecrodList(username)
+	recordList, err := promoRecrodList(username, cutTime)
 	promoMap := map[string]PromoData{}
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
@@ -313,7 +313,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		if promoMap[v.Pid].Flag != "rescue" {
 			apitype = promoMap[v.Pid].Platforms
 		}
-		validBetAmount, err := EsPlatValidBet(username, apitype, promoMap[v.Pid].StartAt, now)
+		validBetAmount, err := EsPlatValidBet(username, apitype, cutTime, now)
 		if err != nil {
 			return data, mb, errors.New(helper.ESErr)
 		}
@@ -482,12 +482,13 @@ func InspectionHistory(ex g.Ex, page, pageSize int) (PagePromoInspection, error)
 	return data, nil
 }
 
-func promoRecrodList(username string) ([]PromoRecord, error) {
+func promoRecrodList(username string, cutTime int64) ([]PromoRecord, error) {
 
 	ex := g.Ex{
 		"username":      username,
 		"state":         2,
 		"inspect_state": 1,
+		"created_at":    g.Op{"between": exp.NewRangeVal(cutTime, time.Now().Unix())},
 	}
 	var data []PromoRecord
 	t := dialect.From("tbl_promo_record")
