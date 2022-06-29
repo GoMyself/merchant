@@ -111,6 +111,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 	flag := ctx.PostArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
 	username := string(ctx.PostArgs().Peek("username"))                 //会员名
+	beforeName := string(ctx.PostArgs().Peek("before_name"))            //转以前代理名
 	afterName := string(ctx.PostArgs().Peek("after_name"))              //转以后代理名
 	applyName := string(ctx.PostArgs().Peek("apply_name"))              //申请人名
 	reviewName := string(ctx.PostArgs().Peek("review_name"))            //审核人名
@@ -151,7 +152,14 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 
 			ex["username"] = username
 		}
+		if beforeName != "" {
+			if !validator.CheckUName(beforeName, 5, 14) {
+				helper.Print(ctx, false, helper.AgentNameErr)
+				return
+			}
 
+			ex["before_name"] = beforeName
+		}
 		if afterName != "" {
 			if !validator.CheckUName(afterName, 5, 14) {
 				helper.Print(ctx, false, helper.AgentNameErr)
