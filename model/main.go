@@ -140,6 +140,7 @@ func Load() {
 	LoadMembers()
 	LoadMemberLevels()
 
+	_ = LoadBankcards()
 	_ = LoadPrivs()
 	_ = LoadGroups()
 	_ = LoadMemberPlatforms()

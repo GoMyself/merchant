@@ -77,19 +77,24 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = transferRebateRateCheck(mb, destMb)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
 	admin, err := model.AdminToken(ctx)
 	if err != nil {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
 
-	err = model.MemberTransferAg(mb, destMb, admin)
+	// 官方玩家
+	if mb.ParentUid == "4722355249852325" {
+		err = model.MemberTransferAg(mb, destMb, admin, true)
+	} else {
+		err = transferRebateRateCheck(mb, destMb)
+		if err != nil {
+			helper.Print(ctx, false, err.Error())
+			return
+		}
+
+		err = model.MemberTransferAg(mb, destMb, admin, false)
+	}
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -100,19 +105,6 @@ func (that *MemberTransferController) Transfer(ctx *fasthttp.RequestCtx) {
 
 // List  团队转代申请列表
 func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
-
-	//id := string(ctx.QueryArgs().Peek("id"))
-	//page := ctx.QueryArgs().GetUintOrZero("page")
-	//pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
-	//flag := ctx.QueryArgs().GetUintOrZero("flag")                        //1 审核列表 2 历史记录
-	//username := string(ctx.QueryArgs().Peek("username"))                 //会员名
-	//afterName := string(ctx.QueryArgs().Peek("after_name"))              //转以后代理名
-	//applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名
-	//reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名
-	//startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
-	//endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
-	//reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
-	//reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
 
 	id := string(ctx.PostArgs().Peek("id"))
 	page := ctx.PostArgs().GetUintOrZero("page")
@@ -243,7 +235,11 @@ func (that *MemberTransferController) Insert(ctx *fasthttp.RequestCtx) {
 
 	// 没有下线，相当于跳线转代
 	if !model.MemberTransferSubCheck(username) {
-		err = model.MemberTransferAg(mb, destMb, admin)
+		if mb.ParentUid == "4722355249852325" {
+			err = model.MemberTransferAg(mb, destMb, admin, true)
+		} else {
+			err = model.MemberTransferAg(mb, destMb, admin, false)
+		}
 	} else {
 		if model.MemberTransferExist(mb.Username) {
 			helper.Print(ctx, false, helper.TransferApplyExist)

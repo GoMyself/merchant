@@ -129,12 +129,10 @@ func BankcardInsert(realName, bankcardNo string, data BankCard_t) error {
 	}
 
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	_ = meta.MerchantRedis.Do(ctx, "CF.ADD", key, bankcardNo).Err()
+	_ = meta.MerchantRedis.SAdd(ctx, key, bankcardNo).Err()
 
 	BankcardUpdateCache(data.Username)
 	_ = MemberUpdateCache("", data.Username)
-
-	//fmt.Println("BankcardInsert CF.ADD = ", err)
 
 	return nil
 }
@@ -237,38 +235,22 @@ func BankCardExistRedis(bankcardNo string) error {
 	defer pipe.Close()
 
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	ex1Temp := pipe.Do(ctx, "CF.EXISTS", key, bankcardNo)
+	ex1Temp := pipe.SIsMember(ctx, key, bankcardNo)
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	ex2Temp := pipe.Do(ctx, "CF.EXISTS", key, bankcardNo)
+	ex2Temp := pipe.SIsMember(ctx, key, bankcardNo)
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		return errors.New(helper.RedisErr)
 	}
 
-	ex1 := ex1Temp.Val()
-	ex2 := ex2Temp.Val()
-	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_exist:%+v\n", bankcardNo, ex1)
-	fmt.Printf("WARNING bankcardNo:%+v\n redis CF.EXISTS:merchant:bankcard_blacklist:%+v\n", bankcardNo, ex2)
-
-	if v, ok := ex1.(int64); ok && v == 1 {
+	if ex1Temp.Val() {
 		return errors.New(helper.BankCardExistErr)
 	}
 
-	if v, ok := ex2.(int64); ok && v == 1 {
+	if ex2Temp.Val() {
 		return errors.New(helper.BankcardBan)
 	}
 	return nil
-}
-
-// 满足条件的银行卡数量
-func BankCardExist(ex g.Ex) bool {
-
-	var id string
-	ex["prefix"] = meta.Prefix
-	t := dialect.From("tbl_member_bankcard")
-	query, _, _ := t.Select("uid").Where(ex).Limit(1).ToSQL()
-	err := meta.MerchantDB.Get(&id, query)
-	return err != sql.ErrNoRows
 }
 
 func BankcardUpdate(bid, bankID, bankAddr, bankcardNo, state string) error {
@@ -366,11 +348,10 @@ func BankcardUpdateCache(username string) {
 }
 
 func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
-	var (
-		key       string
-		blacklist bool
-	)
 
+	var (
+		key string
+	)
 	user, err := AdminToken(fctx)
 	if err != nil {
 		return errors.New(helper.AccessTokenExpires)
@@ -403,15 +384,9 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 
 	// 插入 mysql 黑名单 数据库前 查询redis，如果存在则 不重新插入mysql 并更新 redis
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	cmd := meta.MerchantRedis.Do(ctx, "CF.EXISTS", key, encRes[enckey])
-	err = cmd.Err()
-	ex1 := cmd.Val()
-	if v, ok := ex1.(int64); ok && v == 1 {
-		// 此卡已经 在 黑名单 中
-		blacklist = false
-	} else {
-		// 此卡不在黑名单，需要更新
-		blacklist = true
+	ok, err := meta.MerchantRedis.SIsMember(ctx, key, encRes[enckey]).Result()
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
 	}
 
 	// 删除冻结的银行卡，直接删除
@@ -450,7 +425,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		"created_name": user["name"],
 	}
 
-	if blacklist {
+	if !ok {
 		/// 黑名单还没有 该银行卡，更新 mysql tbl_blacklist
 		query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
 		_, err = tx.Exec(query)
@@ -470,13 +445,15 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	defer pipe.Close()
 
 	key = fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	pipe.Do(ctx, "CF.DEL", key, encRes[enckey])
-	if blacklist {
+	pipe.SAdd(ctx, key, encRes[enckey])
+	if !ok {
 		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-		pipe.Do(ctx, "CF.ADD", key, encRes[enckey])
+		pipe.SAdd(ctx, key, encRes[enckey])
 	}
-
-	_, _ = pipe.Exec(ctx)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
 
 	BankcardUpdateCache(data.Username)
 	return nil

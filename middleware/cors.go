@@ -2,8 +2,8 @@ package middleware
 
 import (
 	//"fmt"
-	"strings"
 	"github.com/valyala/fasthttp"
+	"strings"
 )
 
 func handlePreflight(ctx *fasthttp.RequestCtx) {
@@ -19,7 +19,7 @@ func handlePreflight(ctx *fasthttp.RequestCtx) {
 	}
 
 	//ctx.Response.Header.Set("Access-Control-Allow-Origin", originHeader)
-    ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
+	ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 	ctx.Response.Header.Set("Access-Control-Allow-Methods", method)
 	if len(headers) > 0 {
 		ctx.Response.Header.Set("Access-Control-Allow-Headers", strings.Join(headers, ", "))
@@ -32,7 +32,7 @@ func handleActual(ctx *fasthttp.RequestCtx) {
 	if len(originHeader) == 0 {
 		return
 	}
-    ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
+	ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 	//ctx.Response.Header.Set("Access-Control-Allow-Origin", originHeader)
 	ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
 }

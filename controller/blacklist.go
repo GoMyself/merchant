@@ -143,9 +143,8 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
-
 	page := ctx.QueryArgs().GetUintOrZero("page")
-	page_size := ctx.QueryArgs().GetUintOrZero("page_size")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	ty := ctx.QueryArgs().GetUintOrZero("ty")
 
 	if _, ok := model.BlackTy[ty]; !ok {
@@ -158,10 +157,9 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 	}
 	value := string(ctx.QueryArgs().Peek("value"))
 	if len(value) > 0 {
-
 		ex["value"] = value
 	}
-	data, err := model.BlacklistList(uint(page), uint(page_size), startTime, endTime, ty, ex)
+	data, err := model.BlacklistList(uint(page), uint(pageSize), startTime, endTime, ty, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -171,6 +169,7 @@ func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
 }
 
 func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
+
 	ty := ctx.PostArgs().GetUintOrZero("ty")
 	if _, ok := model.BlackTy[ty]; !ok {
 		helper.Print(ctx, false, helper.ParamErr)
@@ -271,6 +270,7 @@ func (that *BlacklistController) ClearPhone(ctx *fasthttp.RequestCtx) {
 	err := model.BlacklistClearPhone(phone)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
+		return
 	}
 
 	helper.Print(ctx, true, "success")

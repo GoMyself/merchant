@@ -5,15 +5,12 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-
 type middleware_t func(ctx *fasthttp.RequestCtx) error
 
 var MiddlewareList = []middleware_t{
 	//CorsMiddleware,
 	CheckTokenMiddleware,
-	
 }
-
 
 func Use(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 

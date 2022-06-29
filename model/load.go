@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
@@ -58,11 +59,11 @@ func LoadLinks() {
 
 func LoadMembers() {
 
-	query := "update tbl_member_rebate_info set zr = 0.4,ty=0.4,fc=0.4,qp=0.4,dj=0.3,dz=0.2,`by`=0.2,cg_high_rebate=9.8,cg_official_rebate=9.7 where uid = 4722355249852325 or parent_uid = 4722355249852325;"
-	_, _ = meta.MerchantDB.Exec(query)
+	//query := "update tbl_member_rebate_info set zr = 0.4,ty=0.4,fc=0.4,qp=0.4,dj=0.3,dz=0.2,`by`=0.2,cg_high_rebate=9.8,cg_official_rebate=9.7 where uid = 4722355249852325 or parent_uid = 4722355249852325;"
+	//_, _ = meta.MerchantDB.Exec(query)
 
 	var data []Member
-	query, _, _ = dialect.From("tbl_members").Where(g.Ex{}).Select(colsMember...).ToSQL()
+	query, _, _ := dialect.From("tbl_members").Where(g.Ex{}).Select(colsMember...).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -76,14 +77,33 @@ func LoadMembers() {
 		p += 1
 	}
 
+	phoneKey := fmt.Sprintf("%s:phoneExist", meta.Prefix)
+	realnameKey := fmt.Sprintf("%s:realnameExist", meta.Prefix)
+	emailKey := fmt.Sprintf("%s:emailExist", meta.Prefix)
+	zaloKey := fmt.Sprintf("%s:zaloExist", meta.Prefix)
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	pipe.Unlink(ctx, phoneKey)
+	pipe.Unlink(ctx, realnameKey)
+	pipe.Unlink(ctx, emailKey)
+	pipe.Unlink(ctx, zaloKey)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		_ = pushLog(err, helper.RedisErr)
+		return
+	}
+	_ = pipe.Close()
+
 	for i := 0; i < p; i++ {
 
 		pd := data[i*LOAD_PAGE:]
 		if i != p-1 {
 			pd = data[i*LOAD_PAGE : (i+1)*LOAD_PAGE]
 		}
+		var uids []string
 		pipe := meta.MerchantRedis.TxPipeline()
 		for _, v := range pd {
+			uids = append(uids, v.UID)
 			key := meta.Prefix + ":member:" + v.Username
 			fields := []interface{}{"uid", v.UID, "username", v.Username, "password", v.Password, "birth", v.Birth, "birth_hash", v.BirthHash, "realname_hash", v.RealnameHash, "email_hash", v.EmailHash, "phone_hash", v.PhoneHash, "zalo_hash", v.ZaloHash, "prefix", v.Prefix, "tester", v.Tester, "withdraw_pwd", v.WithdrawPwd, "regip", v.Regip, "reg_device", v.RegDevice, "reg_url", v.RegUrl, "created_at", v.CreatedAt, "last_login_ip", v.LastLoginIp, "last_login_at", v.LastLoginAt, "source_id", v.SourceId, "first_deposit_at", v.FirstDepositAt, "first_deposit_amount", v.FirstDepositAmount, "first_bet_at", v.FirstBetAt, "first_bet_amount", v.FirstBetAmount, "", v.SecondDepositAt, "", v.SecondDepositAmount, "top_uid", v.TopUid, "top_name", v.TopName, "parent_uid", v.ParentUid, "parent_name", v.ParentName, "bankcard_total", v.BankcardTotal, "last_login_device", v.LastLoginDevice, "last_login_source", v.LastLoginSource, "remarks", v.Remarks, "state", v.State, "level", v.Level, "balance", v.Balance, "lock_amount", v.LockAmount, "commission", v.Commission, "group_name", v.GroupName, "agency_type", v.AgencyType, "address", v.Address, "avatar", v.Avatar}
 			pipe.Del(ctx, key)
@@ -91,13 +111,103 @@ func LoadMembers() {
 			pipe.Persist(ctx, key)
 		}
 		_, err = pipe.Exec(ctx)
+		_ = pipe.Close()
 		if err != nil {
 			_ = pushLog(err, helper.RedisErr)
 			return
 		}
 
-		_ = pipe.Close()
+		d, err := grpc_t.DecryptAll(uids, false, []string{"realname", "email", "phone", "zalo"})
+		if err != nil {
+			_ = pushLog(err, helper.GetRPCErr)
+			return
+		}
+
+		pipe1 := meta.MerchantRedis.TxPipeline()
+		for _, v := range uids {
+			if d[v]["realname"] != "" {
+				//fmt.Println(realnameKey, d[v]["realname"])
+				pipe1.SAdd(ctx, realnameKey, d[v]["realname"])
+			}
+			if d[v]["email"] != "" {
+				//fmt.Println(emailKey, d[v]["email"])
+				pipe1.SAdd(ctx, emailKey, d[v]["email"])
+			}
+			if d[v]["phone"] != "" {
+				//fmt.Println(phoneKey, d[v]["phone"])
+				pipe1.SAdd(ctx, phoneKey, d[v]["phone"])
+			}
+			if d[v]["zalo"] != "" {
+				//fmt.Println(zaloKey, d[v]["zalo"])
+				pipe1.SAdd(ctx, zaloKey, d[v]["zalo"])
+			}
+		}
+		_, err = pipe1.Exec(ctx)
+		_ = pipe1.Close()
+		if err != nil {
+			_ = pushLog(err, helper.RedisErr)
+			return
+		}
 	}
+}
+
+func LoadBankcards() error {
+
+	var (
+		data []BankCard_t
+	)
+	query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
+	_ = meta.MerchantRedis.Unlink(ctx, key).Err()
+
+	total := len(data)
+	p := total / LOAD_PAGE
+	if total%LOAD_PAGE > 0 {
+		p += 1
+	}
+
+	for i := 0; i < p; i++ {
+
+		pd := data[i*LOAD_PAGE:]
+		if i != p-1 {
+			pd = data[i*LOAD_PAGE : (i+1)*LOAD_PAGE]
+		}
+
+		var (
+			ids       []string
+			encFields []string
+		)
+		for _, v := range pd {
+			ids = append(ids, v.UID)
+			encFields = append(encFields, "bankcard"+v.ID)
+		}
+		encRes, err := grpc_t.DecryptAll(ids, false, encFields)
+		if err != nil {
+			fmt.Println("grpc_t.Decrypt err = ", err)
+			return errors.New(helper.GetRPCErr)
+		}
+
+		pipe := meta.MerchantRedis.TxPipeline()
+		for _, v := range pd {
+			if encRes[v.UID]["bankcard"+v.ID] != "" {
+				fmt.Println(key, encRes[v.UID]["bankcard"+v.ID])
+				pipe.SAdd(ctx, key, encRes[v.UID]["bankcard"+v.ID])
+			}
+		}
+		_, err = pipe.Exec(ctx)
+		_ = pipe.Close()
+		if err != nil {
+			return pushLog(err, helper.RedisErr)
+		}
+	}
+
+	return nil
 }
 
 func LoadMemberRebates() error {

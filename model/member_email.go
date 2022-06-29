@@ -29,7 +29,7 @@ type EmailData_t struct {
 	S uint      `json:"s"`
 }
 
-func EmailList(page, pageSize uint, start, end, username, email, state string, ty int) (EmailData_t, error) {
+func EmailList(page, pageSize uint, start, end, username, email string, state, ty int) (EmailData_t, error) {
 
 	ex := g.Ex{}
 	data := EmailData_t{}
@@ -42,7 +42,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 		ex["mail"] = email
 	}
 
-	if state != "" {
+	if state != 0 {
 		ex["state"] = state
 	}
 
@@ -69,6 +69,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 	t := dialect.From("mail_log")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("*")).Where(ex).ToSQL()
+		fmt.Println(query)
 		err := meta.MerchantTD.Get(&data.T, query)
 		if err == sql.ErrNoRows {
 			return data, nil
@@ -86,6 +87,7 @@ func EmailList(page, pageSize uint, start, end, username, email, state string, t
 
 	offset := (page - 1) * pageSize
 	query, _, _ := t.Select("id", "ty", "state", "username", "ip", "code", "source", "mail", "create_at", "updated_at").Where(ex).Offset(offset).Limit(pageSize).Order(g.C("ts").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		body := fmt.Errorf("%s,[%s]", err.Error(), query)

@@ -29,7 +29,7 @@ func MemberTransferSubCheck(username string) bool {
 }
 
 //MemberTransferAg 跳线转代
-func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
+func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial bool) error {
 
 	tx, err := meta.MerchantDB.Begin() // 开启事务
 	if err != nil {
@@ -48,6 +48,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		"tester":      destMb.Tester,
 	}
 	query, _, _ := dialect.Update("tbl_members").Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -55,6 +56,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 	}
 
 	query = fmt.Sprintf("delete from tbl_members_tree where descendant = %s and prefix = '%s'", mb.UID, meta.Prefix)
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -62,6 +64,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 	}
 
 	treeNode := MemberClosureInsert(mb.UID, destMb.UID)
+	fmt.Println(treeNode)
 	_, err = tx.Exec(treeNode)
 	if err != nil {
 		_ = tx.Rollback()
@@ -90,13 +93,37 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 		Prefix:        meta.Prefix,
 	}
 	query, _, _ = dialect.Insert("tbl_agency_transfer_record").Rows(transRecord).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(g.Record{"parent_uid": destMb.UID}).Where(g.Ex{"uid": mb.UID}).ToSQL()
+	rebateRecord := g.Record{
+		"parent_uid": destMb.UID,
+	}
+	dest := MemberRebateResult_t{}
+	// 官方会员转代,默认返水比例设置为和转移到的代理一致
+	if isOfficial {
+		dest, err = MemberRebateFindOne(destMb.UID)
+		if err != nil {
+			return err
+		}
+
+		rebateRecord["zr"] = dest.ZR.StringFixed(1)
+		rebateRecord["ty"] = dest.TY.StringFixed(1)
+		rebateRecord["dj"] = dest.DJ.StringFixed(1)
+		rebateRecord["dz"] = dest.DZ.StringFixed(1)
+		rebateRecord["by"] = dest.BY.StringFixed(1)
+		rebateRecord["cp"] = dest.CP.StringFixed(1)
+		rebateRecord["qp"] = dest.QP.StringFixed(1)
+		rebateRecord["fc"] = dest.FC.StringFixed(1)
+		rebateRecord["cg_official_rebate"] = dest.CGOfficialRebate.StringFixed(2)
+		rebateRecord["cg_high_rebate"] = dest.CGHighRebate.StringFixed(2)
+	}
+	query, _, _ = dialect.Update("tbl_member_rebate_info").Set(rebateRecord).Where(g.Ex{"uid": mb.UID}).ToSQL()
+	fmt.Println(query)
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -104,6 +131,8 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string) error {
 	}
 
 	_ = tx.Commit()
+
+	_ = MemberRebateUpdateCache1(mb.UID, dest)
 
 	param := map[string]interface{}{
 		"uid":         mb.UID,
