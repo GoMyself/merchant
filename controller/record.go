@@ -308,7 +308,7 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 		page = 1
 	}
 
-	if pageSize < 10 || pageSize > 1000 {
+	if pageSize < 10 || pageSize > 10000 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
