@@ -440,7 +440,7 @@ func groupByEs(page, pageSize int, other map[string]string, param map[string]int
 	//打印es查询json
 	esService := meta.ES.Search().Query(boolQuery).TrackTotalHits(true).Size(0).Sort(other["range_field"], false)
 	fmt.Println("boolQuery:", boolQuery)
-	if len(other["interal"]) > 0 && pageSize <= 100 {
+	if len(other["interal"]) > 0 {
 		//"1d"
 		timeAgg := elastic.NewDateHistogramAggregation().Field(other["agg_group_field"]).FixedInterval(other["interal"]).MinDocCount(1) //.Keyed(true) //.Format("yyyy-MM-dd")
 		timeAgg.SubAggregation("total", elastic.NewValueCountAggregation().Field(other["agg_group_field"]))
@@ -453,7 +453,7 @@ func groupByEs(page, pageSize int, other map[string]string, param map[string]int
 		esService = esService.Aggregation(other["agg_group_field"], timeAgg)
 	}
 
-	if len(other["interal"]) == 0 && pageSize <= 100 {
+	if len(other["interal"]) == 0 {
 		fieldAgg := elastic.NewTermsAggregation().Field(other["agg_group_field"]).Size(1000)
 		fieldAgg.SubAggregation("total", elastic.NewValueCountAggregation().Field(other["agg_group_field"]))
 		// 聚合条件
