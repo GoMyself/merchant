@@ -169,10 +169,10 @@ func LoadBankcards() error {
 	}
 
 	for _, v := range data {
-		if _, ok := bcMap[v.UID]; ok {
-			bcMap[v.UID] = append(bcMap[v.UID], v)
+		if _, ok := bcMap[v.Username]; ok {
+			bcMap[v.Username] = append(bcMap[v.Username], v)
 		} else {
-			bcMap[v.UID] = []BankCard_t{v}
+			bcMap[v.Username] = []BankCard_t{v}
 		}
 	}
 
@@ -220,9 +220,10 @@ func LoadBankcards() error {
 		}
 	}
 
-	for _, v := range bcMap {
+	for k, v := range bcMap {
 		value, err := helper.JsonMarshal(v)
 		if err == nil {
+			key := fmt.Sprintf("%s:merchant:cbc:%s", meta.Prefix, k)
 			cmd := meta.MerchantRedis.Set(ctx, key, string(value), 0)
 			fmt.Println(cmd.String())
 			err = cmd.Err()
