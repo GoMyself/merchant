@@ -1170,52 +1170,75 @@ func MemberRemarkInsert(file, msg, adminName string, names []string, createdAt i
 
 	for username, member := range members {
 
-		//log := map[string]string{
-		//	"id":         helper.GenId(),
-		//	"created_at": fmt.Sprintf("%d", createdAt),
-		//	"admin_name": adminName,
-		//	"msg":        msg,
-		//	"files":      file,
-		//	"uid":        member.UID,
-		//	"username":   username,
-		//}
-		//err = tdlog.WriteLog("member_remark_log", log)
-		//if err != nil {
-		//	fmt.Println("member write member_remark_log error")
-		//}
-
-		//log := MemberRemarksLog{
-		//	ID:        helper.GenId(),
-		//	CreatedAt: createdAt,
-		//	AdminName: adminName,
-		//	File:      file,
-		//	Msg:       msg,
-		//	UID:       member.UID,
-		//	Username:  username,
-		//	Prefix:    meta.Prefix,
-		//}
-		//err = meta.Zlog.Post(esPrefixIndex("member_remarks_log"), log)
-		//if err != nil {
-		//	fmt.Println("member write member_remarks_log error")
-		//}
 		rc := g.Record{
 			"id":           helper.GenId(),
 			"uid":          member.UID,
 			"username":     username,
 			"msg":          msg,
 			"file":         file,
-			"created_name": adminName,
 			"created_at":   createdAt,
+			"created_name": adminName,
+			"updated_at":   0,
+			"updated_name": "",
+			"is_delete":    0,
 			"prefix":       meta.Prefix,
 			"ts":           time.Now().In(loc).UnixMicro(),
 		}
-
 		query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
 		fmt.Println(query)
 		_, err = meta.MerchantTD.Exec(query)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
+	}
+
+	return nil
+}
+
+// 会员备注修改
+func MemberRemarkUpdate(ts, file, msg, adminName string, updatedAt int64) error {
+
+	t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", ts, loc)
+	if err != nil {
+		return pushLog(err, helper.TimeTypeErr)
+	}
+
+	rc := g.Record{
+		"msg":          msg,
+		"file":         file,
+		"updated_at":   updatedAt,
+		"updated_name": adminName,
+		"ts":           t.UnixMicro(),
+	}
+	query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantTD.Exec(query)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return nil
+}
+
+// 会员备注删除
+func MemberRemarkDelete(ts, adminName string, updatedAt int64) error {
+
+	t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", ts, loc)
+	if err != nil {
+		return pushLog(err, helper.TimeTypeErr)
+	}
+
+	rc := g.Record{
+		"updated_at":   updatedAt,
+		"updated_name": adminName,
+		"is_delete":    1,
+		"ts":           t.UnixMicro(),
+	}
+	query, _, _ := dialect.Insert("member_remarks_log").Rows(&rc).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantTD.Exec(query)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
 	return nil
