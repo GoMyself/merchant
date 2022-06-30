@@ -204,6 +204,7 @@ type MemberRemarkLogData struct {
 // 用户备注日志
 type MemberRemarksLog struct {
 	ID          string `msg:"id" json:"id" db:"id"`
+	TS          string `msg:"ts" json:"ts" db:"ts"`
 	UID         string `msg:"uid" json:"uid" db:"uid"`
 	Username    string `msg:"username" json:"username" db:"username"`
 	Msg         string `msg:"msg" json:"msg" db:"msg"`
