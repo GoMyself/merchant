@@ -176,15 +176,17 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/member/tags/cancel", memberCtl.CancelTags)
 	// 会员管理-会员列表-解除密码限制/接触短信限制/场馆钱包限制
 	get("/merchant/member/retry/reset", memberCtl.RetryReset)
-	// 会员管理-会员列表-添加备注
-	post("/merchant/member/remark/insert", memberCtl.RemarkLogInsert)
 	// 会员管理-会员列表-数据概览
 	get("/merchant/member/overview", memberCtl.Overview)
-
+	// 会员管理-会员列表-会员详情
 	get("/merchant/member/detail", memberCtl.Detail)
-
+	// 会员管理-会员列表-添加备注
+	post("/merchant/member/remark/insert", memberCtl.RemarkLogInsert)
 	// 会员管理-会员列表-基本信息-备注信息
 	get("/merchant/member/remark/list", memberCtl.RemarkLogList)
+	// 会员管理-会员列表-修改备注
+	post("/merchant/member/remark/update", memberCtl.RemarkLogInsert)
+
 	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
 	post("/merchant/member/history", memberCtl.History)
 	// 查询用户真实姓名/邮箱/手机号/银行卡号修改历史
