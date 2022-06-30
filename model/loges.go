@@ -14,7 +14,9 @@ import (
 
 func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSize int) (MemberRemarkLogData, error) {
 
-	ex := g.Ex{}
+	ex := g.Ex{
+		"is_delete": g.Op{"neq": 1},
+	}
 
 	if uid != "" {
 		ex["uid"] = uid

@@ -730,6 +730,57 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, helper.Success)
 }
 
+// 会员备注修改
+func (that *MemberController) RemarkLogUpdate(ctx *fasthttp.RequestCtx) {
+
+	ts := string(ctx.PostArgs().Peek("ts"))
+	file := string(ctx.PostArgs().Peek("file"))
+	msg := string(ctx.PostArgs().Peek("msg"))
+
+	if !validator.CheckStringLength(msg, 1, 300) {
+		helper.Print(ctx, false, helper.ContentLengthErr)
+		return
+	}
+
+	if file != "" && len(file) < 5 {
+		helper.Print(ctx, false, helper.FileURLErr)
+		return
+	}
+
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MemberRemarkUpdate(ts, file, msg, admin["name"], ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
+// 会员备注删除
+func (that *MemberController) RemarkLogDelete(ctx *fasthttp.RequestCtx) {
+
+	ts := string(ctx.PostArgs().Peek("ts"))
+	admin, err := model.AdminToken(ctx)
+	if err != nil {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+
+	err = model.MemberRemarkDelete(ts, admin["name"], ctx.Time().Unix())
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
 // 会员管理-会员列表-数据概览
 func (that MemberController) Overview(ctx *fasthttp.RequestCtx) {
 
