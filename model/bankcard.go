@@ -240,7 +240,7 @@ func BankCardExistRedis(bankcardNo string) error {
 	ex2Temp := pipe.SIsMember(ctx, key, bankcardNo)
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		return errors.New(helper.RedisErr)
+		return pushLog(err, helper.RedisErr)
 	}
 
 	if ex1Temp.Val() {
