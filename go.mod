@@ -18,6 +18,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-json v0.9.4
 	github.com/hprose/hprose-golang/v3 v3.0.8
+	github.com/ip2location/ip2location-go/v9 v9.4.0
 	github.com/ipipdotnet/ipdb-go v1.3.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/json-iterator/go v1.1.12
@@ -36,6 +37,7 @@ require (
 	github.com/tinylib/msgp v1.1.6
 	github.com/valyala/fasthttp v1.36.0
 	github.com/valyala/fastjson v1.6.3
+	github.com/valyala/fasttemplate v1.2.1
 	github.com/wI2L/jettison v0.7.3
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
 	go.uber.org/automaxprocs v1.4.0
