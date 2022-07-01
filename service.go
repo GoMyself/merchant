@@ -20,7 +20,7 @@ func telegramBotNotice(program, gitReversion, buildTime, buildGoVersion, flag st
 	}
 
 	bot.Debug = false
-	str := "\U00002733	\U00002733	\U00002733\r\ndatetime: \t%s\r\nprogram: \t%s\r\nGitReversion: \t%s\r\nBuildTime: \t%s\r\nBuildGoVersion: \t%s\r\nhostname: \t%s\r\nIP: \t%s\r\nflag: \t%s\n\U00002728 \U00002728 \U00002728\r\n"
+	str := "\U00002733	\U00002733	\U00002733\r\n⚠️datetime: \t%s\r\n⚠️program: \t%s\r\n⚠️GitReversion: \t%s\r\n⚠️BuildTime: \t%s\r\n⚠️BuildGoVersion: \t%s\r\n⚠️hostname: \t%s\r\n⚠️IP: \t%s\r\n⚠️flag: \t%s\n\U00002728 \U00002728 \U00002728\r\n"
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatal(err)
