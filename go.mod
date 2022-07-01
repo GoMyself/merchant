@@ -19,6 +19,7 @@ require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/goccy/go-json v0.9.4
 	github.com/hprose/hprose-golang/v3 v3.0.8
+	github.com/ip2location/ip2location-go/v9 v9.4.0
 	github.com/ipipdotnet/ipdb-go v1.3.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/json-iterator/go v1.1.12
