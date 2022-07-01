@@ -116,7 +116,7 @@ func main() {
 
 	// 启动小飞机推送版本信息
 	if !cfg.IsDev {
-		telegramBotNotice(mt.Program, gitReversion, buildTime, buildGoVersion, "api")
+		telegramBotNotice(mt.Program, gitReversion, buildTime, buildGoVersion, "api", cfg.Prefix)
 	}
 
 	if err := srv.ListenAndServe(cfg.Port.Merchant); err != nil {
