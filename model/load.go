@@ -154,13 +154,26 @@ func LoadMembers() {
 func LoadBankcards() error {
 
 	var (
-		data []BankCard_t
+		data  []BankCard_t
+		bcMap = make(map[string][]BankCard_t)
 	)
 	query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
+	}
+
+	if len(data) == 0 {
+		return errors.New(helper.RecordNotExistErr)
+	}
+
+	for _, v := range data {
+		if _, ok := bcMap[v.Username]; ok {
+			bcMap[v.Username] = append(bcMap[v.Username], v)
+		} else {
+			bcMap[v.Username] = []BankCard_t{v}
+		}
 	}
 
 	key := fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
@@ -204,6 +217,19 @@ func LoadBankcards() error {
 		_ = pipe.Close()
 		if err != nil {
 			return pushLog(err, helper.RedisErr)
+		}
+	}
+
+	for k, v := range bcMap {
+		value, err := helper.JsonMarshal(v)
+		if err == nil {
+			key := fmt.Sprintf("%s:merchant:cbc:%s", meta.Prefix, k)
+			cmd := meta.MerchantRedis.Set(ctx, key, string(value), 0)
+			fmt.Println(cmd.String())
+			err = cmd.Err()
+			if err != nil {
+				_ = pushLog(fmt.Errorf("error : %s", cmd.String()), helper.RedisErr)
+			}
 		}
 	}
 
