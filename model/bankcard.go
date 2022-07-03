@@ -353,10 +353,10 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	var (
 		key string
 	)
-	user, err := AdminToken(fctx)
-	if err != nil {
-		return errors.New(helper.AccessTokenExpires)
-	}
+	//user, err := AdminToken(fctx)
+	//if err != nil {
+	//	return errors.New(helper.AccessTokenExpires)
+	//}
 
 	ex := g.Ex{
 		"id": bid,
@@ -383,14 +383,13 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 		return errors.New(helper.GetRPCErr)
 	}
 
-	// 插入 mysql 黑名单 数据库前 查询redis，如果存在则 不重新插入mysql 并更新 redis
+	// 黑名单中的银行卡不能删除
 	key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-	ok, err := meta.MerchantRedis.SIsMember(ctx, key, encRes[enckey]).Result()
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
+	if meta.MerchantRedis.SIsMember(ctx, key, encRes[enckey]).Val() {
+		return errors.New(helper.OperateFailed)
 	}
 
-	// 删除冻结的银行卡，直接删除
+	// 删除银行卡，直接删除
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
 		return pushLog(err, helper.DBErr)
@@ -400,7 +399,7 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
-		return errors.New(helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
 	record := g.Record{
@@ -408,50 +407,19 @@ func BankcardDelete(fctx *fasthttp.RequestCtx, bid string) error {
 	}
 	query, _, _ = dialect.Update("tbl_members").Set(record).Where(g.Ex{"uid": mb.UID}).ToSQL()
 	_, err = tx.Exec(query)
-
 	if err != nil {
 		_ = tx.Rollback()
-		return errors.New(helper.DBErr)
-	}
-
-	// 会员删除银行卡，加入黑名单
-	bankcard_blacklist_record := g.Record{
-		"id":           helper.GenId(),
-		"prefix":       meta.Prefix,
-		"value":        encRes[enckey],
-		"remark":       "",
-		"ty":           "5",
-		"created_at":   fctx.Time().In(loc).Unix(),
-		"created_uid":  user["id"],
-		"created_name": user["name"],
-	}
-
-	if !ok {
-		/// 黑名单还没有 该银行卡，更新 mysql tbl_blacklist
-		query, _, _ = dialect.Insert("tbl_blacklist").Rows(bankcard_blacklist_record).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return errors.New(helper.DBErr)
-		}
+		return pushLog(err, helper.DBErr)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return errors.New(helper.DBErr)
+		return pushLog(err, helper.DBErr)
 	}
 
-	/// 更新redis
-	pipe := meta.MerchantRedis.Pipeline()
-	defer pipe.Close()
-
+	// 更新redis
 	key = fmt.Sprintf("%s:merchant:bankcard_exist", meta.Prefix)
-	pipe.SAdd(ctx, key, encRes[enckey])
-	if !ok {
-		key = fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
-		pipe.SAdd(ctx, key, encRes[enckey])
-	}
-	_, err = pipe.Exec(ctx)
+	err = meta.MerchantRedis.SRem(ctx, key, encRes[enckey]).Err()
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
