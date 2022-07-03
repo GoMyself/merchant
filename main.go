@@ -56,9 +56,7 @@ func main() {
 	mt.BetDB = conn.InitDB(cfg.Db.Bet.Addr, cfg.Db.Bet.MaxIdleConn, cfg.Db.Bet.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisCluster(cfg.Redis.Addr, cfg.Redis.Password)
 
-	mt.ES = conn.InitES(cfg.Es.Host, cfg.Es.Username, cfg.Es.Password)
-	mt.AccessEs = conn.InitES(cfg.AccessEs.Host, cfg.AccessEs.Username, cfg.AccessEs.Password)
-
+	mt.TiDB = conn.InitDB(cfg.Db.Tidb.Addr, cfg.Db.Tidb.MaxIdleConn, cfg.Db.Tidb.MaxOpenConn)
 	bin := strings.Split(os.Args[0], "/")
 	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin

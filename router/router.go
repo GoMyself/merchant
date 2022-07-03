@@ -308,9 +308,6 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/shorturl/set", shortURLCtl.Set)
 	// 短链接-域名查询
 	get("/merchant/shorturl/get", shortURLCtl.Get)
-
-	//查询会员登录日志
-	get("/merchant/blacklist/assoclog", blacklistCtl.AssociateList)
 	//查询会员登录日志
 	get("/merchant/blacklist/loginlog", blacklistCtl.LogList)
 

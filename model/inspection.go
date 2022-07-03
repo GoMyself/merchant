@@ -6,7 +6,6 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"merchant/contrib/helper"
 	"strings"
@@ -548,172 +547,83 @@ func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection
 func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.Decimal, error) {
 
 	waterFlow := decimal.NewFromFloat(0.0000)
-	if startAt == 0 && endAt == 0 {
+	if startAt == 0 || endAt == 0 {
 		return waterFlow, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	boolQuery := elastic.NewBoolQuery()
-
-	filters := make([]elastic.Query, 0)
-	rg := elastic.NewRangeQuery("settle_time").Gte(startAt * 1000)
-	if startAt == 0 {
-		rg.IncludeLower(false)
-	}
-	if endAt == 0 {
-		rg.IncludeUpper(false)
-	}
-
-	if endAt > 0 {
-		rg.Lt(endAt * 1000)
-	}
-
-	filters = append(filters, rg)
-	boolQuery.Filter(filters...)
-
-	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("name", username))
-	fmt.Println("pid:", pid)
+	ex := g.Ex{}
 	if strings.Contains(pid, ",") {
-		shouldQuery := elastic.NewBoolQuery()
-		if len(pid) > 0 {
-			pids := strings.Split(pid, ",")
-			for _, v := range pids {
-				if len(v) <= 20 {
-					//查询域名,采用模糊匹配
-					shouldQuery.Should(elastic.NewTermQuery("api_type", v))
-				}
-			}
-			boolQuery.Must(shouldQuery)
-		}
+		pids := strings.Split(pid, ",")
+		ex["api_type"] = pids
 	} else if len(pid) > 0 {
-		terms = append(terms, elastic.NewTermQuery("api_type", pid))
+		ex["api_type"] = pid
 	}
-	terms = append(terms, elastic.NewTermQuery("flag", 1))
+	ex["flag"] = 1
+	ex["username"] = username
+	vaildAmount := sql.NullFloat64{}
+	ex["settle_time"] = g.Op{"between": exp.NewRangeVal(startAt*1000, endAt*1000)}
 
-	boolQuery.Must(terms...)
-
-	fsc := elastic.NewFetchSourceContext(true)
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(pullPrefixIndex("tbl_game_record")).
-		Aggregation("valid_bet_amount_agg", elastic.NewSumAggregation().Field("valid_bet_amount")).Do(ctx)
-	if err != nil {
-		fmt.Println(err)
-		return waterFlow, err
+	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
+	err := meta.TiDB.Get(&vaildAmount, query)
+	if err != nil || vaildAmount.Valid {
+		return decimal.Zero, pushLog(err, helper.DBErr)
 	}
 
-	validBet, ok := resOrder.Aggregations.Sum("valid_bet_amount_agg")
-	if validBet == nil || !ok {
-		return waterFlow, errors.New("agg error")
-	}
-
-	return decimal.NewFromFloat(*validBet.Value), nil
+	return decimal.NewFromFloat(vaildAmount.Float64), nil
 }
 
 func EsDepost(username string, startAt, endAt int64) (FDepositData, error) {
 
 	data := FDepositData{}
-
-	query := elastic.NewBoolQuery()
-
-	query.Filter(elastic.NewTermsQuery("state", DepositSuccess))
-
-	query.Filter(elastic.NewTermQuery("username", username))
-
-	query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_deposit"), "created_at", 1, 100, depositFields, query, nil)
+	ex := g.Ex{
+		"state":      DepositSuccess,
+		"username":   username,
+		"prefix":     meta.Prefix,
+		"created_at": g.Op{"between": exp.NewRangeVal(startAt, endAt)},
+	}
+	query, _, _ := dialect.From("tbl_deposit").Select(colsDeposit...).Where(ex).Order(g.C("created_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
-	var names []string
-	data.T = t
-	for _, v := range esResult {
-
-		record := Deposit{}
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }
 
-func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
+func EsDividend(username string, startAt, endAt int64) (DividendData, error) {
 
-	data := DividendEsData{}
-	query := elastic.NewBoolQuery()
-	query.Filter(elastic.NewTermQuery("username", username))
-	query.MustNot(elastic.NewTermsQuery("ty", DividendPromo))
-	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
-	query.Filter(elastic.NewTermQuery("water_limit", 2))
-
-	if startAt != 0 && endAt != 0 {
-
-		if startAt >= endAt {
-			return data, errors.New(helper.QueryTimeRangeErr)
-		}
-
-		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
+	data := DividendData{}
+	ex := g.Ex{
+		"ty":          g.Op{"neq": DividendPromo},
+		"username":    username,
+		"prefix":      meta.Prefix,
+		"review_at":   g.Op{"between": exp.NewRangeVal(startAt, endAt)},
+		"water_limit": 2,
 	}
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	fmt.Println("query:", query)
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_member_dividend"), "review_at", 1, 100, dividendFields, query, nil)
+	query, _, _ := dialect.From("tbl_member_dividend").Select(colsDividend...).Where(ex).Order(g.C("review_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
-	var names []string
-	data.T = t
-	for _, v := range esResult {
-
-		record := Dividend{}
-		fmt.Println(string(v.Source))
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		fmt.Println(record)
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }
 
 func EsAdjust(username string, startTime, endTime int64) (AdjustData, error) {
 
 	data := AdjustData{}
-	query := elastic.NewBoolQuery()
-	if startTime != 0 && endTime != 0 {
-
-		query.Filter(elastic.NewRangeQuery("review_at").Gte(startTime).Lte(endTime))
+	ex := g.Ex{
+		"state":       AdjustReviewPass,
+		"username":    username,
+		"prefix":      meta.Prefix,
+		"review_at":   g.Op{"between": exp.NewRangeVal(startTime, endTime)},
+		"is_turnover": 1,
 	}
-	query.Filter(elastic.NewTermQuery("is_turnover", "1"))
-	query.Filter(elastic.NewTermQuery("state", AdjustReviewPass))
-	query.Filter(elastic.NewTermQuery("username", username))
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_member_adjust"), "apply_at", 1, 100, adjustFields, query, nil)
+	query, _, _ := dialect.From("tbl_member_adjust").Select(colsMemberAdjust...).Where(ex).Order(g.C("apply_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
-		return data, err
+		return data, pushLog(err, helper.DBErr)
 	}
-
-	data.T = t
-	var names []string
-	for _, v := range esResult {
-
-		record := MemberAdjust{}
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }
