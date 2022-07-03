@@ -250,12 +250,6 @@ type DividendData struct {
 	Agg map[string]string `json:"agg"`
 }
 
-type DividendEsData struct {
-	T   int64             `json:"t"`
-	D   []Dividend        `json:"d"`
-	Agg map[string]string `json:"agg"`
-}
-
 type Dividend struct {
 	ID            string  `db:"id" json:"id"`
 	UID           string  `db:"uid" json:"uid"`
@@ -933,9 +927,9 @@ type WithdrawListData struct {
 
 // 返水数据
 type RebateData struct {
-	T   int64                `json:"t"`
-	D   []CommissionTransfer `json:"d"`
-	Agg map[string]string    `json:"agg"`
+	T   int64             `json:"t"`
+	D   []Transaction     `json:"d"`
+	Agg map[string]string `json:"agg"`
 }
 
 // 代理团队转代
@@ -1205,4 +1199,9 @@ type Link_t struct {
 	CGHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //cg高频彩返点
 	CGOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //cg高频彩返点
 	CreatedAt        string `db:"created_at" json:"created_at"`
+}
+
+type GameResult_t struct {
+	NetAmount      sql.NullFloat64 `db:"net_amount" json:"net_amount"`
+	ValidBetAmount sql.NullFloat64 `db:"valid_bet_amount" json:"valid_bet_amount"`
 }

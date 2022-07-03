@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	g "github.com/doug-martin/goqu/v9"
-	"github.com/olivere/elastic/v7"
 )
 
 // Tags 标签表 table structure
@@ -142,16 +141,6 @@ func MemberTagsSet(batch int, adminID string, uids []string, tags []string, ts i
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
-	boolQuery := elastic.NewBoolQuery().Must(
-		elastic.NewTermsQuery("uid", ids...),
-		elastic.NewTermsQuery("tag_id", tagls...),
-		elastic.NewTermQuery("prefix", meta.Prefix))
-	_, err = meta.ES.DeleteByQuery(esPrefixIndex("tbl_member_tags")).Query(boolQuery).ProceedOnVersionConflict().Do(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, "es")
-	}
-
 	// 添加现在的标签
 	query, _, _ = dialect.Insert("tbl_member_tags").Rows(data).ToSQL()
 	_, err = tx.Exec(query)
@@ -193,16 +182,6 @@ func MemberTagsCancel(uidStr string, tagStr string) error {
 	if err != nil {
 		_ = tx.Rollback()
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-	}
-
-	boolQuery := elastic.NewBoolQuery().Must(
-		elastic.NewTermsQuery("uid", uids...),
-		elastic.NewTermsQuery("tag_id", tags...),
-		elastic.NewTermsQuery("prefix", meta.Prefix))
-	_, err = meta.ES.DeleteByQuery(esPrefixIndex("tbl_member_tags")).Query(boolQuery).ProceedOnVersionConflict().Do(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, "es")
 	}
 
 	err = tx.Commit()
