@@ -38,9 +38,7 @@ func GameListUpdate(id, pid string, record g.Record) error {
 func GameList(ex g.Ex, page, pageSize uint) (GamePageList, error) {
 
 	data := GamePageList{}
-
-	offset := pageSize * (page - 1)
-
+	ex["prefix"] = meta.Prefix
 	t := dialect.From("tbl_game_lists")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT(1)).Where(ex).ToSQL()
@@ -49,8 +47,8 @@ func GameList(ex g.Ex, page, pageSize uint) (GamePageList, error) {
 			return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 		}
 	}
-	ex["prefix"] = meta.Prefix
 
+	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(colsGameList...).Where(ex).Order(g.I("sorting").Desc()).Order(g.I("id").Desc()).Offset(offset).Limit(pageSize).ToSQL()
 	err := meta.MerchantDB.Select(&data.D, query)
 	if err != nil {

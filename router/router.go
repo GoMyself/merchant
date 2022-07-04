@@ -109,8 +109,15 @@ func SetupRouter(b BuildInfo) *router.Router {
 	mailCtl := new(controller.EmailRecordController)
 	// 短信通道管理
 	smsChannelCtl := new(controller.SMSChannelController)
+	// 短信通道管理
+	linkCtl := new(controller.LinkController)
 
 	get("/merchant/version", Version)
+
+	// 推广链接短链-查询
+	get("/merchant/link/list", linkCtl.List)
+	// 推广链接短链-删除
+	get("/merchant/link/delete", linkCtl.Delete)
 
 	// 权限管理-用户组管理-新增分组
 	post("/merchant/group/insert", groupCtl.Insert)
