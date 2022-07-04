@@ -561,10 +561,10 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	}
 	ex["flag"] = 1
 	ex["name"] = username
-	vaildAmount := sql.NullFloat64{}
+	var vaildAmount sql.NullFloat64
 	ex["settle_time"] = g.Op{"between": exp.NewRangeVal(startAt*1000, endAt*1000)}
 
-	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
+	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount").As("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
 	fmt.Println(query)
 	err := meta.TiDB.Get(&vaildAmount, query)
 	if err != nil || !vaildAmount.Valid {
