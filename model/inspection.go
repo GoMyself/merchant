@@ -495,7 +495,7 @@ func promoRecrodList(username string, cutTime int64) ([]PromoRecord, error) {
 	query, _, _ := t.Select(colsPromoRecord...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 
@@ -518,7 +518,7 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	query, _, _ := t.Select(colsPromoData...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 	return data, nil
@@ -537,7 +537,7 @@ func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection
 	query, _, _ := dialect.From("tbl_promo_inspection").Select(colsPromoInspection...).Where(ex).Order(g.C("inspect_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 	return data, nil
