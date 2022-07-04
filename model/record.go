@@ -292,12 +292,6 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 		return data, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	//aggParam := map[string]string{
-	//	"bet_amount_agg":       "bet_amount",
-	//	"net_amount_agg":       "net_amount",
-	//	"valid_bet_amount_agg": "valid_bet_amount",
-	//	"rebate_amount":        "rebate_amount",
-	//}
 	//查询条件
 	param := map[string]interface{}{
 		"prefix": meta.Prefix,
@@ -410,7 +404,7 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize uint, ex g.
 		g.SUM("bet_amount").As("bet_amount"), g.SUM("rebate_amount").As("rebate_amount"),
 	).Where(ex).Order(g.C(betTimeFlags[flag]).Desc()).Offset(offset).Limit(pageSize).ToSQL()
 	fmt.Println(query)
-	err = meta.TiDB.Select(&data.Agg, query)
+	err = meta.TiDB.Get(&data.Agg, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
@@ -452,7 +446,7 @@ func RecordDeposit(page, pageSize uint, startTime, endTime string, ex g.Ex) (FDe
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ = dialect.From("tbl_deposit").Select(colsDividend...).Where(ex).Order(g.C("created_at").Desc()).Offset(offset).Limit(pageSize).ToSQL()
+	query, _, _ = dialect.From("tbl_deposit").Select(colsDeposit...).Where(ex).Order(g.C("created_at").Desc()).Offset(offset).Limit(pageSize).ToSQL()
 	fmt.Println(query)
 	err = meta.TiDB.Select(&data.D, query)
 	if err != nil {

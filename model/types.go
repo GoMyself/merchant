@@ -564,9 +564,9 @@ type Transfer struct {
 
 // 游戏记录数据
 type GameRecordData struct {
-	T   int64             `json:"t"`
-	D   []GameRecord      `json:"d"`
-	Agg map[string]string `json:"agg"`
+	T   int64        `json:"t"`
+	D   []GameRecord `json:"d"`
+	Agg GameRecord   `json:"agg"`
 }
 
 //游戏投注记录结构
@@ -590,8 +590,6 @@ type GameRecord struct {
 	RebateAmount   float64 `db:"rebate_amount" json:"rebate_amount" form:"rebate_amount"`
 	Flag           int     `db:"flag" json:"flag" form:"flag"`
 	PlayType       string  `db:"play_type" json:"play_type" form:"play_type"`
-	CopyFlag       int     `db:"copy_flag" json:"copy_flag" form:"copy_flag"`
-	FilePath       string  `db:"file_path" json:"file_path" form:"file_path"`
 	Prefix         string  `db:"prefix" json:"prefix" form:"prefix"`
 	Result         string  `db:"result" json:"result" form:"result"`
 	CreatedAt      uint64  `db:"created_at" json:"created_at" form:"created_at"`
@@ -599,13 +597,10 @@ type GameRecord struct {
 	ApiName        string  `db:"api_name" json:"api_name" form:"api_name"`
 	ApiBillNo      string  `db:"api_bill_no" json:"api_bill_no" form:"api_bill_no"`
 	MainBillNo     string  `db:"main_bill_no" json:"main_bill_no" form:"main_bill_no"`
-	IsUse          int     `db:"is_use" json:"is_use" form:"is_use"`
-	FlowQuota      int64   `db:"flow_quota" json:"flow_quota" form:"flow_quota"`
 	GameName       string  `db:"game_name" json:"game_name" form:"game_name"`
 	HandicapType   string  `db:"handicap_type" json:"handicap_type" form:"handicap_type"`
 	Handicap       string  `db:"handicap" json:"handicap" form:"handicap"`
 	Odds           float64 `db:"odds" json:"odds" form:"odds"`
-	BallType       int     `db:"ball_type" json:"ball_type" form:"ball_type"`
 	SettleTime     int64   `db:"settle_time" json:"settle_time" form:"settle_time"`
 	ApiBetTime     uint64  `db:"api_bet_time" json:"api_bet_time" form:"api_bet_time"`
 	ApiSettleTime  uint64  `db:"api_settle_time" json:"api_settle_time" form:"api_settle_time"`
