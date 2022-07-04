@@ -1188,6 +1188,12 @@ type SMSChannel struct {
 	Remark      string `db:"remark" json:"remark"` // 备注
 }
 
+type LinkData struct {
+	T int64    `json:"t"`
+	S uint     `json:"s"`
+	D []Link_t `json:"d"`
+}
+
 type Link_t struct {
 	ID               string `db:"id" json:"id"`
 	UID              string `db:"uid" json:"uid"`
