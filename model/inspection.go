@@ -163,6 +163,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	//参加的活动
 	promolist, err := promoDataList(pids)
+	fmt.Println("err:", err)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -173,12 +174,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 	//上次提现至今的流水
 	totalVaild, err := EsPlatValidBet(username, "", cutTime, now)
 	if err != nil {
-		return data, mb, errors.New(helper.DBErr)
+		return data, mb, err
 	}
 	//查升级红利
 	dividendData, err := EsDividend(username, cutTime, now)
 	if err != nil {
-		return data, mb, errors.New(helper.DBErr)
+		return data, mb, err
 	}
 	var needFlowAmount decimal.Decimal
 
@@ -547,7 +548,7 @@ func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection
 func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.Decimal, error) {
 
 	waterFlow := decimal.NewFromFloat(0.0000)
-	if startAt == 0 || endAt == 0 {
+	if startAt == 0 && endAt == 0 {
 		return waterFlow, errors.New(helper.QueryTimeRangeErr)
 	}
 
@@ -559,13 +560,14 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 		ex["api_type"] = pid
 	}
 	ex["flag"] = 1
-	ex["username"] = username
+	ex["name"] = username
 	vaildAmount := sql.NullFloat64{}
 	ex["settle_time"] = g.Op{"between": exp.NewRangeVal(startAt*1000, endAt*1000)}
 
 	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
+	fmt.Println(query)
 	err := meta.TiDB.Get(&vaildAmount, query)
-	if err != nil || vaildAmount.Valid {
+	if err != nil || !vaildAmount.Valid {
 		return decimal.Zero, pushLog(err, helper.DBErr)
 	}
 
