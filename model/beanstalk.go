@@ -40,6 +40,36 @@ func BeanPut(name string, param map[string]interface{}) error {
 	return err
 }
 
+func TransAg(name string, param map[string]interface{}) error {
+
+	m := &fasthttp.Args{}
+	for k, v := range param {
+		if _, ok := v.(string); ok {
+			m.Set(k, v.(string))
+		}
+	}
+
+	topic := name
+	err := meta.MerchantMQ.SendAsync(ctx,
+		func(c context.Context, result *primitive.SendResult, e error) {
+			if e != nil {
+				fmt.Printf("receive TransAg error: %s\n", e.Error())
+			} else {
+				fmt.Printf("send message success: result=%s\n", result.String())
+			}
+		}, primitive.NewMessage(topic, m.QueryString()))
+
+	if err != nil {
+		fmt.Printf("send message error: %s\n", err)
+	}
+
+	fmt.Println("TransAg topic = ", topic)
+	fmt.Println("TransAg param = ", m.String())
+	fmt.Println("TransAg err = ", err)
+
+	return err
+}
+
 func BeanPutDelay(name string, param map[string]interface{}, delay int) error {
 
 	//fmt.Printf("BeanPut topic: %s, param : %#v, delay : %d\n", name, param, delay)
