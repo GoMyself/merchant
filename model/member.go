@@ -1283,7 +1283,7 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	// 总输赢 && 总有效投注
 	ex := g.Ex{}
 	ex["flag"] = 1
-	ex["username"] = username
+	ex["name"] = username
 	r := GameResult_t{}
 	ex["bet_time"] = g.Op{"between": exp.NewRangeVal(mss, mse)}
 
