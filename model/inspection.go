@@ -567,8 +567,11 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount").As("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
 	fmt.Println(query)
 	err := meta.TiDB.Get(&vaildAmount, query)
-	if err != nil || !vaildAmount.Valid {
+	if err != nil {
 		return decimal.Zero, pushLog(err, helper.DBErr)
+	}
+	if err == sql.ErrNoRows {
+		return decimal.Zero, nil
 	}
 
 	return decimal.NewFromFloat(vaildAmount.Float64), nil
