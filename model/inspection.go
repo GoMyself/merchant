@@ -183,7 +183,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	var needFlowAmount decimal.Decimal
 
-	if dividendData.T > 0 {
+	if len(dividendData.D) > 0 {
 		for _, v := range dividendData.D {
 			//完成流水或者解锁过的跳过
 			if _, ok := history[v.ID]; ok {
@@ -224,7 +224,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	if adjustData.T > 0 {
+	if len(adjustData.D) > 0 {
 		for _, v := range adjustData.D {
 			//完成流水或者解锁过的跳过
 			if _, ok := history[v.ID]; ok {
@@ -267,7 +267,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 
-	if depostList.T > 0 {
+	if len(depostList.D) > 0 {
 		//组装存款的流水稽查
 		for _, v := range depostList.D {
 			//完成流水或者解锁过的跳过
