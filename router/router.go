@@ -114,9 +114,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	get("/merchant/version", Version)
 
-	// 推广链接短链-查询
+	// 代理管理-推广链接-查询
 	get("/merchant/link/list", linkCtl.List)
-	// 推广链接短链-删除
+	// 代理管理-推广链接-删除
 	get("/merchant/link/delete", linkCtl.Delete)
 
 	// 权限管理-用户组管理-新增分组
