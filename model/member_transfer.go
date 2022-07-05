@@ -143,6 +143,13 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 		"top_name":    destMb.TopName,
 		"prefix":      meta.Prefix,
 	}
+	// bet 去修改注单的
+	err = TransAg("transfer_ag", param)
+	if err != nil {
+		_ = pushLog(err, helper.ServerErr)
+	}
+
+	// task 去修改存提 调整红利的
 	err = BeanPut("transfer_ag", param)
 	if err != nil {
 		_ = pushLog(err, helper.ServerErr)
