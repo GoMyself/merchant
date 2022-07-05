@@ -586,7 +586,7 @@ func RecordAdjust(page, pageSize int, startTime, endTime string, ex g.Ex) (Adjus
 
 	offset := pageSize * (page - 1)
 	query, _, _ := t.Select(colsMemberAdjust...).Where(ex).
-		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
+		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("review_at").Desc()).ToSQL()
 	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
