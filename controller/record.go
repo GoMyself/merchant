@@ -239,15 +239,27 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		}
 
 		if pidIn > 0 && pidOut == 0 {
-			ex["platform_id"] = pidIn
+			if pidIn == 1 {
+				ex["transfer_type"] = model.TransferOut
+			} else {
+				ex["platform_id"] = pidIn
+			}
 		}
 
 		if pidIn == 0 && pidOut > 0 {
-			ex["platform_id"] = pidOut
+			if pidOut == 1 {
+				ex["transfer_type"] = model.TransferIn
+			} else {
+				ex["platform_id"] = pidOut
+			}
 		}
 
 		if pidIn > 0 && pidOut > 0 {
-			ex["platform_id"] = []int{pidIn, pidOut}
+			if pidIn == 1 && pidOut == 1 {
+				ex["transfer_type"] = []int{model.TransferOut, model.TransferIn}
+			} else {
+				ex["platform_id"] = []int{pidIn, pidOut}
+			}
 		}
 
 		if state > 0 {
