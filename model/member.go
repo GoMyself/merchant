@@ -135,7 +135,7 @@ type MemberListCol struct {
 	Lvl              int     `json:"lvl" db:"-"`
 	PlanID           string  `json:"plan_id" db:"-"`
 	PlanName         string  `json:"plan_name" db:"-"`
-	MemCount         int64   `json:"mem_count" db:"mem_count"`
+	MemCount         int64   `json:"user_count" db:"user_count"`
 }
 
 type MemberAggData struct {
