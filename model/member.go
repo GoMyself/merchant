@@ -135,6 +135,7 @@ type MemberListCol struct {
 	Lvl              int     `json:"lvl" db:"-"`
 	PlanID           string  `json:"plan_id" db:"-"`
 	PlanName         string  `json:"plan_name" db:"-"`
+	MemCount         int64   `json:"mem_count" db:"mem_count"`
 }
 
 type MemberAggData struct {
@@ -866,6 +867,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 		Select(
 			"uid",
 			g.SUM("deposit_amount").As("deposit_amount"),
+			g.MAX("mem_count").As("mem_count"),
 			g.SUM("withdrawal_amount").As("withdrawal_amount"),
 			g.SUM("valid_bet_amount").As("valid_bet_amount"),
 			g.SUM("rebate_amount").As("rebate_amount"),
