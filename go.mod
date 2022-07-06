@@ -16,6 +16,7 @@ require (
 	github.com/fluent/fluent-logger-golang v1.9.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/goccy/go-json v0.9.4
 	github.com/hprose/hprose-golang/v3 v3.0.8
 	github.com/ip2location/ip2location-go/v9 v9.4.0
@@ -37,7 +38,6 @@ require (
 	github.com/tinylib/msgp v1.1.6
 	github.com/valyala/fasthttp v1.36.0
 	github.com/valyala/fastjson v1.6.3
-	github.com/valyala/fasttemplate v1.2.1
 	github.com/wI2L/jettison v0.7.3
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
 	go.uber.org/automaxprocs v1.4.0

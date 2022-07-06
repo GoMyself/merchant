@@ -17,7 +17,7 @@ func DividendInsert(data g.Record) error {
 	fmt.Println(query)
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
-		return pushLog(err, helper.DBErr)
+		return pushLog(fmt.Errorf("query [%s], error [%s]", query, err.Error()), helper.DBErr)
 	}
 
 	_ = PushMerchantNotify(dividendReviewFmt, data["apply_name"].(string), data["username"].(string), data["amount"].(string))

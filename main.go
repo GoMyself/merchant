@@ -110,11 +110,14 @@ func main() {
 		Name:               "merchant2",
 		MaxRequestBodySize: 51 * 1024 * 1024,
 	}
-	//fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
-	//fmt.Println("Merchant2 running", cfg.Port.Merchant)
 
-	service := model.NewService(gitReversion, buildTime, buildGoVersion, 1)
-	go service.Start()
+	fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
+	fmt.Println("merchant running", cfg.Port.Merchant)
+
+	// 启动小飞机推送版本信息
+	if !cfg.IsDev {
+		telegramBotNotice(mt.Program, gitReversion, buildTime, buildGoVersion, "api", cfg.Prefix)
+	}
 
 	if err := srv.ListenAndServe(cfg.Port.Merchant); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
