@@ -402,7 +402,7 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize uint, ex g.
 
 	query, _, _ = dialect.From("tbl_game_record").Select(g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
 		g.SUM("bet_amount").As("bet_amount"), g.SUM("rebate_amount").As("rebate_amount"),
-	).Where(ex).Order(g.C(betTimeFlags[flag]).Desc()).Offset(offset).Limit(pageSize).ToSQL()
+	).Where(ex).ToSQL()
 	fmt.Println(query)
 	err = meta.TiDB.Get(&data.Agg, query)
 	if err != nil {
