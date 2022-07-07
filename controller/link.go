@@ -12,8 +12,8 @@ type LinkController struct{}
 
 func (that *LinkController) List(ctx *fasthttp.RequestCtx) {
 
-	page := ctx.PostArgs().GetUintOrZero("page")
-	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	username := string(ctx.QueryArgs().Peek("username"))
 	shortURL := string(ctx.QueryArgs().Peek("short_url"))
 
