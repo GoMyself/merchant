@@ -530,6 +530,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 			"valid_bet_amount":   true,
 			"rebate_amount":      true,
 			"company_net_amount": true,
+			"rebate_point":       true,
 		}
 
 		if _, ok := sortFields[sortField]; !ok {
