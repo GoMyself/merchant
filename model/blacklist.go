@@ -244,6 +244,7 @@ func LoadBlacklists(ty int) error {
 	if ty != 0 {
 		ex := g.Ex{"ty": ty}
 		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).Where(ex).ToSQL()
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {
@@ -251,6 +252,7 @@ func LoadBlacklists(ty int) error {
 		}
 	} else {
 		query, _, _ := dialect.From("tbl_blacklist").Select(colsBlacklist...).ToSQL()
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {

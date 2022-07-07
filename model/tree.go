@@ -18,6 +18,7 @@ func LoadTrees() error {
 
 	var parent []tree_t
 	query := fmt.Sprintf("SELECT * FROM `tbl_tree` WHERE LENGTH(`level`) = 3 and prefix= '%s';", meta.Prefix)
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&parent, query)
 	if err != nil {
@@ -33,6 +34,7 @@ func LoadTrees() error {
 		var data []tree_t
 		key := fmt.Sprintf("%s:T:%s", meta.Prefix, val.Level)
 		query := fmt.Sprintf("SELECT * FROM `tbl_tree`  WHERE prefix='%s' and `level` LIKE '%s%%' ORDER BY `level` ASC;", meta.Prefix, val.Level)
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&data, query)
 		if err != nil {

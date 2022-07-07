@@ -109,8 +109,8 @@ func LoadGameLists(pid ...string) error {
 			ex["id"] = pid
 		}
 	}
-
 	query, _, _ := dialect.From("tbl_platforms").Select(colsPlatJson...).Where(ex).Order(g.C("created_at").Asc()).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -133,6 +133,7 @@ func LoadGameLists(pid ...string) error {
 			"prefix":      meta.Prefix,
 		}
 		query1, _, _ := dialect.From("tbl_game_lists").Select(colsShowGame...).Where(exG).Order(g.C("sorting").Asc()).ToSQL()
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err = meta.MerchantDB.Select(&sg, query1)
 		if err != nil {

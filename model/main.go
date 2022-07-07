@@ -140,7 +140,7 @@ func Load() {
 	LoadMembers()
 	LoadMemberLevels()
 
-	_ = LoadBankcards()
+	//_ = LoadBankcards()
 	_ = LoadPrivs()
 	_ = LoadGroups()
 	_ = LoadMemberPlatforms()
@@ -148,7 +148,7 @@ func Load() {
 	_ = LoadBanners()
 	_ = LoadMemberRebates()
 	_ = LoadTrees()
-	_ = PlatToMinio()
+	_ = LoadPlatforms()
 	_ = LoadSMSChannels()
 	_ = LoadGameLists()
 }

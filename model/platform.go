@@ -53,7 +53,7 @@ func PlatformUpdate(ex g.Ex, record g.Record) error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	return PlatToMinio()
+	return LoadPlatforms()
 }
 
 func PlatformFindOne(ex g.Ex) (Platform, error) {
@@ -103,7 +103,7 @@ func PlatformList(ex g.Ex, page, pageSize int) (PlatformData, error) {
 	return data, nil
 }
 
-func PlatToMinio() error {
+func LoadPlatforms() error {
 
 	var data []platJson
 
@@ -113,6 +113,7 @@ func PlatToMinio() error {
 	}
 	query, _, _ := dialect.From("tbl_platforms").
 		Select(colsPlatJson...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {

@@ -393,6 +393,7 @@ func LoadGroups() error {
 		"prefix": meta.Prefix,
 	}
 	query, _, _ := dialect.From("tbl_admin_group").Select(cols...).Where(ex).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&groups, query)
 	if err != nil {
@@ -401,6 +402,7 @@ func LoadGroups() error {
 
 	query, _, _ = dialect.From("tbl_admin_priv").
 		Select("pid", "state", "id", "name", "sortlevel", "module").Where(g.Ex{"prefix": meta.Prefix}).Order(g.C("sortlevel").Asc()).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&privs, query)
 	if err != nil {
@@ -425,6 +427,7 @@ func LoadGroups() error {
 		"permission": permission,
 	}
 	query, _, _ = dialect.Update("tbl_admin_group").Set(record).Where(g.Ex{"gid": 2, "prefix": meta.Prefix}).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {

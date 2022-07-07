@@ -100,23 +100,20 @@ func SMSChannelInsert(data *SMSChannel) error {
 
 func LoadSMSChannels() (err error) {
 
-	fmt.Println("====== CacheIn")
-
-	keyHead := fmt.Sprintf("%s:sms", meta.Prefix)
 	data := make([]SMSChannel, 0)
-
-	fmt.Printf("====== %s\n", keyHead)
-
-	ex := g.Or(g.Ex{"txt": "1"}, g.Ex{"voice": "1"})
+	ex := g.Or(
+		g.Ex{"txt": "1"},
+		g.Ex{"voice": "1"},
+	)
 	query, _, _ := dialect.From("tbl_sms").Select("name", "alias", "txt", "voice").Where(ex).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err = meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	fmt.Printf("====== %v\n", data)
-
+	keyHead := fmt.Sprintf("%s:sms", meta.Prefix)
 	_, err = meta.MerchantRedis.Del(ctx, keyHead+":text").Result()
 	if err != nil {
 		return err
@@ -129,27 +126,21 @@ func LoadSMSChannels() (err error) {
 
 	for _, v := range data {
 		if v.Txt == "1" {
-
-			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", v.Name+"|sms"+v.Alias).Result()
-
 			fmt.Println(v.Name + "|sms" + v.Alias)
-
+			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":text", v.Name+"|sms"+v.Alias).Result()
 			if err != nil {
 				return err
 			}
 		}
 
 		if v.Voice == "1" {
-			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":voice", v.Name+"|vms"+v.Alias).Result()
-
 			fmt.Println(v.Name + "|vms" + v.Alias)
-
+			_, err = meta.MerchantRedis.LPush(ctx, keyHead+":voice", v.Name+"|vms"+v.Alias).Result()
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	fmt.Println("====== CacheOut")
 	return nil
 }

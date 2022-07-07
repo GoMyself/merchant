@@ -25,10 +25,12 @@ func MemberLevelList() ([]MemberLevel, error) {
 func MemberLevelFindOne(ex g.Ex) (MemberLevel, error) {
 
 	var vip MemberLevel
-	vipQuery, _, _ := dialect.From("tbl_member_level").Select(colsMemberLevel...).Where(ex).Limit(1).ToSQL()
-	err := meta.MerchantDB.Get(&vip, vipQuery)
+	query, _, _ := dialect.From("tbl_member_level").Select(colsMemberLevel...).Where(ex).Limit(1).ToSQL()
+	query = "/* master */ " + query
+	fmt.Println(query)
+	err := meta.MerchantDB.Get(&vip, query)
 	if err != nil {
-		return vip, pushLog(fmt.Errorf("%s,[%s]", err.Error(), vipQuery), helper.DBErr)
+		return vip, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
 	return vip, err

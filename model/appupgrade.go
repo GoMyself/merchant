@@ -71,6 +71,7 @@ func LoadAppUpgrades() {
 
 	var data []UpgradeInfo
 	query, _, _ := dialect.From("tbl_app_upgrade").Select("platform", "version", "is_force", "content", "url").Where(g.Ex{"prefix": meta.Prefix}).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil && err != sql.ErrNoRows {
