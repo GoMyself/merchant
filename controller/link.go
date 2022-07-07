@@ -6,6 +6,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"strings"
 )
 
 type LinkController struct{}
@@ -34,6 +35,10 @@ func (that *LinkController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if shortURL != "" {
+		if strings.Contains(shortURL, "/") {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
 		ex["short_url"] = shortURL
 	}
 
