@@ -14,7 +14,9 @@ import (
 
 func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSize int) (MemberRemarkLogData, error) {
 
-	ex := g.Ex{}
+	ex := g.Ex{
+		"is_delete": g.Op{"neq": 1},
+	}
 
 	if uid != "" {
 		ex["uid"] = uid
@@ -25,7 +27,6 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	}
 
 	data := MemberRemarkLogData{}
-
 	if len(ex) == 0 && (startTime == "" || endTime == "") {
 		return data, errors.New(helper.QueryTermsErr)
 	}
@@ -73,9 +74,8 @@ func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSi
 	}
 
 	offset := (page - 1) * pageSize
-	query, _, _ := t.Select("id", "uid", "username", "msg", "file", "created_name", "created_at", "prefix").Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
+	query, _, _ := t.Select(colsMemberRemarksLog...).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println("Member Remarks Log query = ", query)
-
 	err := meta.MerchantTD.Select(&data.D, query)
 	if err != nil {
 		fmt.Println("Member Remarks Log err = ", err.Error())
