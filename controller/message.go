@@ -324,13 +324,28 @@ func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
+	username := string(ctx.QueryArgs().Peek("username"))
+	title := string(ctx.QueryArgs().Peek("title"))
+
 	if page == 0 {
 		page = 1
 	}
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	data, err := model.MessageSystemList(startTime, endTime, page, pageSize)
+	ex := g.Ex{}
+	if username != "" {
+		if !validator.CheckUName(username, 5, 14) {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		ex["username"] = username
+	}
+	if title != "" {
+		ex["title"] = title
+	}
+	data, err := model.MessageSystemList(startTime, endTime, page, pageSize, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
