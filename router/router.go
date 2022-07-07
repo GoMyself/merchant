@@ -384,7 +384,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	//运营管理-站内消息-已发站内信详情
 	get("/merchant/message/detail", msgCtl.Detail)
 	//运营管理-站内消息-已发系统站内信列表
-	get("/merchant/message/system", msgCtl.System)
+	post("/merchant/message/system", msgCtl.System)
 	//运营管理-站内消息-删除
 	post("/merchant/message/delete", msgCtl.Delete)
 
