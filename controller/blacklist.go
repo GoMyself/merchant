@@ -183,7 +183,7 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
 		}
-	case model.TyRebate, model.TyCGRebate:
+	case model.TyRebate, model.TyCGRebate, model.TyPromoteLink:
 		if !validator.CheckUName(value, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
