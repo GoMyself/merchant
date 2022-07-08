@@ -332,6 +332,7 @@ func LoadBanners() error {
 			"prefix": meta.Prefix,
 		}
 		query, _, _ := dialect.From("tbl_banner").Select(colsBanner...).Where(ex).Order(g.C("seq").Asc()).ToSQL()
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err := meta.MerchantDB.Select(&recs, query)
 		if err != nil {
