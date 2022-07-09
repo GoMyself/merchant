@@ -41,3 +41,36 @@ func (that *RebateController) EnableMod(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, helper.Success)
 }
+
+//RebatePersonal 会员管理-会员列表-详情-返水记录
+func (that RebateController) RebatePersonal(ctx *fasthttp.RequestCtx) {
+
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	startTime := string(ctx.QueryArgs().Peek("start_time")) //开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))     //结束时间
+	username := string(ctx.QueryArgs().Peek("username"))    // 返水类型
+
+	if page < 1 {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if pageSize < 10 || pageSize > 100 {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if len(username) <= 0 {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	data, err := model.RebatePersonalReport(username, startTime, endTime, page, pageSize)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}

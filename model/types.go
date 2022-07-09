@@ -1,6 +1,9 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"github.com/shopspring/decimal"
+)
 
 const (
 	TGDateFormat = "2006-01-02T15:04:05+07:00"
@@ -1206,4 +1209,39 @@ type Link_t struct {
 	CGHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //cg高频彩返点
 	CGOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //cg高频彩返点
 	CreatedAt        string `db:"created_at" json:"created_at"`
+}
+
+type PersonalRebateReportData struct {
+	D []MemberPersonalRebate `json:"d"`
+	T int64                  `json:"t"`
+	S uint16                 `json:"s"`
+}
+
+type MemberPersonalRebate struct {
+	RebateDate       string
+	ZR               decimal.Decimal //2真人返水
+	QP               decimal.Decimal //5棋牌返水
+	TY               decimal.Decimal //3体育返水
+	DJ               decimal.Decimal //8电竞返水
+	DZ               decimal.Decimal //6电游返水
+	CP               decimal.Decimal //1彩票返水
+	FC               decimal.Decimal //4斗鸡返水
+	BY               decimal.Decimal //7捕鱼返水
+	CGHighRebate     decimal.Decimal //CG高频彩返点
+	CGOfficialRebate decimal.Decimal //CG官方彩返点
+	TotalRebate      decimal.Decimal //总计
+	Prefix           string
+}
+
+type RebateReportItem struct {
+	Username       string `json:"username" db:"username"`
+	Uid            string `json:"uid" db:"uid"`
+	CashType       int    `json:"cash_type" db:"cash_type"`
+	Rate           string `json:"rate"`
+	ValidBetAmount string `json:"valid_bet_amount" db:"valid_bet_amount"`
+	RebateAmount   string `json:"rebate_amount" db:"rebate_amount"`
+	ReportTime     string `json:"report_time" db:"report_time"`
+	Level          int    `json:"level"`
+	ParentName     string `json:"parent_name"`
+	TopName        string `json:"top_name"`
 }
