@@ -56,7 +56,7 @@ func RecordTransaction(page, pageSize int, startTime, endTime string, ex g.Ex) (
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("id")).Where(ex).ToSQL()
 		fmt.Println(query)
-		err := meta.MerchantDB.Get(&data.T, query)
+		err := meta.TiDB.Get(&data.T, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
