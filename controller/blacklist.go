@@ -188,6 +188,12 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
+
+		if !model.MemberExist(value) {
+			helper.Print(ctx, false, helper.UserNotExist)
+			return
+		}
+
 	default:
 		if !validator.CheckStringLength(value, 1, 60) {
 			helper.Print(ctx, false, helper.ParamErr)
