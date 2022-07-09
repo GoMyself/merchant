@@ -234,15 +234,15 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 			"content":    data.Content,                   //内容
 			"is_top":     fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
 			"is_push":    fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
-			"is_vip":     fmt.Sprintf("%d", data.IsVip),  //0非vip站内信 1vip站内信
+			"is_vip":     fmt.Sprintf("%d", data.IsVip),  //0普通站内信 1vip站内信
 			"ty":         fmt.Sprintf("%d", data.Ty),     //1站内消息 2活动消息
 			"send_name":  data.SendName,                  //发送人名
 			"prefix":     meta.Prefix,                    //商户前缀
 		}
-		if data.IsVip == 0 {
-			param["usernames"] = data.Usernames
-		} else {
+		if data.IsVip == 1 {
 			param["level"] = data.Level
+		} else {
+			param["usernames"] = data.Usernames
 		}
 
 		sDelay := int64(0)

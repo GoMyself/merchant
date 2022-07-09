@@ -22,7 +22,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	isPush := ctx.PostArgs().GetUintOrZero("is_push")    //0不推送 1推送
 	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
 	sendAt := string(ctx.PostArgs().Peek("send_at"))     //发送时间
-	isVip := ctx.PostArgs().GetUintOrZero("is_vip")      //是否vip站内信 1 vip站内信
+	isVip := ctx.PostArgs().GetUintOrZero("is_vip")      //是否vip站内信 1 vip站内信 2 直属下级 3 全部下级
 	level := string(ctx.PostArgs().Peek("level"))        //vip等级 0-10,多个逗号分割
 	names := string(ctx.PostArgs().Peek("names"))        //会员名，多个用逗号分割
 
@@ -35,12 +35,26 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if ty != 1 && ty != 2 {
+	if ty != 1 && ty != 2 || isVip > 3 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 
-	if isVip == 1 {
+	switch isVip {
+	case 0:
+		if names == "" {
+			helper.Print(ctx, false, helper.UsernameErr)
+			return
+		}
+
+		usernames := strings.Split(names, ",")
+		for _, v := range usernames {
+			if !validator.CheckUName(v, 5, 14) {
+				helper.Print(ctx, false, helper.UsernameErr)
+				return
+			}
+		}
+	case 1:
 		if level == "" {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
@@ -64,19 +78,14 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 				return
 			}
 		}
-	} else {
-		if names == "" {
+	case 2, 3:
+		if !validator.CheckUName(names, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		usernames := strings.Split(names, ",")
-		for _, v := range usernames {
-			if !validator.CheckUName(v, 5, 14) {
-				helper.Print(ctx, false, helper.UsernameErr)
-				return
-			}
-		}
+	default:
+		helper.Print(ctx, false, helper.ParamErr)
+		return
 	}
 
 	admin, err := model.AdminToken(ctx)
