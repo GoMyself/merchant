@@ -12,6 +12,7 @@ func LoadLinks() {
 
 	var data []Link_t
 	query, _, _ := dialect.From("tbl_member_link").Where(g.Ex{}).Select(colsLink...).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -59,11 +60,9 @@ func LoadLinks() {
 
 func LoadMembers() {
 
-	//query := "update tbl_member_rebate_info set zr = 0.4,ty=0.4,fc=0.4,qp=0.4,dj=0.3,dz=0.2,`by`=0.2,cg_high_rebate=9.8,cg_official_rebate=9.7 where uid = 4722355249852325 or parent_uid = 4722355249852325;"
-	//_, _ = meta.MerchantDB.Exec(query)
-
 	var data []Member
 	query, _, _ := dialect.From("tbl_members").Where(g.Ex{}).Select(colsMember...).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -158,6 +157,7 @@ func LoadBankcards() error {
 		bcMap = make(map[string][]BankCard_t)
 	)
 	query, _, _ := dialect.From("tbl_member_bankcard").Select(colsBankcard...).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -240,6 +240,7 @@ func LoadMemberRebates() error {
 
 	var data []MemberRebate
 	query, _, _ := dialect.From("tbl_member_rebate_info").Select(colsMemberRebate...).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -294,6 +295,7 @@ func LoadMemberPlatforms() error {
 
 	t := dialect.From("tbl_member_platform")
 	query, _, _ := t.Select(g.COUNT(1)).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&total, query)
 	if err != nil {
@@ -312,6 +314,7 @@ func LoadMemberPlatforms() error {
 
 		var data []MemberPlatform
 		query, _, _ = t.Select(colsMemberPlatform...).Offset(uint(i * LOAD_PAGE)).Limit(LOAD_PAGE).ToSQL()
+		query = "/* master */ " + query
 		fmt.Println(query)
 		err = meta.MerchantDB.Select(&data, query)
 		if err != nil {

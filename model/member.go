@@ -866,6 +866,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 	query, _, _ = dialect.From("tbl_report_agency").Where(and).
 		Select(
 			"uid",
+			g.MAX("mem_count").As("mem_count"),
 			g.SUM("deposit_amount").As("deposit_amount"),
 			g.MAX("mem_count").As("mem_count"),
 			g.SUM("withdrawal_amount").As("withdrawal_amount"),

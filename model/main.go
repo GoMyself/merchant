@@ -98,6 +98,7 @@ var (
 	colsDeposit              = helper.EnumFields(Deposit{})
 	colsWithdraw             = helper.EnumFields(Withdraw{})
 	colsBankcardLog          = helper.EnumFields(BankcardLog{})
+	colsMemberRemarksLog     = helper.EnumFields(MemberRemarksLog{})
 	colsGameRecord           = helper.EnumFields(GameRecord{})
 	dividendFields           = []string{"id", "uid", "prefix", "ty", "username", "top_uid", "top_name", "parent_uid", "parent_name", "amount", "review_at", "review_uid", "review_name", "water_multiple", "water_flow"}
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
@@ -141,7 +142,7 @@ func Load() {
 	LoadMembers()
 	LoadMemberLevels()
 
-	_ = LoadBankcards()
+	//_ = LoadBankcards()
 	_ = LoadPrivs()
 	_ = LoadGroups()
 	_ = LoadMemberPlatforms()
@@ -149,7 +150,7 @@ func Load() {
 	_ = LoadBanners()
 	_ = LoadMemberRebates()
 	_ = LoadTrees()
-	_ = PlatToMinio()
+	_ = LoadPlatforms()
 	_ = LoadSMSChannels()
 	_ = LoadGameLists()
 }

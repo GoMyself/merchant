@@ -69,6 +69,7 @@ func LoadPrivs() error {
 
 	query, _, _ := dialect.From("tbl_admin_priv").
 		Select("pid", "state", "id", "name", "sortlevel", "module").Where(g.Ex{"prefix": meta.Prefix}).Order(g.C("sortlevel").Asc()).ToSQL()
+	query = "/* master */ " + query
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&records, query)
 	if err != nil {

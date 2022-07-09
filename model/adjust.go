@@ -240,6 +240,7 @@ func AdjustUpDownPoint(prefix, uid, username string, adjustType, flag int, money
 				"confirm_name":  "",
 				"review_remark": "",
 				"tester":        member.Tester,
+				"flag":          3,
 			}
 			query, _, _ = dialect.Insert("tbl_deposit").Rows(dr).ToSQL()
 			_, err = tx.Exec(query)

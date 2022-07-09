@@ -316,7 +316,7 @@ func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
 }
 
 //MessageSystemList  已发站系统内信列表
-func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTDData, error) {
+func MessageSystemList(startTime, endTime string, page, pageSize int, ex g.Ex) (MessageTDData, error) {
 
 	data := MessageTDData{
 		S: pageSize,
@@ -334,11 +334,9 @@ func MessageSystemList(startTime, endTime string, page, pageSize int) (MessageTD
 		return data, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	ex := g.Ex{
-		"prefix":    meta.Prefix,
-		"send_name": "system",
-		"send_at":   g.Op{"between": exp.NewRangeVal(startAt, endAt)},
-	}
+	ex["prefix"] = meta.Prefix
+	ex["send_name"] = "system"
+	ex["send_at"] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	t := dialect.From("messages")
 	if page == 1 {
 		query, _, _ := t.Select(g.COUNT("ts")).Where(ex).ToSQL()
