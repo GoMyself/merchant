@@ -191,8 +191,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 			}
 			dividendAmount := decimal.NewFromFloat(v.Amount)
 			flow := decimal.NewFromFloat(v.WaterFlow)
+			validBetAmount, err := EsPlatValidBet(username, "", int64(v.ReviewAt), now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
 			//组装红利的流水稽查
-			uf := flow.Sub(totalVaild)
+			uf := flow.Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -207,7 +211,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.WaterMultiple),
 				FlowAmount:       flow.StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        int64(v.ReviewAt),
 				Ty:               "2",
@@ -232,8 +236,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 			}
 			adjustAmount := decimal.NewFromFloat(v.Amount)
 			multi := decimal.NewFromInt(int64(v.TurnoverMulti))
+			validBetAmount, err := EsPlatValidBet(username, "", int64(v.ReviewAt), now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
 			//组装vip礼金的流水稽查
-			uf := adjustAmount.Mul(multi).Sub(totalVaild)
+			uf := adjustAmount.Mul(multi).Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -248,7 +256,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.TurnoverMulti),
 				FlowAmount:       adjustAmount.Mul(multi).StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
@@ -275,7 +283,11 @@ func InspectionList(username string) (Inspection, Member, error) {
 				continue
 			}
 			depostAmount := decimal.NewFromFloat(v.Amount)
-			uf := depostAmount.Sub(totalVaild)
+			validBetAmount, err := EsPlatValidBet(username, "", v.CreatedAt, now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
+			uf := depostAmount.Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -290,7 +302,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       "无",
 				FlowMultiple:     "1",
 				FlowAmount:       depostAmount.StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        0,
 				Ty:               "1",
