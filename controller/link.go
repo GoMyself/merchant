@@ -51,8 +51,24 @@ func (that *LinkController) List(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, data)
 }
 
-func (that *LinkController) Update(ctx *fasthttp.RequestCtx) {
-	//ts := ctx.PostArgs().GetUintOrZero("ts")
+// SetNoAd 设置是否显示广告页
+func (that *LinkController) SetNoAd(ctx *fasthttp.RequestCtx) {
+
+	shortCode := string(ctx.PostArgs().Peek("short_url"))
+	noAd := string(ctx.PostArgs().Peek("no_ad"))
+
+	if noAd != "0" && noAd != "1" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	err := model.LinkSetNoAd(shortCode, noAd)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
 }
 
 func (that *LinkController) Delete(ctx *fasthttp.RequestCtx) {

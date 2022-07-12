@@ -116,8 +116,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	// 代理管理-推广链接-查询
 	get("/merchant/link/list", linkCtl.List)
-	// 代理管理-推广链接-更新广告状态
-	post("/merchant/link/update", linkCtl.Update)
+	// 代理管理-推广链接-设置是否显示广告页
+	post("/merchant/link/set", linkCtl.SetNoAd)
 	// 代理管理-推广链接-删除
 	get("/merchant/link/delete", linkCtl.Delete)
 
