@@ -1203,6 +1203,7 @@ type Link_t struct {
 	Username         string `db:"username" json:"username"`
 	ShortURL         string `db:"short_url" json:"short_url"`
 	Prefix           string `db:"prefix" json:"prefix"`
+	NoAd             int    `db:"no_ad" json:"no_ad"`                           //0展示广告页，1不展示广告页
 	ZR               string `db:"zr" json:"zr"`                                 //真人返水
 	QP               string `db:"qp" json:"qp"`                                 //棋牌返水
 	TY               string `db:"ty" json:"ty"`                                 //体育返水
