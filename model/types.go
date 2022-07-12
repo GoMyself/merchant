@@ -535,16 +535,18 @@ type TransactionData struct {
 }
 
 type Transaction struct {
-	ID           string `db:"id" json:"id" form:"id"`
-	BillNo       string `db:"bill_no" json:"bill_no" form:"bill_no"`
-	Uid          string `db:"uid" json:"uid" form:"uid"`
-	Username     string `db:"username" json:"username" form:"username"`
-	CashType     int    `db:"cash_type" json:"cash_type" form:"cash_type"`
-	Amount       string `db:"amount" json:"amount" form:"amount"`
-	BeforeAmount string `db:"before_amount" json:"before_amount" form:"before_amount"`
-	AfterAmount  string `db:"after_amount" json:"after_amount" form:"after_amount"`
-	CreatedAt    uint64 `db:"created_at" json:"created_at" form:"created_at"`
-	Remark       string `db:"remark" json:"remark" form:"remark"`
+	ID           string `db:"id" json:"id"`
+	PlatformId   string `db:"platform_id" json:"platform_id"`
+	BillNo       string `db:"bill_no" json:"bill_no"`
+	OperationNo  string `db:"operation_no" json:"operation_no"`
+	Uid          string `db:"uid" json:"uid"`
+	Username     string `db:"username" json:"username"`
+	CashType     int    `db:"cash_type" json:"cash_type"`
+	Amount       string `db:"amount" json:"amount"`
+	BeforeAmount string `db:"before_amount" json:"before_amount"`
+	AfterAmount  string `db:"after_amount" json:"after_amount"`
+	CreatedAt    uint64 `db:"created_at" json:"created_at"`
+	Remark       string `db:"remark" json:"remark"`
 }
 
 // 场馆转账数据
@@ -1190,6 +1192,12 @@ type SMSChannel struct {
 	CreatedName string `db:"created_name" json:"created_name"`
 	Prefix      string `db:"prefix" json:"prefix"` // 前缀
 	Remark      string `db:"remark" json:"remark"` // 备注
+}
+
+type LinkData struct {
+	T int64    `json:"t"`
+	S uint     `json:"s"`
+	D []Link_t `json:"d"`
 }
 
 type Link_t struct {

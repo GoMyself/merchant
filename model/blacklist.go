@@ -114,6 +114,8 @@ func BlacklistInsert(fCtx *fasthttp.RequestCtx, ty int, value string, record g.R
 		key = fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
 	case TyCGRebate:
 		key = fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
+	case TyPromoteLink:
+		key = fmt.Sprintf("%s:merchant:link_blacklist", meta.Prefix)
 	case TyWhiteIP:
 		key = fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 	}
@@ -269,6 +271,7 @@ func LoadBlacklists(ty int) error {
 	bankcardKey := fmt.Sprintf("%s:merchant:bankcard_blacklist", meta.Prefix)
 	rebateKey := fmt.Sprintf("%s:merchant:rebate_blacklist", meta.Prefix)
 	cgRebateKey := fmt.Sprintf("%s:merchant:cgrebate_blacklist", meta.Prefix)
+	linkKey := fmt.Sprintf("%s:merchant:link_blacklist", meta.Prefix)
 	ipWhiteKey := fmt.Sprintf("%s:merchant:ip_whitelist", meta.Prefix)
 
 	if ty != 0 {
@@ -286,6 +289,8 @@ func LoadBlacklists(ty int) error {
 			key = rebateKey
 		case TyCGRebate:
 			key = cgRebateKey
+		case TyPromoteLink:
+			key = linkKey
 		case TyWhiteIP:
 			key = ipWhiteKey
 		}
@@ -297,6 +302,7 @@ func LoadBlacklists(ty int) error {
 		pipe.Unlink(ctx, bankcardKey)
 		pipe.Unlink(ctx, rebateKey)
 		pipe.Unlink(ctx, cgRebateKey)
+		pipe.Unlink(ctx, linkKey)
 		pipe.Unlink(ctx, ipWhiteKey)
 	}
 
@@ -315,6 +321,8 @@ func LoadBlacklists(ty int) error {
 			key = rebateKey
 		case TyCGRebate:
 			key = cgRebateKey
+		case TyPromoteLink:
+			key = linkKey
 		case TyWhiteIP:
 			key = ipWhiteKey
 		}
