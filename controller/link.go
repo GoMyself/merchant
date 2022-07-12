@@ -51,6 +51,10 @@ func (that *LinkController) List(ctx *fasthttp.RequestCtx) {
 	helper.Print(ctx, true, data)
 }
 
+func (that *LinkController) Update(ctx *fasthttp.RequestCtx) {
+	//ts := ctx.PostArgs().GetUintOrZero("ts")
+}
+
 func (that *LinkController) Delete(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
