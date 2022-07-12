@@ -92,6 +92,11 @@ func main() {
 		return
 	}
 
+	if os.Args[3] == "ShortURLInitNoAd" {
+		fmt.Println(model.ShortURLInitNoAd())
+		return
+	}
+
 	defer func() {
 		model.Close()
 		mt = nil

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
 	"time"
@@ -37,4 +39,38 @@ func ShortURLGet() (string, error) {
 	}
 
 	return resc, nil
+}
+
+func ShortURLInitNoAd() error {
+
+	var tss []string
+	query, _, _ := dialect.From("shorturl").Select("ts").Where(g.Ex{}).ToSQL()
+	fmt.Println(query)
+	err := meta.MerchantTD.Select(&tss, query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	var records []g.Record
+	for _, ts := range tss {
+		fmt.Println(ts)
+		t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", ts, loc)
+		if err != nil {
+			return pushLog(err, helper.DateTimeErr)
+		}
+
+		record := g.Record{
+			"ts":    t.UnixMicro(),
+			"no_ad": 0,
+		}
+		records = append(records, record)
+	}
+	query, _, _ = dialect.Insert("shorturl").Rows(records).ToSQL()
+	fmt.Println(query)
+	_, err = meta.MerchantTD.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.DBErr)
+	}
+
+	return nil
 }
