@@ -51,25 +51,38 @@ func ShortURLInitNoAd() error {
 		return pushLog(err, helper.DBErr)
 	}
 
-	var records []g.Record
-	for _, ts := range tss {
-		fmt.Println(ts)
-		t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", ts, loc)
-		if err != nil {
-			return pushLog(err, helper.DateTimeErr)
-		}
-
-		record := g.Record{
-			"ts":    t.UnixMicro(),
-			"no_ad": 0,
-		}
-		records = append(records, record)
+	p := len(tss) / 100
+	l := len(tss) % 100
+	if l > 0 {
+		p += 1
 	}
-	query, _, _ = dialect.Insert("shorturl").Rows(records).ToSQL()
-	fmt.Println(query)
-	_, err = meta.MerchantTD.Exec(query)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
+
+	for i := 0; i < p; i++ {
+		offset := i * 100
+		d := tss[offset:]
+		if i < p-1 {
+			d = tss[offset : offset+100]
+		}
+		var records []g.Record
+		for _, ts := range d {
+			fmt.Println(ts)
+			t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", ts, loc)
+			if err != nil {
+				return pushLog(err, helper.DateTimeErr)
+			}
+
+			record := g.Record{
+				"ts":    t.UnixMicro(),
+				"no_ad": 0,
+			}
+			records = append(records, record)
+		}
+		query, _, _ = dialect.Insert("shorturl").Rows(records).ToSQL()
+		fmt.Println(query)
+		_, err = meta.MerchantTD.Exec(query)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
 	}
 
 	return nil
