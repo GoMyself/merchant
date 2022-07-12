@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"fmt"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
 	"strconv"
+	"strings"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/olivere/elastic/v7"
@@ -27,24 +27,23 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	//param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 
-		//param["username"] = username
 		ex["username"] = username
 	}
 
 	parentName := string(ctx.QueryArgs().Peek("parent_name"))
 	if len(parentName) > 4 {
+		parentName = strings.ToLower(parentName)
 		if !validator.CheckUName(parentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		fmt.Println(parentName)
-		//param["parents"] = agency
 		ex["parent_name"] = parentName
 	}
 	if parentName == "root" {
@@ -53,13 +52,11 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 
 	deviceNo := string(ctx.QueryArgs().Peek("device_no"))
 	if len(deviceNo) > 0 {
-		//param["device_no.keyword"] = deviceNo
 		ex["device_no"] = deviceNo
 	}
 
 	ip := string(ctx.QueryArgs().Peek("ip"))
 	if len(ip) > 0 {
-		//param["ips.keyword"] = ip
 		ex["ip"] = ip
 	}
 
@@ -184,6 +181,7 @@ func (that *BlacklistController) Insert(ctx *fasthttp.RequestCtx) {
 			return
 		}
 	case model.TyRebate, model.TyCGRebate, model.TyPromoteLink:
+		value = strings.ToLower(value)
 		if !validator.CheckUName(value, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

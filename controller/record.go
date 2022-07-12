@@ -167,6 +167,7 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		}
 		ex["uid"] = uid
 	} else if username != "" { // 用户名校验
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -215,6 +216,7 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	username = strings.ToLower(username)
 	if ty == 1 && !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -260,7 +262,8 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		}
 
 		if confirmName != "" {
-			if !validator.CheckUName(confirmName, 5, 14) {
+			confirmName = strings.ToLower(confirmName)
+			if !validator.CheckAName(confirmName, 5, 14) {
 				helper.Print(ctx, false, errors.New(helper.UsernameErr))
 			}
 			if confirmName == "系统处理" {
@@ -415,7 +418,7 @@ func (that *RecordController) Game(ctx *fasthttp.RequestCtx) {
 
 	query := elastic.NewBoolQuery()
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -431,7 +434,7 @@ func (that *RecordController) Game(ctx *fasthttp.RequestCtx) {
 	// 校验username
 	// 如果username为空则取改代理下所有的会员
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -470,6 +473,7 @@ func (that *RecordController) LoginLog(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 	username := param.Username
 	if len(username) > 0 {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -511,7 +515,7 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 
 	query := elastic.NewBoolQuery()
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -539,6 +543,7 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -572,7 +577,7 @@ func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
 
 	query := elastic.NewBoolQuery()
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -596,7 +601,7 @@ func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -655,7 +660,7 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 
 	query := elastic.NewBoolQuery()
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -669,7 +674,7 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -719,7 +724,7 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 
 	query := elastic.NewBoolQuery()
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -769,7 +774,7 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -804,7 +809,7 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 	}
 	ex := g.Ex{}
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

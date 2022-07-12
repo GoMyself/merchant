@@ -279,6 +279,7 @@ func (that *DividendController) MemberList(ctx *fasthttp.RequestCtx) {
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 
+	username = strings.ToLower(username)
 	if username == "" || !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return

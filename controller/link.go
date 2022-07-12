@@ -26,6 +26,7 @@ func (that *LinkController) List(ctx *fasthttp.RequestCtx) {
 	}
 	ex := g.Ex{}
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

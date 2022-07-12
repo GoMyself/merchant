@@ -7,6 +7,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"strings"
 )
 
 type MemberTransferController struct{}
@@ -145,6 +146,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 		}
 
 		if username != "" {
+			username = strings.ToLower(username)
 			if !validator.CheckUName(username, 5, 14) {
 				helper.Print(ctx, false, helper.UsernameErr)
 				return
@@ -153,6 +155,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 			ex["username"] = username
 		}
 		if beforeName != "" {
+			beforeName = strings.ToLower(beforeName)
 			if !validator.CheckUName(beforeName, 5, 14) {
 				helper.Print(ctx, false, helper.AgentNameErr)
 				return
@@ -161,6 +164,7 @@ func (that *MemberTransferController) List(ctx *fasthttp.RequestCtx) {
 			ex["before_name"] = beforeName
 		}
 		if afterName != "" {
+			afterName = strings.ToLower(afterName)
 			if !validator.CheckUName(afterName, 5, 14) {
 				helper.Print(ctx, false, helper.AgentNameErr)
 				return
