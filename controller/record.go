@@ -111,20 +111,16 @@ type RecordController struct{}
 // Transaction 账变记录列表
 func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
-	ty := ctx.QueryArgs().GetUintOrZero("ty")               // 1中心钱包 2佣金钱包
-	username := string(ctx.QueryArgs().Peek("username"))    // 用户名
-	billNo := string(ctx.QueryArgs().Peek("bill_no"))       // 订单号
-	uid := string(ctx.QueryArgs().Peek("uid"))              //
-	types := string(ctx.QueryArgs().Peek("types"))          // 账变类型
-	startTime := string(ctx.QueryArgs().Peek("start_time")) // 查询开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))     // 查询结束时间
-	page := ctx.QueryArgs().GetUintOrZero("page")           // 页码
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")  // 页大小
-
-	if ty < 1 || ty > 2 {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	username := string(ctx.QueryArgs().Peek("username"))        // 用户名
+	platformID := string(ctx.QueryArgs().Peek("platform_id"))   // 场馆id 0中心钱包
+	billNo := string(ctx.QueryArgs().Peek("bill_no"))           // 订单号
+	operationNo := string(ctx.QueryArgs().Peek("operation_no")) // 操作号
+	uid := string(ctx.QueryArgs().Peek("uid"))                  //
+	types := string(ctx.QueryArgs().Peek("types"))              // 账变类型
+	startTime := string(ctx.QueryArgs().Peek("start_time"))     // 查询开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))         // 查询结束时间
+	page := ctx.QueryArgs().GetUintOrZero("page")               // 页码
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")      // 页大小
 
 	if page == 0 {
 		page = 1
@@ -139,6 +135,14 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 	// 账变类型筛选
 	if uid == "" {
 		ex["tester"] = 1
+	}
+
+	if platformID != "" {
+		ex["platform_id"] = platformID
+	}
+
+	if operationNo != "" {
+		ex["operation_no"] = operationNo
 	}
 
 	if types != "" {
