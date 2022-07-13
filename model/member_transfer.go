@@ -144,7 +144,7 @@ func MemberTransferAg(mb, destMb Member, admin map[string]string, isOfficial boo
 		"prefix":      meta.Prefix,
 	}
 	// bet 去修改注单的
-	err = TransAg("transfer_ag", param)
+	err = TransAg("transfer_ags", param)
 	if err != nil {
 		_ = pushLog(err, helper.ServerErr)
 	}

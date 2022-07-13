@@ -1583,10 +1583,10 @@ func memberPlatformRetryReset(username, pid string) error {
 	// 解锁类型为余额解锁
 	param["unlock_ty"] = fmt.Sprintf("%d", PromoUnlockAdmin)
 	// 投递消息队列，异步处理会员场馆活动解锁
-	err = BeanPut("promo", param)
-	if err != nil {
-		_ = pushLog(err, helper.ServerErr)
-	}
+	//err = BeanPut("promo", param)
+	//if err != nil {
+	//	_ = pushLog(err, helper.ServerErr)
+	//}
 
 	return nil
 }
