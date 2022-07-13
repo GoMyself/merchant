@@ -6,7 +6,6 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"merchant/contrib/helper"
 	"strings"
@@ -164,6 +163,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	}
 	//参加的活动
 	promolist, err := promoDataList(pids)
+	fmt.Println("err:", err)
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
@@ -174,16 +174,16 @@ func InspectionList(username string) (Inspection, Member, error) {
 	//上次提现至今的流水
 	totalVaild, err := EsPlatValidBet(username, "", cutTime, now)
 	if err != nil {
-		return data, mb, errors.New(helper.DBErr)
+		return data, mb, err
 	}
 	//查升级红利
 	dividendData, err := EsDividend(username, cutTime, now)
 	if err != nil {
-		return data, mb, errors.New(helper.DBErr)
+		return data, mb, err
 	}
 	var needFlowAmount decimal.Decimal
 
-	if dividendData.T > 0 {
+	if len(dividendData.D) > 0 {
 		for _, v := range dividendData.D {
 			//完成流水或者解锁过的跳过
 			if _, ok := history[v.ID]; ok {
@@ -191,8 +191,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 			}
 			dividendAmount := decimal.NewFromFloat(v.Amount)
 			flow := decimal.NewFromFloat(v.WaterFlow)
+			validBetAmount, err := EsPlatValidBet(username, "", int64(v.ReviewAt), now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
 			//组装红利的流水稽查
-			uf := flow.Sub(totalVaild)
+			uf := flow.Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -207,7 +211,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.WaterMultiple),
 				FlowAmount:       flow.StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        int64(v.ReviewAt),
 				Ty:               "2",
@@ -224,7 +228,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 	if err != nil {
 		return data, mb, errors.New(helper.DBErr)
 	}
-	if adjustData.T > 0 {
+	if len(adjustData.D) > 0 {
 		for _, v := range adjustData.D {
 			//完成流水或者解锁过的跳过
 			if _, ok := history[v.ID]; ok {
@@ -232,8 +236,12 @@ func InspectionList(username string) (Inspection, Member, error) {
 			}
 			adjustAmount := decimal.NewFromFloat(v.Amount)
 			multi := decimal.NewFromInt(int64(v.TurnoverMulti))
+			validBetAmount, err := EsPlatValidBet(username, "", int64(v.ReviewAt), now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
 			//组装vip礼金的流水稽查
-			uf := adjustAmount.Mul(multi).Sub(totalVaild)
+			uf := adjustAmount.Mul(multi).Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -248,7 +256,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       v.ReviewName,
 				FlowMultiple:     fmt.Sprintf(`%d`, v.TurnoverMulti),
 				FlowAmount:       adjustAmount.Mul(multi).StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        v.ReviewAt,
 				Ty:               "4",
@@ -267,7 +275,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 		return data, mb, errors.New(helper.DBErr)
 	}
 
-	if depostList.T > 0 {
+	if len(depostList.D) > 0 {
 		//组装存款的流水稽查
 		for _, v := range depostList.D {
 			//完成流水或者解锁过的跳过
@@ -275,7 +283,11 @@ func InspectionList(username string) (Inspection, Member, error) {
 				continue
 			}
 			depostAmount := decimal.NewFromFloat(v.Amount)
-			uf := depostAmount.Sub(totalVaild)
+			validBetAmount, err := EsPlatValidBet(username, "", v.CreatedAt, now)
+			if err != nil {
+				return data, mb, errors.New(helper.WaterFlowUnreached)
+			}
+			uf := depostAmount.Sub(validBetAmount)
 			if uf.Cmp(decimal.Zero) < 0 {
 				uf = decimal.Zero
 			}
@@ -290,7 +302,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				ReviewName:       "无",
 				FlowMultiple:     "1",
 				FlowAmount:       depostAmount.StringFixed(4),
-				FinishedAmount:   totalVaild.StringFixed(4),
+				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
 				CreatedAt:        0,
 				Ty:               "1",
@@ -496,7 +508,7 @@ func promoRecrodList(username string, cutTime int64) ([]PromoRecord, error) {
 	query, _, _ := t.Select(colsPromoRecord...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 
@@ -519,7 +531,7 @@ func promoDataList(pids []string) ([]PromoData, error) {
 	query, _, _ := t.Select(colsPromoData...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 	return data, nil
@@ -538,7 +550,7 @@ func getInspectionLast(username string, startAt, endAt int64) ([]PromoInspection
 	query, _, _ := dialect.From("tbl_promo_inspection").Select(colsPromoInspection...).Where(ex).Order(g.C("inspect_at").Desc()).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
 	return data, nil
@@ -552,168 +564,83 @@ func EsPlatValidBet(username string, pid string, startAt, endAt int64) (decimal.
 		return waterFlow, errors.New(helper.QueryTimeRangeErr)
 	}
 
-	boolQuery := elastic.NewBoolQuery()
-
-	filters := make([]elastic.Query, 0)
-	rg := elastic.NewRangeQuery("settle_time").Gte(startAt * 1000)
-	if startAt == 0 {
-		rg.IncludeLower(false)
-	}
-	if endAt == 0 {
-		rg.IncludeUpper(false)
-	}
-
-	if endAt > 0 {
-		rg.Lt(endAt * 1000)
-	}
-
-	filters = append(filters, rg)
-	boolQuery.Filter(filters...)
-
-	terms := make([]elastic.Query, 0)
-	terms = append(terms, elastic.NewTermQuery("name", username))
-	fmt.Println("pid:", pid)
+	ex := g.Ex{}
 	if strings.Contains(pid, ",") {
-		shouldQuery := elastic.NewBoolQuery()
-		if len(pid) > 0 {
-			pids := strings.Split(pid, ",")
-			for _, v := range pids {
-				if len(v) <= 20 {
-					//查询域名,采用模糊匹配
-					shouldQuery.Should(elastic.NewTermQuery("api_type", v))
-				}
-			}
-			boolQuery.Must(shouldQuery)
-		}
+		pids := strings.Split(pid, ",")
+		ex["api_type"] = pids
 	} else if len(pid) > 0 {
-		terms = append(terms, elastic.NewTermQuery("api_type", pid))
+		ex["api_type"] = pid
 	}
-	terms = append(terms, elastic.NewTermQuery("flag", 1))
+	ex["flag"] = 1
+	ex["name"] = username
+	var vaildAmount sql.NullFloat64
+	ex["settle_time"] = g.Op{"between": exp.NewRangeVal(startAt*1000, endAt*1000)}
 
-	boolQuery.Must(terms...)
-
-	fsc := elastic.NewFetchSourceContext(true)
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	resOrder, err := esService.Index(pullPrefixIndex("tbl_game_record")).
-		Aggregation("valid_bet_amount_agg", elastic.NewSumAggregation().Field("valid_bet_amount")).Do(ctx)
+	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount").As("valid_bet_amount")).Where(ex).Limit(1).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Get(&vaildAmount, query)
 	if err != nil {
-		fmt.Println(err)
-		return waterFlow, err
+		return decimal.Zero, pushLog(err, helper.DBErr)
+	}
+	if err == sql.ErrNoRows {
+		return decimal.Zero, nil
 	}
 
-	validBet, ok := resOrder.Aggregations.Sum("valid_bet_amount_agg")
-	if validBet == nil || !ok {
-		return waterFlow, errors.New("agg error")
-	}
-
-	return decimal.NewFromFloat(*validBet.Value), nil
+	return decimal.NewFromFloat(vaildAmount.Float64), nil
 }
 
 func EsDepost(username string, startAt, endAt int64) (FDepositData, error) {
 
 	data := FDepositData{}
-
-	query := elastic.NewBoolQuery()
-
-	query.Filter(elastic.NewTermsQuery("state", DepositSuccess))
-
-	query.Filter(elastic.NewTermQuery("username", username))
-
-	query.Filter(elastic.NewRangeQuery("created_at").Gte(startAt).Lte(endAt))
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_deposit"), "created_at", 1, 100, depositFields, query, nil)
+	ex := g.Ex{
+		"state":      DepositSuccess,
+		"username":   username,
+		"prefix":     meta.Prefix,
+		"created_at": g.Op{"between": exp.NewRangeVal(startAt, endAt)},
+	}
+	query, _, _ := dialect.From("tbl_deposit").Select(colsDeposit...).Where(ex).Order(g.C("created_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
-	var names []string
-	data.T = t
-	for _, v := range esResult {
-
-		record := Deposit{}
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }
 
-func EsDividend(username string, startAt, endAt int64) (DividendEsData, error) {
+func EsDividend(username string, startAt, endAt int64) (DividendData, error) {
 
-	data := DividendEsData{}
-	query := elastic.NewBoolQuery()
-	query.Filter(elastic.NewTermQuery("username", username))
-	query.MustNot(elastic.NewTermsQuery("ty", DividendPromo))
-	query.Filter(elastic.NewTermQuery("state", DividendReviewPass))
-	query.Filter(elastic.NewTermQuery("water_limit", 2))
-
-	if startAt != 0 && endAt != 0 {
-
-		if startAt >= endAt {
-			return data, errors.New(helper.QueryTimeRangeErr)
-		}
-
-		query.Filter(elastic.NewRangeQuery("review_at").Gte(startAt).Lte(endAt))
+	data := DividendData{}
+	ex := g.Ex{
+		"ty":          g.Op{"neq": DividendPromo},
+		"username":    username,
+		"prefix":      meta.Prefix,
+		"review_at":   g.Op{"between": exp.NewRangeVal(startAt, endAt)},
+		"water_limit": 2,
 	}
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	fmt.Println("query:", query)
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_member_dividend"), "review_at", 1, 100, dividendFields, query, nil)
+	query, _, _ := dialect.From("tbl_member_dividend").Select(colsDividend...).Where(ex).Order(g.C("review_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-
-	var names []string
-	data.T = t
-	for _, v := range esResult {
-
-		record := Dividend{}
-		fmt.Println(string(v.Source))
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		fmt.Println(record)
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }
 
 func EsAdjust(username string, startTime, endTime int64) (AdjustData, error) {
 
 	data := AdjustData{}
-	query := elastic.NewBoolQuery()
-	if startTime != 0 && endTime != 0 {
-
-		query.Filter(elastic.NewRangeQuery("review_at").Gte(startTime).Lte(endTime))
+	ex := g.Ex{
+		"state":       AdjustReviewPass,
+		"username":    username,
+		"prefix":      meta.Prefix,
+		"review_at":   g.Op{"between": exp.NewRangeVal(startTime, endTime)},
+		"is_turnover": 1,
 	}
-	query.Filter(elastic.NewTermQuery("is_turnover", "1"))
-	query.Filter(elastic.NewTermQuery("state", AdjustReviewPass))
-	query.Filter(elastic.NewTermQuery("username", username))
-
-	query.Filter(elastic.NewTermQuery("prefix", meta.Prefix))
-	t, esResult, _, err := EsQuerySearch(
-		esPrefixIndex("tbl_member_adjust"), "apply_at", 1, 100, adjustFields, query, nil)
+	query, _, _ := dialect.From("tbl_member_adjust").Select(colsMemberAdjust...).Where(ex).Order(g.C("apply_at").Desc()).Limit(100).ToSQL()
+	fmt.Println(query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil {
-		return data, err
+		return data, pushLog(err, helper.DBErr)
 	}
-
-	data.T = t
-	var names []string
-	for _, v := range esResult {
-
-		record := MemberAdjust{}
-		_ = helper.JsonUnmarshal(v.Source, &record)
-		record.ID = v.Id
-		data.D = append(data.D, record)
-		names = append(names, record.ParentName)
-	}
-
 	return data, nil
 }

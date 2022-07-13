@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	g "github.com/doug-martin/goqu/v9"
-	"github.com/olivere/elastic/v7"
 	"github.com/valyala/fasthttp"
 )
 
@@ -90,50 +89,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	}
 
 	helper.Print(ctx, true, data)
-}
-
-func (that *BlacklistController) AssociateList(ctx *fasthttp.RequestCtx) {
-
-	page := string(ctx.QueryArgs().Peek("page"))
-	pageSize := string(ctx.QueryArgs().Peek("page_size"))
-	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	tys := string(ctx.QueryArgs().Peek("ty"))
-	if !validator.CheckIntScope(tys, model.TyDevice, model.TyVirtualAccount) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	value := string(ctx.QueryArgs().Peek("value"))
-	if !validator.CheckStringLength(value, 1, 60) {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	ty, _ := strconv.Atoi(tys)
-	query := elastic.NewBoolQuery()
-
-	aggField := "device_no.keyword"
-	if ty == model.TyDevice {
-		query.Filter(elastic.NewTermQuery("device_no.keyword", value))
-		aggField = "ips.keyword"
-	} else if ty == model.TyIP {
-		query.Filter(elastic.NewTermQuery("ips.keyword", value))
-	}
-
-	p, _ := strconv.Atoi(page)
-	ps, _ := strconv.Atoi(pageSize)
-
-	data, err := model.MemberAssocLoginLogList(p, ps, aggField, query)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.PrintJson(ctx, true, data)
 }
 
 func (that *BlacklistController) List(ctx *fasthttp.RequestCtx) {
