@@ -64,20 +64,20 @@ func RecordTransaction(page, pageSize int, startTime, endTime string, ex g.Ex) (
 		if data.T == 0 {
 			return data, nil
 		}
+
+		query, _, _ = t.Select(g.L("sum(after_amount - before_amount)").As("agg")).Where(ex).ToSQL()
+		//fmt.Println(query)
+		err = meta.TiDB.Get(&data.Agg, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
 	}
 
 	offset := pageSize * (page - 1)
-	query, _, _ := t.Select(g.SUM("amount").As("agg")).Where(ex).ToSQL()
-	//fmt.Println(query)
-	err := meta.TiDB.Get(&data.Agg, query)
-	if err != nil {
-		return data, pushLog(err, helper.DBErr)
-	}
-
-	query, _, _ = t.Select(colsTransaction...).Where(ex).
+	query, _, _ := t.Select(colsTransaction...).Where(ex).
 		Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
 	fmt.Println(query)
-	err = meta.TiDB.Select(&data.D, query)
+	err := meta.TiDB.Select(&data.D, query)
 	if err != nil && err != sql.ErrNoRows {
 		return data, pushLog(err, helper.DBErr)
 	}
