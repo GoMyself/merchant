@@ -577,7 +577,6 @@ type GameRecord struct {
 	RowId          string  `db:"row_id" json:"row_id" form:"row_id"`
 	BillNo         string  `db:"bill_no" json:"bill_no" form:"bill_no"`
 	ApiType        string  `db:"api_type" json:"api_types" form:"api_type"`
-	ApiTypes       string  `json:"api_types"`
 	PlayerName     string  `db:"player_name" json:"player_name" form:"player_name"`
 	Name           string  `db:"name" json:"name" form:"name"`
 	Uid            string  `db:"uid" json:"uid" form:"uid"`
