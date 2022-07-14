@@ -280,7 +280,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 运营管理-红利管理-单会员发放
 	post("/merchant/dividend/insert", dividendCtl.Insert)
 	// 运营管理-红利管理-审核列表
-	get("/merchant/dividend/list", dividendCtl.List)
+	post("/merchant/dividend/list", dividendCtl.List)
 	// 运营管理-会员管理-基本信息-红利列表
 	post("/merchant/dividend/member/list", dividendCtl.MemberList)
 	// 运营管理-红利管理-更新
