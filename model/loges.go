@@ -217,37 +217,37 @@ func MemberAccessList(page, pageSize int, ex g.Ex) (MemberAssocLogData, error) {
 	}
 
 	//TD查去重
-	offset := (page - 1) * pageSize
-	query, _, _ = t.Select(g.DISTINCT("username").As("username")).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
-	err = meta.MerchantTD.Select(&data.D, query)
-	if err != nil {
-		fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
-
-	//获取用户名
-	var users = make([]string, len(data.D))
-	for _, d := range data.D {
-		users = append(users, d.Username)
-	}
-
-	//更新用户状态 注册时间 等
-	mbs, err := memberFindBatch(users)
-	if err != nil {
-		fmt.Println("Member detail err = ", err)
-		return data, pushLog(err, helper.DBErr)
-	}
-	for i, d := range data.D {
-		data.D[i].TopUID = mbs[d.Username].TopUid
-		data.D[i].TopName = mbs[d.Username].TopName
-		data.D[i].ParentName = mbs[d.Username].ParentName
-		data.D[i].State = mbs[d.Username].State
-		data.D[i].CreatedAt = mbs[d.Username].CreatedAt
-		data.D[i].Remarks = mbs[d.Username].Remarks
-		data.D[i].LastLoginAt = mbs[d.Username].LastLoginAt
-		data.D[i].GroupName = mbs[d.Username].GroupName
-	}
+	//offset := (page - 1) * pageSize
+	//query, _, _ = t.Select(g.DISTINCT("username").As("username")).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
+	//err = meta.MerchantTD.Select(&data.D, query)
+	//if err != nil {
+	//	fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
+	//	body := fmt.Errorf("%s,[%s]", err.Error(), query)
+	//	return data, pushLog(body, helper.DBErr)
+	//}
+	//
+	////获取用户名
+	//var users = make([]string, len(data.D))
+	//for _, d := range data.D {
+	//	users = append(users, d.Username)
+	//}
+	//
+	////更新用户状态 注册时间 等
+	//mbs, err := memberFindBatch(users)
+	//if err != nil {
+	//	fmt.Println("Member detail err = ", err)
+	//	return data, pushLog(err, helper.DBErr)
+	//}
+	//for i, d := range data.D {
+	//	data.D[i].TopUID = mbs[d.Username].TopUid
+	//	data.D[i].TopName = mbs[d.Username].TopName
+	//	data.D[i].ParentName = mbs[d.Username].ParentName
+	//	data.D[i].State = mbs[d.Username].State
+	//	data.D[i].CreatedAt = mbs[d.Username].CreatedAt
+	//	data.D[i].Remarks = mbs[d.Username].Remarks
+	//	data.D[i].LastLoginAt = mbs[d.Username].LastLoginAt
+	//	data.D[i].GroupName = mbs[d.Username].GroupName
+	//}
 
 	return data, nil
 }
