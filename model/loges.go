@@ -145,5 +145,109 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 
 	data.S = pageSize
+
+	//添加计数列
+	var countResult []IpUser
+	query, _, _ = t.Select(g.COUNT("username").As("username"), "ip").GroupBy("username", "ip").ToSQL()
+	err = meta.MerchantTD.Select(&countResult, query)
+	if err != nil {
+		fmt.Printf("Member Login count name Log query = :%+v err:%+v\n", query, err.Error())
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
+	}
+
+	var users = make([]string, len(data.D))
+	for _, d := range data.D {
+		users = append(users, d.Username)
+	}
+
+	mbs, err := memberFindBatch(users)
+	if err != nil {
+		fmt.Println("Member detail err = ", err)
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	//更新用户团队信息
+	for i, d := range data.D {
+		data.D[i].GroupName = mbs[d.Username].GroupName
+	}
+
+	fmt.Printf("DEBUG:memeber login  data:%+v\n", len(data.D))
+
+	//执行更新总数
+	if len(countResult) == 0 {
+		fmt.Printf("DEBUG: countResult 0 return data:%+v\n", data.D)
+		return data, nil
+	} else {
+		for i, d := range data.D {
+			for _, h := range countResult {
+				if h.IP == d.IP {
+					data.D[i].CountName += 1
+				}
+			}
+		}
+		return data, nil
+	}
+}
+
+//MemberAccessList 某ip对应的会员登陆信息
+func MemberAccessList(page, pageSize int, ex g.Ex) (MemberAssocLogData, error) {
+
+	data := MemberAssocLogData{S: pageSize}
+	ex["prefix"] = meta.Prefix
+
+	//去重总数
+	t := dialect.From("member_login_log")
+	var countResult []IpUser
+	query, _, _ := t.Select(g.COUNT("username").As("username")).Where(ex).GroupBy("username").ToSQL()
+	err := meta.MerchantTD.Select(&countResult, query)
+	data.T = int64(len(countResult))
+	if err == sql.ErrNoRows {
+		return data, nil
+	}
+
+	if err != nil {
+		fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
+	}
+
+	if data.T == 0 {
+		return data, nil
+	}
+
+	//TD查去重
+	offset := (page - 1) * pageSize
+	query, _, _ = t.Select(g.DISTINCT("username").As("username")).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
+	err = meta.MerchantTD.Select(&data.D, query)
+	if err != nil {
+		fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
+	}
+
+	//获取用户名
+	var users = make([]string, len(data.D))
+	for _, d := range data.D {
+		users = append(users, d.Username)
+	}
+
+	//更新用户状态 注册时间 等
+	mbs, err := memberFindBatch(users)
+	if err != nil {
+		fmt.Println("Member detail err = ", err)
+		return data, pushLog(err, helper.DBErr)
+	}
+	for i, d := range data.D {
+		data.D[i].TopUID = mbs[d.Username].TopUid
+		data.D[i].TopName = mbs[d.Username].TopName
+		data.D[i].ParentName = mbs[d.Username].ParentName
+		data.D[i].State = mbs[d.Username].State
+		data.D[i].CreatedAt = mbs[d.Username].CreatedAt
+		data.D[i].Remarks = mbs[d.Username].Remarks
+		data.D[i].LastLoginAt = mbs[d.Username].LastLoginAt
+		data.D[i].GroupName = mbs[d.Username].GroupName
+	}
+
 	return data, nil
 }

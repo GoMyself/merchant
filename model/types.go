@@ -168,18 +168,32 @@ type MemberLoginLogData struct {
 	T int64            `json:"t"`
 }
 
-//type MemberLoginLog struct {
-//	Username string `msg:"username" json:"username"`
-//	IP       int64  `msg:"ip" json:"ip"`
-//	IPS      string `msg:"ips" json:"ips"`
-//	Device   string `msg:"device" json:"device"`
-//	DeviceNo string `msg:"device_no" json:"device_no"`
-//	Date     uint32 `msg:"date" json:"date"`
-//	Serial   string `msg:"serial" json:"serial"`
-//	Agency   bool   `msg:"agency" json:"agency"`
-//	Parents  string `msg:"parents" json:"parents"`
-//	IsRisk   int    `msg:"-" json:"is_risk"`
-//}
+//MemberAssocLogData 会员最近登陆信息
+type MemberAssocLogData struct {
+	S int                    `json:"s"`
+	D []MemberAssocLogMember `json:"d"`
+	T int64                  `json:"t"`
+}
+
+//MemberAssocLogMember 会员最近登陆字段
+type MemberAssocLogMember struct {
+	Username    string `db:"username" json:"username"`
+	Device      int    `db:"device" json:"device"`               //24,25,35,36
+	TopUID      string `db:"top_uid" json:"top_uid"`             //总代uid
+	TopName     string `db:"top_name" json:"top_name"`           //总代代理名
+	ParentName  string `db:"parent_name" json:"parent_name"`     // 上级代理
+	CreatedAt   uint32 `db:"created_at" json:"created_at"`       //会员注册时间
+	State       uint8  `db:"state" json:"state"`                 //账号状态  1正常 2禁用
+	Remarks     string `db:"remarks" json:"remarks"`             //备注 账号状态备注
+	LastLoginAt uint32 `db:"last_login_at" json:"last_login_at"` //最后登陆时间
+	GroupName   string `db:"group_name" json:"group_name"`       //团队名称
+}
+
+//IpUser 计数字段
+type IpUser struct {
+	IP       string `json:"ip" db:"ip"`
+	Username string `json:"username" db:"username"`
+}
 
 type MemberLoginLog struct {
 	Username   string `db:"username" json:"username"`
@@ -193,6 +207,8 @@ type MemberLoginLog struct {
 	CreateAt   int    `db:"create_at" json:"create_at"`
 	Prefix     string `db:"prefix" json:"prefix"`
 	Ts         string `db:"ts" json:"ts"`
+	CountName  int    `db:"count_name" json:"count_name"` //ip 对应 username 数
+	GroupName  string `db:"group_name" json:"group_name"` //团队名称
 }
 
 type MemberRemarkLogData struct {

@@ -4,6 +4,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"net"
 	"strconv"
 	"strings"
 
@@ -23,7 +24,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
-	//param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
 		username = strings.ToLower(username)
@@ -33,6 +33,11 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		}
 
 		ex["username"] = username
+	}
+
+	topName := string(ctx.QueryArgs().Peek("top_name"))
+	if validator.CheckStringLength(topName, 1, 50) {
+		ex["top_name"] = topName
 	}
 
 	parentName := string(ctx.QueryArgs().Peek("parent_name"))
@@ -72,7 +77,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		//param["device"] = device
 		ex["device"] = device
 	}
 
@@ -81,8 +85,56 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	p, _ := strconv.Atoi(page)
 	ps, _ := strconv.Atoi(pageSize)
 
-	//data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
 	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, ex)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}
+
+//AssociateList 条件下 会员列表信息
+func (that *BlacklistController) AssociateList(ctx *fasthttp.RequestCtx) {
+
+	page := ctx.QueryArgs().GetUintOrZero("page")
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")
+	tys := string(ctx.QueryArgs().Peek("ty"))
+	value := string(ctx.QueryArgs().Peek("value"))
+
+	if !validator.CheckIntScope(tys, model.TyDevice, model.TyIP) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	if !validator.CheckStringLength(value, 1, 60) {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+
+	ty, _ := strconv.Atoi(tys)
+
+	ex := g.Ex{}
+	if ty == model.TyDevice {
+		ex["device_no"] = value
+	} else if ty == model.TyIP {
+		ipAddr := net.ParseIP(value)
+		if ipAddr == nil {
+			helper.Print(ctx, false, helper.IPErr)
+			return
+		}
+		ex["ip"] = ipAddr.String()
+	}
+
+	if page < 1 {
+		page = 1
+	}
+
+	if pageSize < 10 {
+		pageSize = 10
+	}
+
+	data, err := model.MemberAccessList(page, pageSize, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
