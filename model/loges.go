@@ -145,49 +145,49 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 	}
 
 	data.S = pageSize
-
+	return data, nil
 	//添加计数列
-	var countResult []IpUser
-	query, _, _ = t.Select(g.COUNT("username").As("username"), "ip").GroupBy("username", "ip").ToSQL()
-	err = meta.MerchantTD.Select(&countResult, query)
-	if err != nil {
-		fmt.Printf("Member Login count name Log query = :%+v err:%+v\n", query, err.Error())
-		body := fmt.Errorf("%s,[%s]", err.Error(), query)
-		return data, pushLog(body, helper.DBErr)
-	}
+	//var countResult []IpUser
+	//query, _, _ = t.Select(g.COUNT("username").As("username"), "ip").GroupBy("username", "ip").ToSQL()
+	//err = meta.MerchantTD.Select(&countResult, query)
+	//if err != nil {
+	//	fmt.Printf("Member Login count name Log query = :%+v err:%+v\n", query, err.Error())
+	//	body := fmt.Errorf("%s,[%s]", err.Error(), query)
+	//	return data, pushLog(body, helper.DBErr)
+	//}
 
-	var users = make([]string, len(data.D))
-	for _, d := range data.D {
-		users = append(users, d.Username)
-	}
+	//var users = make([]string, len(data.D))
+	//for _, d := range data.D {
+	//	users = append(users, d.Username)
+	//}
+	//
+	//mbs, err := memberFindBatch(users)
+	//if err != nil {
+	//	fmt.Println("Member detail err = ", err)
+	//	return data, pushLog(err, helper.DBErr)
+	//}
+	//
+	////更新用户团队信息
+	//for i, d := range data.D {
+	//	data.D[i].GroupName = mbs[d.Username].GroupName
+	//}
 
-	mbs, err := memberFindBatch(users)
-	if err != nil {
-		fmt.Println("Member detail err = ", err)
-		return data, pushLog(err, helper.DBErr)
-	}
-
-	//更新用户团队信息
-	for i, d := range data.D {
-		data.D[i].GroupName = mbs[d.Username].GroupName
-	}
-
-	fmt.Printf("DEBUG:memeber login  data:%+v\n", len(data.D))
-
-	//执行更新总数
-	if len(countResult) == 0 {
-		fmt.Printf("DEBUG: countResult 0 return data:%+v\n", data.D)
-		return data, nil
-	} else {
-		for i, d := range data.D {
-			for _, h := range countResult {
-				if h.IP == d.IP {
-					data.D[i].CountName += 1
-				}
-			}
-		}
-		return data, nil
-	}
+	//fmt.Printf("DEBUG:memeber login  data:%+v\n", len(data.D))
+	//
+	////执行更新总数
+	//if len(countResult) == 0 {
+	//	fmt.Printf("DEBUG: countResult 0 return data:%+v\n", data.D)
+	//	return data, nil
+	//} else {
+	//	for i, d := range data.D {
+	//		for _, h := range countResult {
+	//			if h.IP == d.IP {
+	//				data.D[i].CountName += 1
+	//			}
+	//		}
+	//	}
+	//	return data, nil
+	//}
 }
 
 //MemberAccessList 某ip对应的会员登陆信息
