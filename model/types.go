@@ -168,18 +168,32 @@ type MemberLoginLogData struct {
 	T int64            `json:"t"`
 }
 
-//type MemberLoginLog struct {
-//	Username string `msg:"username" json:"username"`
-//	IP       int64  `msg:"ip" json:"ip"`
-//	IPS      string `msg:"ips" json:"ips"`
-//	Device   string `msg:"device" json:"device"`
-//	DeviceNo string `msg:"device_no" json:"device_no"`
-//	Date     uint32 `msg:"date" json:"date"`
-//	Serial   string `msg:"serial" json:"serial"`
-//	Agency   bool   `msg:"agency" json:"agency"`
-//	Parents  string `msg:"parents" json:"parents"`
-//	IsRisk   int    `msg:"-" json:"is_risk"`
-//}
+//MemberAssocLogData 会员最近登陆信息
+type MemberAssocLogData struct {
+	S int                    `json:"s"`
+	D []MemberAssocLogMember `json:"d"`
+	T int64                  `json:"t"`
+}
+
+//MemberAssocLogMember 会员最近登陆字段
+type MemberAssocLogMember struct {
+	Username    string `db:"username" json:"username"`
+	Device      int    `db:"device" json:"device"`               //24,25,35,36
+	TopUID      string `db:"top_uid" json:"top_uid"`             //总代uid
+	TopName     string `db:"top_name" json:"top_name"`           //总代代理名
+	ParentName  string `db:"parent_name" json:"parent_name"`     // 上级代理
+	CreatedAt   uint32 `db:"created_at" json:"created_at"`       //会员注册时间
+	State       uint8  `db:"state" json:"state"`                 //账号状态  1正常 2禁用
+	Remarks     string `db:"remarks" json:"remarks"`             //备注 账号状态备注
+	LastLoginAt uint32 `db:"last_login_at" json:"last_login_at"` //最后登陆时间
+	GroupName   string `db:"group_name" json:"group_name"`       //团队名称
+}
+
+//IpUser 计数字段
+type IpUser struct {
+	IP       string `json:"ip" db:"ip"`
+	Username string `json:"username" db:"username"`
+}
 
 type MemberLoginLog struct {
 	Username   string `db:"username" json:"username"`
@@ -193,6 +207,8 @@ type MemberLoginLog struct {
 	CreateAt   int    `db:"create_at" json:"create_at"`
 	Prefix     string `db:"prefix" json:"prefix"`
 	Ts         string `db:"ts" json:"ts"`
+	CountName  int    `db:"count_name" json:"count_name"` //ip 对应 username 数
+	GroupName  string `db:"group_name" json:"group_name"` //团队名称
 }
 
 type MemberRemarkLogData struct {
@@ -248,12 +264,6 @@ type MemberAdjust struct {
 type DividendData struct {
 	T   int64             `json:"t"`
 	D   []MemberDividend  `json:"d"`
-	Agg map[string]string `json:"agg"`
-}
-
-type DividendEsData struct {
-	T   int64             `json:"t"`
-	D   []Dividend        `json:"d"`
 	Agg map[string]string `json:"agg"`
 }
 
@@ -532,16 +542,18 @@ type TransactionData struct {
 }
 
 type Transaction struct {
-	ID           string `db:"id" json:"id" form:"id"`
-	BillNo       string `db:"bill_no" json:"bill_no" form:"bill_no"`
-	Uid          string `db:"uid" json:"uid" form:"uid"`
-	Username     string `db:"username" json:"username" form:"username"`
-	CashType     int    `db:"cash_type" json:"cash_type" form:"cash_type"`
-	Amount       string `db:"amount" json:"amount" form:"amount"`
-	BeforeAmount string `db:"before_amount" json:"before_amount" form:"before_amount"`
-	AfterAmount  string `db:"after_amount" json:"after_amount" form:"after_amount"`
-	CreatedAt    uint64 `db:"created_at" json:"created_at" form:"created_at"`
-	Remark       string `db:"remark" json:"remark" form:"remark"`
+	ID           string `db:"id" json:"id"`
+	PlatformId   string `db:"platform_id" json:"platform_id"`
+	BillNo       string `db:"bill_no" json:"bill_no"`
+	OperationNo  string `db:"operation_no" json:"operation_no"`
+	Uid          string `db:"uid" json:"uid"`
+	Username     string `db:"username" json:"username"`
+	CashType     int    `db:"cash_type" json:"cash_type"`
+	Amount       string `db:"amount" json:"amount"`
+	BeforeAmount string `db:"before_amount" json:"before_amount"`
+	AfterAmount  string `db:"after_amount" json:"after_amount"`
+	CreatedAt    uint64 `db:"created_at" json:"created_at"`
+	Remark       string `db:"remark" json:"remark"`
 }
 
 // 场馆转账数据
@@ -570,9 +582,9 @@ type Transfer struct {
 
 // 游戏记录数据
 type GameRecordData struct {
-	T   int64             `json:"t"`
-	D   []GameRecord      `json:"d"`
-	Agg map[string]string `json:"agg"`
+	T   int64        `json:"t"`
+	D   []GameRecord `json:"d"`
+	Agg GameRecord   `json:"agg"`
 }
 
 //游戏投注记录结构
@@ -580,8 +592,7 @@ type GameRecord struct {
 	ID             string  `db:"id" json:"id" form:"id"`
 	RowId          string  `db:"row_id" json:"row_id" form:"row_id"`
 	BillNo         string  `db:"bill_no" json:"bill_no" form:"bill_no"`
-	ApiType        int     `db:"api_type" json:"api_type" form:"api_type"`
-	ApiTypes       string  `json:"api_types"`
+	ApiType        string  `db:"api_type" json:"api_types" form:"api_type"`
 	PlayerName     string  `db:"player_name" json:"player_name" form:"player_name"`
 	Name           string  `db:"name" json:"name" form:"name"`
 	Uid            string  `db:"uid" json:"uid" form:"uid"`
@@ -596,8 +607,6 @@ type GameRecord struct {
 	RebateAmount   float64 `db:"rebate_amount" json:"rebate_amount" form:"rebate_amount"`
 	Flag           int     `db:"flag" json:"flag" form:"flag"`
 	PlayType       string  `db:"play_type" json:"play_type" form:"play_type"`
-	CopyFlag       int     `db:"copy_flag" json:"copy_flag" form:"copy_flag"`
-	FilePath       string  `db:"file_path" json:"file_path" form:"file_path"`
 	Prefix         string  `db:"prefix" json:"prefix" form:"prefix"`
 	Result         string  `db:"result" json:"result" form:"result"`
 	CreatedAt      uint64  `db:"created_at" json:"created_at" form:"created_at"`
@@ -605,13 +614,10 @@ type GameRecord struct {
 	ApiName        string  `db:"api_name" json:"api_name" form:"api_name"`
 	ApiBillNo      string  `db:"api_bill_no" json:"api_bill_no" form:"api_bill_no"`
 	MainBillNo     string  `db:"main_bill_no" json:"main_bill_no" form:"main_bill_no"`
-	IsUse          int     `db:"is_use" json:"is_use" form:"is_use"`
-	FlowQuota      int64   `db:"flow_quota" json:"flow_quota" form:"flow_quota"`
 	GameName       string  `db:"game_name" json:"game_name" form:"game_name"`
 	HandicapType   string  `db:"handicap_type" json:"handicap_type" form:"handicap_type"`
 	Handicap       string  `db:"handicap" json:"handicap" form:"handicap"`
 	Odds           float64 `db:"odds" json:"odds" form:"odds"`
-	BallType       int     `db:"ball_type" json:"ball_type" form:"ball_type"`
 	SettleTime     int64   `db:"settle_time" json:"settle_time" form:"settle_time"`
 	ApiBetTime     uint64  `db:"api_bet_time" json:"api_bet_time" form:"api_bet_time"`
 	ApiSettleTime  uint64  `db:"api_settle_time" json:"api_settle_time" form:"api_settle_time"`
@@ -934,9 +940,9 @@ type WithdrawListData struct {
 
 // 返水数据
 type RebateData struct {
-	T   int64                `json:"t"`
-	D   []CommissionTransfer `json:"d"`
-	Agg map[string]string    `json:"agg"`
+	T   int64             `json:"t"`
+	D   []Transaction     `json:"d"`
+	Agg map[string]string `json:"agg"`
 }
 
 // 代理团队转代
@@ -1189,12 +1195,19 @@ type SMSChannel struct {
 	Remark      string `db:"remark" json:"remark"` // 备注
 }
 
+type LinkData struct {
+	T int64    `json:"t"`
+	S uint     `json:"s"`
+	D []Link_t `json:"d"`
+}
+
 type Link_t struct {
 	ID               string `db:"id" json:"id"`
 	UID              string `db:"uid" json:"uid"`
 	Username         string `db:"username" json:"username"`
 	ShortURL         string `db:"short_url" json:"short_url"`
 	Prefix           string `db:"prefix" json:"prefix"`
+	NoAd             int    `db:"no_ad" json:"no_ad"`                           //0展示广告页，1不展示广告页
 	ZR               string `db:"zr" json:"zr"`                                 //真人返水
 	QP               string `db:"qp" json:"qp"`                                 //棋牌返水
 	TY               string `db:"ty" json:"ty"`                                 //体育返水
@@ -1206,4 +1219,9 @@ type Link_t struct {
 	CGHighRebate     string `db:"cg_high_rebate" json:"cg_high_rebate"`         //cg高频彩返点
 	CGOfficialRebate string `db:"cg_official_rebate" json:"cg_official_rebate"` //cg高频彩返点
 	CreatedAt        string `db:"created_at" json:"created_at"`
+}
+
+type GameResult_t struct {
+	NetAmount      sql.NullFloat64 `db:"net_amount" json:"net_amount"`
+	ValidBetAmount sql.NullFloat64 `db:"valid_bet_amount" json:"valid_bet_amount"`
 }

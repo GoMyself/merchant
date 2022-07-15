@@ -19,7 +19,7 @@ func BeanPut(name string, param map[string]interface{}) error {
 		}
 	}
 
-	topic := meta.Prefix + "_" + name
+	topic := meta.Prefix + "_" + name + "s"
 	err := meta.MerchantMQ.SendAsync(ctx,
 		func(c context.Context, result *primitive.SendResult, e error) {
 			if e != nil {

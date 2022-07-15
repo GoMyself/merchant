@@ -3,7 +3,7 @@ package model
 import "time"
 
 var (
-	gameRecordFields = []string{"parent_uid", "parent_name", "top_uid", "top_name", "settle_time", "start_time", "resettle", "presettle", "ball_type", "odds", "handicap", "handicap_type", "game_name", "flow_quota", "is_use", "main_bill_no", "api_bill_no", "api_name", "updated_at", "created_at", "result", "prefix", "file_path", "copy_flag", "play_type", "flag", "valid_bet_amount", "bet_amount", "rebate_amount", "game_type", "bet_time", "net_amount", "uid", "name", "player_name", "api_type", "bill_no", "row_id", "id"}
+	gameRecordFields = []string{"parent_uid", "parent_name", "top_uid", "top_name", "settle_time", "start_time", "resettle", "presettle", "odds", "handicap", "handicap_type", "game_name", "main_bill_no", "api_bill_no", "api_name", "updated_at", "created_at", "result", "prefix", "play_type", "flag", "valid_bet_amount", "bet_amount", "rebate_amount", "game_type", "bet_time", "net_amount", "uid", "name", "player_name", "api_type", "bill_no", "row_id", "id"}
 )
 
 const (
@@ -211,21 +211,23 @@ var (
 		TyVirtualAccount: true, //虚拟币地址
 		TyRebate:         true, //返水
 		TyCGRebate:       true, //返点
+		TyPromoteLink:    true, //推广链接
 		TyWhiteIP:        true, //后台ip白名单
 	}
 )
 
 // 黑名单类型
 const (
-	TyDevice         = 1  //设备号
-	TyIP             = 2  //ip地址
-	TyEmail          = 3  //邮箱地址
-	TyPhone          = 4  //电话号码
-	TyBankcard       = 5  //银行卡
-	TyVirtualAccount = 6  //虚拟币地址
-	TyRebate         = 7  //场馆返水
-	TyCGRebate       = 8  //cg彩票返点
-	TyWhiteIP        = 11 //后台访问ip白名单
+	TyDevice         = 1   //设备号
+	TyIP             = 2   //ip地址
+	TyEmail          = 3   //邮箱地址
+	TyPhone          = 4   //电话号码
+	TyBankcard       = 5   //银行卡
+	TyVirtualAccount = 6   //虚拟币地址
+	TyRebate         = 7   //场馆返水
+	TyCGRebate       = 8   //cg彩票返点
+	TyPromoteLink    = 9   //推广链接
+	TyWhiteIP        = 101 //后台访问ip白名单
 )
 
 const (

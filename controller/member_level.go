@@ -4,6 +4,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"strings"
 
 	g "github.com/doug-martin/goqu/v9"
 
@@ -117,6 +118,7 @@ func (that *MemberLevelController) Record(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 	if param.UserName != "" {
 		//字母数字组合，4-9，前2个字符必须为字母
+		param.UserName = strings.ToLower(param.UserName)
 		if !validator.CheckUName(param.UserName, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

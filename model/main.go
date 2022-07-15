@@ -21,7 +21,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
-	"github.com/olivere/elastic/v7"
 	"github.com/spaolacci/murmur3"
 )
 
@@ -41,9 +40,8 @@ type MetaTable struct {
 	MerchantMQ    rocketmq.Producer
 	ReportDB      *sqlx.DB
 	BetDB         *sqlx.DB
+	TiDB          *sqlx.DB
 	PromoteConfig map[string]map[string]interface{}
-	ES            *elastic.Client
-	AccessEs      *elastic.Client
 	NatsConn      *nats.Conn
 	IsDev         bool
 	Prefix        string
@@ -97,8 +95,11 @@ var (
 	colsPromoInspection      = helper.EnumFields(PromoInspection{})
 	colsLink                 = helper.EnumFields(Link_t{})
 	colsMessageTD            = helper.EnumFields(MessageTD{})
+	colsDeposit              = helper.EnumFields(Deposit{})
+	colsWithdraw             = helper.EnumFields(Withdraw{})
 	colsBankcardLog          = helper.EnumFields(BankcardLog{})
 	colsMemberRemarksLog     = helper.EnumFields(MemberRemarksLog{})
+	colsGameRecord           = helper.EnumFields(GameRecord{})
 	dividendFields           = []string{"id", "uid", "prefix", "ty", "username", "top_uid", "top_name", "parent_uid", "parent_name", "amount", "review_at", "review_uid", "review_name", "water_multiple", "water_flow"}
 	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
 	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}

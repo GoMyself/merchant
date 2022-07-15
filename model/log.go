@@ -108,26 +108,3 @@ func SystemLog(start, end string, page, pageSize int, query *elastic.BoolQuery) 
 
 	return data, nil
 }
-
-func EsQuerySearch(index, sortField string, page, pageSize int,
-	fields []string, boolQuery *elastic.BoolQuery, agg map[string]*elastic.SumAggregation) (int64, []*elastic.SearchHit, elastic.Aggregations, error) {
-
-	fsc := elastic.NewFetchSourceContext(true).Include(fields...)
-	offset := (page - 1) * pageSize
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).From(offset).Size(pageSize).TrackTotalHits(true).Sort(sortField, false)
-	for k, v := range agg {
-		esService = esService.Aggregation(k, v)
-	}
-	resOrder, err := esService.Index(index).Do(ctx)
-	if err != nil {
-		fmt.Println(err)
-		return 0, nil, nil, pushLog(err, helper.ESErr)
-	}
-
-	if resOrder.Status != 0 || resOrder.Hits.TotalHits.Value <= int64(offset) {
-		return resOrder.Hits.TotalHits.Value, nil, nil, nil
-	}
-
-	return resOrder.Hits.TotalHits.Value, resOrder.Hits.Hits, resOrder.Aggregations, nil
-}

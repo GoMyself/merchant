@@ -47,6 +47,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
+		names = strings.ToLower(names)
 		usernames := strings.Split(names, ",")
 		for _, v := range usernames {
 			if !validator.CheckUName(v, 5, 14) {
@@ -79,6 +80,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	case 2, 3:
+		names = strings.ToLower(names)
 		if !validator.CheckUName(names, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -344,6 +346,7 @@ func (that *MessageController) System(ctx *fasthttp.RequestCtx) {
 	}
 	ex := g.Ex{}
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

@@ -50,6 +50,7 @@ type remarkLogParams struct {
 func (that *MemberController) Detail(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -68,6 +69,7 @@ func (that *MemberController) Detail(ctx *fasthttp.RequestCtx) {
 func (that *MemberController) AccountInfo(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -199,6 +201,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.RebateOutOfRange)
 	}
 
+	name = strings.ToLower(name)
 	if !validator.CheckUName(name, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -256,6 +259,7 @@ func (that *MemberController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *MemberController) Balance(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.QueryArgs().Peek("username"))
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -287,6 +291,7 @@ func (that *MemberController) UpdateState(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 验证用户名
+	params.Username = strings.ToLower(params.Username)
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
 		if !validator.CheckUName(v, 5, 14) {
@@ -383,6 +388,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 	if username != "" {
 
 		// 多个会员名用,分隔
+		username = strings.ToLower(username)
 		sName := strings.Split(username, ",")
 		var usernames []string
 		for _, name := range sName {
@@ -411,6 +417,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if agent != "" {
+		agent = strings.ToLower(agent)
 		if !validator.CheckUName(agent, 5, 14) && len(username) > 50 {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
@@ -499,6 +506,7 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 
 	var press = exp.NewExpressionList(exp.AndType, g.C("uid").Eq(g.C("top_uid")))
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) && username != "root" {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -527,8 +535,10 @@ func (that *MemberController) Agency(ctx *fasthttp.RequestCtx) {
 			"deposit_amount":     true,
 			"withdrawal_amount":  true,
 			"dividend_amount":    true,
+			"valid_bet_amount":   true,
 			"rebate_amount":      true,
 			"company_net_amount": true,
+			"rebate_point":       true,
 		}
 
 		if _, ok := sortFields[sortField]; !ok {
@@ -563,6 +573,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	zalo := string(ctx.PostArgs().Peek("zalo"))
 	address := string(ctx.PostArgs().Peek("address")) //收货地址
 
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -699,14 +710,8 @@ func (that *MemberController) RemarkLogInsert(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	if params.Username == "" {
-		// 会员名校验
-		if !validator.CheckUName(params.Username, 5, 14) {
-			helper.Print(ctx, false, helper.UsernameErr)
-			return
-		}
-	}
 	// 验证用户名
+	params.Username = strings.ToLower(params.Username)
 	names := strings.Split(params.Username, ",")
 	for _, v := range names {
 		if !validator.CheckUName(v, 5, 14) {
@@ -788,6 +793,7 @@ func (that MemberController) Overview(ctx *fasthttp.RequestCtx) {
 	startTime := string(ctx.QueryArgs().Peek("start_time"))
 	endTime := string(ctx.QueryArgs().Peek("end_time"))
 
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -883,6 +889,7 @@ func (that *MemberController) UpdatePwd(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 会员名校验
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -1020,6 +1027,8 @@ func (that *MemberController) SetBalanceZero(ctx *fasthttp.RequestCtx) {
 
 	username := string(ctx.PostArgs().Peek("username"))
 	remark := string(ctx.PostArgs().Peek("remark"))
+
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -1053,6 +1062,7 @@ func (that *MemberController) UpdateTopMember(ctx *fasthttp.RequestCtx) {
 	groupName := string(ctx.PostArgs().Peek("group_name"))
 	state := ctx.PostArgs().GetUintOrZero("state") // 状态 1正常 2禁用
 
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) && username != "root" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -1123,6 +1133,7 @@ func (that *MemberController) UpdateMemberRebate(ctx *fasthttp.RequestCtx) {
 	cgHighRebateTemp := string(ctx.PostArgs().Peek("cg_high_rebate"))
 	cgOfficialRebateTemp := string(ctx.PostArgs().Peek("cg_official_rebate"))
 
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) && username != "root" {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -1268,6 +1279,7 @@ func (that *MemberController) UpdateMaintainName(ctx *fasthttp.RequestCtx) {
 	username := string(ctx.PostArgs().Peek("username"))
 	maintainName := string(ctx.PostArgs().Peek("maintain_name"))
 
+	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -1304,6 +1316,7 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.Username != "" {
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -1311,6 +1324,7 @@ func (that *MemberController) MemberList(ctx *fasthttp.RequestCtx) {
 	}
 
 	if param.ParentName != "" {
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return

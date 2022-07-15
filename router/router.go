@@ -109,8 +109,17 @@ func SetupRouter(b BuildInfo) *router.Router {
 	mailCtl := new(controller.EmailRecordController)
 	// 短信通道管理
 	smsChannelCtl := new(controller.SMSChannelController)
+	// 短信通道管理
+	linkCtl := new(controller.LinkController)
 
 	get("/merchant/version", Version)
+
+	// 代理管理-推广链接-查询
+	get("/merchant/link/list", linkCtl.List)
+	// 代理管理-推广链接-设置是否显示广告页
+	post("/merchant/link/set", linkCtl.SetNoAd)
+	// 代理管理-推广链接-删除
+	get("/merchant/link/delete", linkCtl.Delete)
 
 	// 权限管理-用户组管理-新增分组
 	post("/merchant/group/insert", groupCtl.Insert)
@@ -271,7 +280,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 运营管理-红利管理-单会员发放
 	post("/merchant/dividend/insert", dividendCtl.Insert)
 	// 运营管理-红利管理-审核列表
-	get("/merchant/dividend/list", dividendCtl.List)
+	post("/merchant/dividend/list", dividendCtl.List)
 	// 运营管理-会员管理-基本信息-红利列表
 	post("/merchant/dividend/member/list", dividendCtl.MemberList)
 	// 运营管理-红利管理-更新
@@ -308,11 +317,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/shorturl/set", shortURLCtl.Set)
 	// 短链接-域名查询
 	get("/merchant/shorturl/get", shortURLCtl.Get)
-
-	//查询会员登录日志
-	get("/merchant/blacklist/assoclog", blacklistCtl.AssociateList)
 	//查询会员登录日志
 	get("/merchant/blacklist/loginlog", blacklistCtl.LogList)
+	//查询登陆日志会员信息
+	get("/merchant/blacklist/assoclog", blacklistCtl.AssociateList)
 
 	//风控管理-黑名单查询
 	get("/merchant/blacklist/list", blacklistCtl.List)
