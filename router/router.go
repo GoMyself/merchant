@@ -319,6 +319,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/shorturl/get", shortURLCtl.Get)
 	//查询会员登录日志
 	get("/merchant/blacklist/loginlog", blacklistCtl.LogList)
+	//查询登陆日志会员信息
+	get("/merchant/blacklist/assoclog", blacklistCtl.AssociateList)
 
 	//风控管理-黑名单查询
 	get("/merchant/blacklist/list", blacklistCtl.List)
