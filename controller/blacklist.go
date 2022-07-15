@@ -16,7 +16,6 @@ type BlacklistController struct{}
 
 func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 
-	topName := string(ctx.QueryArgs().Peek("top_name"))
 	page := string(ctx.QueryArgs().Peek("page"))
 	pageSize := string(ctx.QueryArgs().Peek("page_size"))
 	if !validator.CheckStringDigit(page) || !validator.CheckStringDigit(pageSize) {
@@ -25,7 +24,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
-	//param := map[string]interface{}{}
 	username := string(ctx.QueryArgs().Peek("username"))
 	if len(username) > 0 {
 		username = strings.ToLower(username)
@@ -37,6 +35,7 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 		ex["username"] = username
 	}
 
+	topName := string(ctx.QueryArgs().Peek("top_name"))
 	if validator.CheckStringLength(topName, 1, 50) {
 		ex["top_name"] = topName
 	}
@@ -78,7 +77,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		//param["device"] = device
 		ex["device"] = device
 	}
 
@@ -87,7 +85,6 @@ func (that *BlacklistController) LogList(ctx *fasthttp.RequestCtx) {
 	p, _ := strconv.Atoi(page)
 	ps, _ := strconv.Atoi(pageSize)
 
-	//data, err := model.MemberLoginLogList(startTime, endTime, p, ps, param)
 	data, err := model.MemberLoginLogList(startTime, endTime, p, ps, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
