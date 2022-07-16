@@ -385,7 +385,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 会员列表->输赢信息->场馆合并
 	// 会员列表->输赢信息->日期合并
 	post("/merchant/record/game", recordCtl.RecordGame)
-
+	//会员管理-会员列表-详情-返水记录
+	get("/merchant/member/rebate", rebateCtl.RebatePersonal)
 	//运营管理-站内消息-添加
 	post("/merchant/message/insert", msgCtl.Insert)
 	//运营管理-站内消息-列表
