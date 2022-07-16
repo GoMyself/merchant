@@ -304,7 +304,7 @@ func InspectionList(username string) (Inspection, Member, error) {
 				FlowAmount:       depostAmount.StringFixed(4),
 				FinishedAmount:   validBetAmount.StringFixed(4),
 				UnfinishedAmount: uf.StringFixed(4),
-				CreatedAt:        0,
+				CreatedAt:        v.CreatedAt,
 				Ty:               "1",
 				Pid:              "0",
 				RecordId:         v.ID,
