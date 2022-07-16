@@ -301,6 +301,12 @@ func MemberUpdateCache(uid, username string) error {
 	pipe.Persist(ctx, key)
 	pipe.Exec(ctx)
 	pipe.Close()
+
+	// 禁用
+	if dst.State == 2 {
+		session.Offline([]string{dst.UID})
+	}
+
 	return nil
 }
 
@@ -372,10 +378,10 @@ func MemberBatchTag(uids []string) (string, error) {
 }
 
 // 更新用户状态
-func MemberUpdateState(sliceName []string, state int8) error {
+func MemberUpdateState(usernames []string, state int8) error {
 
 	query, _, _ := dialect.Update("tbl_members").
-		Set(g.Record{"state": state}).Where(g.Ex{"username": sliceName, "prefix": meta.Prefix}).ToSQL()
+		Set(g.Record{"state": state}).Where(g.Ex{"username": usernames, "prefix": meta.Prefix}).ToSQL()
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -386,9 +392,9 @@ func MemberUpdateState(sliceName []string, state int8) error {
 		pipe := meta.MerchantRedis.TxPipeline()
 		defer pipe.Close()
 
-		for _, v := range sliceName {
-			pipe.HSet(ctx, sliceName[v], "state", state)
-			pipe.Persist(ctx, sliceName[v])
+		for _, v := range usernames {
+			pipe.HSet(ctx, usernames[v], "state", state)
+			pipe.Persist(ctx, usernames[v])
 		}
 
 		_, err = pipe.Exec(ctx)
@@ -396,7 +402,7 @@ func MemberUpdateState(sliceName []string, state int8) error {
 			return pushLog(err, helper.RedisErr)
 		}
 	*/
-	for _, v := range sliceName {
+	for _, v := range usernames {
 		MemberUpdateCache("", v)
 	}
 
