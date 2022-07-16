@@ -89,6 +89,7 @@ func (that *BankcardController) List(ctx *fasthttp.RequestCtx) {
 	}
 
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -177,6 +178,7 @@ func (that *BankcardController) Log(ctx *fasthttp.RequestCtx) {
 
 	ex := g.Ex{}
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

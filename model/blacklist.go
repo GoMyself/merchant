@@ -4,14 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"merchant/contrib/helper"
-	"strings"
-
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
 	"github.com/valyala/fasthttp"
-	"github.com/wI2L/jettison"
+	"merchant/contrib/helper"
 )
 
 // 黑名单列表
@@ -336,107 +332,6 @@ func LoadBlacklists(ty int) error {
 	}
 
 	return nil
-}
-
-func MemberAssocLoginLogList(page, pageSize int, aggField string, q *elastic.BoolQuery) (string, error) {
-
-	fields := []string{"username", "ips", "device", "device_no", "date", "parents"}
-	//q = q.Filter(q.Query, elastic.NewTermQuery("prefix", meta.Prefix))
-	fsc := elastic.NewFetchSourceContext(true).Include(fields...)
-
-	collapseBuilder := elastic.NewCollapseBuilder("username.keyword").InnerHit(elastic.NewInnerHit().
-		Name(aggField).Size(100000).Collapse(elastic.NewCollapseBuilder(aggField)).FetchSourceContext(fsc))
-
-	agg := elastic.NewCardinalityAggregation().Field("username.keyword")
-
-	offset := pageSize * (page - 1)
-
-	searchRes, err := meta.ES.Search().Index(esPrefixIndex("memberlogin")).
-		FetchSourceContext(elastic.NewFetchSourceContext(true).Include("username")).
-		Aggregation("count", agg).
-		Size(pageSize).From(offset).Query(q).Sort("date", false).Collapse(collapseBuilder).Do(ctx)
-	if err != nil {
-		return `{"t":0,"d":[]}`, pushLog(err, helper.ESErr)
-	}
-
-	total, found := searchRes.Aggregations.Cardinality("count")
-	if !found {
-		return `{"t":0,"d":[]}`, nil
-	}
-
-	var usernames []string
-	usernameMap := make(map[string]bool)
-	data := MemberAssocLoginLogData{}
-	data.S = pageSize
-	data.T = int64(*total.Value)
-
-	for _, v := range searchRes.Hits.Hits {
-		for _, hits := range v.InnerHits {
-			for _, value := range hits.Hits.Hits {
-				log := MemberAssocLoginLog{}
-				err = helper.JsonUnmarshal(value.Source, &log)
-				if err != nil {
-					return "", errors.New(helper.FormatErr)
-				}
-
-				data.D = append(data.D, log)
-
-				if _, ok := usernameMap[log.Username]; !ok {
-					usernames = append(usernames, log.Username)
-				}
-
-			}
-		}
-	}
-
-	var tags []memberTags
-
-	mCache, err := memberFindBatch(usernames)
-	if err != nil {
-		return `{"t":0,"d":[]}`, err
-	}
-
-	var uids []string
-	mpMb := map[string]string{}
-	for _, v := range mCache {
-		if v.UID != "" {
-			uids = append(uids, v.UID)
-			mpMb[v.UID] = v.Username
-		}
-	}
-
-	if len(uids) > 0 {
-
-		t := dialect.From("tbl_member_tags")
-		query, _, _ := t.Select("uid", "tag_id", "tag_name").Where(g.Ex{"uid": uids, "prefix": meta.Prefix}).ToSQL()
-		err = meta.MerchantDB.Select(&tags, query)
-		if err != nil {
-			return `{"t":0,"d":[]}`, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
-		}
-
-		mpTags := map[string][]string{}
-		for _, v := range tags {
-			// 存在追加，不存在新增
-			if _, ok := mpTags[v.Uid]; ok {
-				mpTags[mpMb[v.Uid]] = append(mpTags[mpMb[v.Uid]], v.TagName)
-			} else {
-				mpTags[mpMb[v.Uid]] = []string{v.TagName}
-			}
-		}
-
-		for k := range data.D {
-			if tgs, ok := mpTags[data.D[k].Username]; ok {
-				data.D[k].Tags = strings.Join(tgs, ",")
-			}
-		}
-	}
-
-	b, err := jettison.Marshal(data)
-	if err != nil {
-		return "", errors.New(helper.FormatErr)
-	}
-
-	return string(b), nil
 }
 
 // 解锁手机号码（确认没有会员账号绑定的情况）

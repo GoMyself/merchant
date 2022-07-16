@@ -12,10 +12,8 @@ import (
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/olivere/elastic/v7"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fastjson"
 	"github.com/wI2L/jettison"
 )
 
@@ -303,6 +301,12 @@ func MemberUpdateCache(uid, username string) error {
 	pipe.Persist(ctx, key)
 	pipe.Exec(ctx)
 	pipe.Close()
+
+	// 禁用
+	if dst.State == 2 {
+		session.Offline([]string{dst.UID})
+	}
+
 	return nil
 }
 
@@ -374,10 +378,10 @@ func MemberBatchTag(uids []string) (string, error) {
 }
 
 // 更新用户状态
-func MemberUpdateState(sliceName []string, state int8) error {
+func MemberUpdateState(usernames []string, state int8) error {
 
 	query, _, _ := dialect.Update("tbl_members").
-		Set(g.Record{"state": state}).Where(g.Ex{"username": sliceName, "prefix": meta.Prefix}).ToSQL()
+		Set(g.Record{"state": state}).Where(g.Ex{"username": usernames, "prefix": meta.Prefix}).ToSQL()
 	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
@@ -388,9 +392,9 @@ func MemberUpdateState(sliceName []string, state int8) error {
 		pipe := meta.MerchantRedis.TxPipeline()
 		defer pipe.Close()
 
-		for _, v := range sliceName {
-			pipe.HSet(ctx, sliceName[v], "state", state)
-			pipe.Persist(ctx, sliceName[v])
+		for _, v := range usernames {
+			pipe.HSet(ctx, usernames[v], "state", state)
+			pipe.Persist(ctx, usernames[v])
 		}
 
 		_, err = pipe.Exec(ctx)
@@ -398,7 +402,7 @@ func MemberUpdateState(sliceName []string, state int8) error {
 			return pushLog(err, helper.RedisErr)
 		}
 	*/
-	for _, v := range sliceName {
+	for _, v := range usernames {
 		MemberUpdateCache("", v)
 	}
 
@@ -436,35 +440,21 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 
 	if tag != "" {
 
-		fsc := elastic.NewFetchSourceContext(true).Include("uid")
-		boolQuery := elastic.NewBoolQuery()
-		boolQuery.Must(elastic.NewTermQuery("prefix", meta.Prefix))
-		//boolQuery.Filter(elastic.NewWildcardQuery("tag_name", fmt.Sprintf("*%s*", tag)))
-		boolQuery.Filter(elastic.NewWildcardQuery("tag_name", tag))
-		distinct := elastic.NewCollapseBuilder("uid")
-
-		resTag, err := meta.ES.Search(esPrefixIndex("tbl_member_tags")).FetchSourceContext(fsc).Query(boolQuery).Collapse(distinct).Size(10000).Do(ctx)
-		if err != nil {
-			return data, pushLog(err, "es")
+		ex1 := g.Ex{
+			"prefix":   meta.Prefix,
+			"tag_name": tag,
 		}
-
-		var p fastjson.Parser
 		var ids []uint64
-		for _, v := range resTag.Hits.Hits {
-
-			tag, err := p.ParseBytes(v.Source)
-			if err != nil {
-				return data, errors.New(helper.FormatErr)
-			}
-
-			ids = append(ids, tag.GetUint64("uid"))
+		query, _, _ := dialect.From("tbl_member_tags").Select(g.DISTINCT(g.C("uid"))).Where(ex1).Order(g.C("created_at").Desc()).Limit(100).ToSQL()
+		fmt.Println(query)
+		err := meta.TiDB.Select(&ids, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
 		}
 
-		if len(ids) == 0 {
-			return data, nil
+		if len(ids) > 0 {
+			ex["uid"] = ids
 		}
-
-		ex["uid"] = ids
 	}
 
 	data, err = memberList(page, pageSize, ex)
@@ -884,6 +874,7 @@ func agencyList(ex exp.ExpressionList, startAt, endAt int64, page, pageSize int,
 			"uid",
 			g.MAX("mem_count").As("mem_count"),
 			g.SUM("deposit_amount").As("deposit_amount"),
+			g.MAX("mem_count").As("mem_count"),
 			g.SUM("withdrawal_amount").As("withdrawal_amount"),
 			g.SUM("valid_bet_amount").As("valid_bet_amount"),
 			g.SUM("rebate_amount").As("rebate_amount"),
@@ -1299,36 +1290,28 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	}
 
 	// 总输赢 && 总有效投注
-	filters := []elastic.Query{
-		elastic.NewRangeQuery("bet_time").Gte(mss).Lte(mse),
-		elastic.NewTermQuery("uid", mb.UID),
-		elastic.NewTermQuery("prefix", meta.Prefix),
-	}
-	boolQuery := elastic.NewBoolQuery().Filter(filters...)
-	esService := meta.ES.Search().
-		Query(boolQuery).
-		TrackTotalHits(true).
-		Sort("created_at", false).
-		Aggregation("net_amount", elastic.NewSumAggregation().Field("net_amount")).
-		Aggregation("valid_bet_amount", elastic.NewSumAggregation().Field("valid_bet_amount"))
+	ex := g.Ex{}
+	ex["flag"] = 1
+	ex["name"] = username
+	r := GameResult_t{}
+	ex["bet_time"] = g.Op{"between": exp.NewRangeVal(mss, mse)}
 
-	res, err := esService.Index(pullPrefixIndex("tbl_game_record")).Do(ctx)
+	query, _, _ := dialect.From("tbl_game_record").Select(g.SUM("valid_bet_amount").As("valid_bet_amount"),
+		g.SUM("net_amount").As("net_amount")).Where(ex).Limit(1).ToSQL()
+	err = meta.TiDB.Get(&r, query)
 	if err != nil {
-		return data, pushLog(err, "es")
+		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
-
-	winLose, _ := res.Aggregations.Sum("net_amount")
-	data.NetAmount = *winLose.Value
-	validBet, _ := res.Aggregations.Sum("valid_bet_amount")
-	data.ValidBetAmount = *validBet.Value
+	data.NetAmount = r.NetAmount.Float64
+	data.ValidBetAmount = r.ValidBetAmount.Float64
 
 	// 总存款
-	ex := g.Ex{"uid": mb.UID,
+	ex = g.Ex{"uid": mb.UID,
 		"prefix":     meta.Prefix,
 		"state":      DepositSuccess,
 		"confirm_at": g.Op{"between": exp.NewRangeVal(ss, se)},
 	}
-	query, _, _ := dialect.From("tbl_deposit").
+	query, _, _ = dialect.From("tbl_deposit").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("dividend")).Where(ex).ToSQL()
 	err = meta.MerchantDB.Get(&data.Deposit, query)
 	if err != nil {
@@ -1382,7 +1365,7 @@ func MemberDataOverview(username, startTime, endTime string) (MemberDataOverview
 	query, _, _ = dialect.From("tbl_balance_transaction").
 		Select(g.COALESCE(g.SUM("amount"), 0).As("rebate")).Where(rex).ToSQL()
 	fmt.Println(query)
-	err = meta.MerchantDB.Get(&data.Rebate, query)
+	err = meta.TiDB.Get(&data.Rebate, query)
 	if err != nil {
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
@@ -1583,10 +1566,10 @@ func memberPlatformRetryReset(username, pid string) error {
 	// 解锁类型为余额解锁
 	param["unlock_ty"] = fmt.Sprintf("%d", PromoUnlockAdmin)
 	// 投递消息队列，异步处理会员场馆活动解锁
-	err = BeanPut("promo", param)
-	if err != nil {
-		_ = pushLog(err, helper.ServerErr)
-	}
+	//err = BeanPut("promo", param)
+	//if err != nil {
+	//	_ = pushLog(err, helper.ServerErr)
+	//}
 
 	return nil
 }

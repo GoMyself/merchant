@@ -4,6 +4,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -30,6 +31,7 @@ func (that *SmsRecordController) List(ctx *fasthttp.RequestCtx) {
 	}
 	// 会员名校验
 	if username != "" {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

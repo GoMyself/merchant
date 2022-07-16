@@ -8,8 +8,6 @@ import (
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-
-	"github.com/olivere/elastic/v7"
 )
 
 func MemberRemarkLogList(uid, adminName, startTime, endTime string, page, pageSize int) (MemberRemarkLogData, error) {
@@ -148,113 +146,108 @@ func MemberLoginLogList(startTime, endTime string, page, pageSize int, ex g.Ex) 
 
 	data.S = pageSize
 	return data, nil
+	//添加计数列
+	//var countResult []IpUser
+	//query, _, _ = t.Select(g.COUNT("username").As("username"), "ip").GroupBy("username", "ip").ToSQL()
+	//err = meta.MerchantTD.Select(&countResult, query)
+	//if err != nil {
+	//	fmt.Printf("Member Login count name Log query = :%+v err:%+v\n", query, err.Error())
+	//	body := fmt.Errorf("%s,[%s]", err.Error(), query)
+	//	return data, pushLog(body, helper.DBErr)
+	//}
+
+	//var users = make([]string, len(data.D))
+	//for _, d := range data.D {
+	//	users = append(users, d.Username)
+	//}
+	//
+	//mbs, err := memberFindBatch(users)
+	//if err != nil {
+	//	fmt.Println("Member detail err = ", err)
+	//	return data, pushLog(err, helper.DBErr)
+	//}
+	//
+	////更新用户团队信息
+	//for i, d := range data.D {
+	//	data.D[i].GroupName = mbs[d.Username].GroupName
+	//}
+
+	//fmt.Printf("DEBUG:memeber login  data:%+v\n", len(data.D))
+	//
+	////执行更新总数
+	//if len(countResult) == 0 {
+	//	fmt.Printf("DEBUG: countResult 0 return data:%+v\n", data.D)
+	//	return data, nil
+	//} else {
+	//	for i, d := range data.D {
+	//		for _, h := range countResult {
+	//			if h.IP == d.IP {
+	//				data.D[i].CountName += 1
+	//			}
+	//		}
+	//	}
+	//	return data, nil
+	//}
 }
 
-//ES查询转账记录
-func esSearch(index, sortField string, ascending bool, page, pageSize int, fields []string,
-	param map[string]interface{}, rangeParam map[string][]interface{}, aggField map[string]string) (int64, []*elastic.SearchHit, elastic.Aggregations, error) {
+//MemberAccessList 某ip对应的会员登陆信息
+func MemberAccessList(page, pageSize int, ex g.Ex) (MemberAssocLogData, error) {
 
-	boolQuery := elastic.NewBoolQuery()
-	terms := make([]elastic.Query, 0)
-	filters := make([]elastic.Query, 0)
+	data := MemberAssocLogData{S: pageSize}
+	ex["prefix"] = meta.Prefix
 
-	if len(rangeParam) > 0 {
-		for k, v := range rangeParam {
-			if v == nil {
-				continue
-			}
-
-			if len(v) == 2 {
-
-				if v[0] == nil && v[1] == nil {
-					continue
-				}
-				if val, ok := v[0].(string); ok {
-					switch val {
-					case "gt":
-						rg := elastic.NewRangeQuery(k).Gt(v[1])
-						filters = append(filters, rg)
-					case "gte":
-						rg := elastic.NewRangeQuery(k).Gte(v[1])
-						filters = append(filters, rg)
-					case "lt":
-						rg := elastic.NewRangeQuery(k).Lt(v[1])
-						filters = append(filters, rg)
-					case "lte":
-						rg := elastic.NewRangeQuery(k).Lte(v[1])
-						filters = append(filters, rg)
-					}
-					continue
-				}
-
-				rg := elastic.NewRangeQuery(k).Gte(v[0]).Lte(v[1])
-				if v[0] == nil {
-					rg.IncludeLower(false)
-				}
-
-				if v[1] == nil {
-					rg.IncludeUpper(false)
-				}
-
-				filters = append(filters, rg)
-			}
-		}
+	//去重总数
+	t := dialect.From("member_login_log")
+	var countResult []IpUser
+	query, _, _ := t.Select(g.COUNT("username").As("username")).Where(ex).GroupBy("username").ToSQL()
+	err := meta.MerchantTD.Select(&countResult, query)
+	data.T = int64(len(countResult))
+	if err == sql.ErrNoRows {
+		return data, nil
 	}
 
-	if len(param) > 0 {
-		for k, v := range param {
-			if v == nil {
-				continue
-			}
-
-			if vv, ok := v.([]interface{}); ok {
-				filters = append(filters, elastic.NewTermsQuery(k, vv...))
-				continue
-			}
-
-			terms = append(terms, elastic.NewTermQuery(k, v))
-		}
-	}
-
-	boolQuery.Filter(filters...)
-	boolQuery.Must(terms...)
-	fsc := elastic.NewFetchSourceContext(true).Include(fields...)
-	offset := (page - 1) * pageSize
-	//打印es查询json
-	esService := meta.ES.Search().FetchSourceContext(fsc).Query(boolQuery).From(offset).Size(pageSize).TrackTotalHits(true).Sort(sortField, ascending)
-
-	// 聚合条件
-	if len(aggField) > 0 {
-		for k, v := range aggField {
-			esService = esService.Aggregation(k, elastic.NewSumAggregation().Field(v))
-		}
-	}
-
-	resOrder, err := esService.Index(index).Do(ctx)
 	if err != nil {
-		return 0, nil, nil, pushLog(err, helper.ESErr)
+		fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
+		body := fmt.Errorf("%s,[%s]", err.Error(), query)
+		return data, pushLog(body, helper.DBErr)
 	}
 
-	if resOrder.Status != 0 || resOrder.Hits.TotalHits.Value <= int64(offset) {
-		return resOrder.Hits.TotalHits.Value, nil, nil, nil
+	if data.T == 0 {
+		return data, nil
 	}
 
-	return resOrder.Hits.TotalHits.Value, resOrder.Hits.Hits, resOrder.Aggregations, nil
-}
+	//TD查去重
+	//offset := (page - 1) * pageSize
+	//query, _, _ = t.Select(g.DISTINCT("username").As("username")).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).ToSQL()
+	//err = meta.MerchantTD.Select(&data.D, query)
+	//if err != nil {
+	//	fmt.Printf("Member Login Log err:%+v \n query:%+v\n", err.Error(), query)
+	//	body := fmt.Errorf("%s,[%s]", err.Error(), query)
+	//	return data, pushLog(body, helper.DBErr)
+	//}
+	//
+	////获取用户名
+	//var users = make([]string, len(data.D))
+	//for _, d := range data.D {
+	//	users = append(users, d.Username)
+	//}
+	//
+	////更新用户状态 注册时间 等
+	//mbs, err := memberFindBatch(users)
+	//if err != nil {
+	//	fmt.Println("Member detail err = ", err)
+	//	return data, pushLog(err, helper.DBErr)
+	//}
+	//for i, d := range data.D {
+	//	data.D[i].TopUID = mbs[d.Username].TopUid
+	//	data.D[i].TopName = mbs[d.Username].TopName
+	//	data.D[i].ParentName = mbs[d.Username].ParentName
+	//	data.D[i].State = mbs[d.Username].State
+	//	data.D[i].CreatedAt = mbs[d.Username].CreatedAt
+	//	data.D[i].Remarks = mbs[d.Username].Remarks
+	//	data.D[i].LastLoginAt = mbs[d.Username].LastLoginAt
+	//	data.D[i].GroupName = mbs[d.Username].GroupName
+	//}
 
-func EsQueryAggTerms(esCli *elastic.Client, index string, boolQuery *elastic.BoolQuery, agg map[string]*elastic.TermsAggregation) (*elastic.SearchResult, string, error) {
-
-	fsc := elastic.NewFetchSourceContext(true)
-
-	//打印es查询json
-	esService := esCli.Search().FetchSourceContext(fsc).Query(boolQuery).Size(0)
-	for k, v := range agg {
-		esService = esService.Aggregation(k, v)
-	}
-	resOrder, err := esService.Index(index).Do(ctx)
-	if err != nil {
-		fmt.Println(err)
-		return nil, "es", err
-	}
-	return resOrder, "", nil
+	return data, nil
 }

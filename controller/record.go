@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"github.com/olivere/elastic/v7"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/shopspring/decimal"
 	"github.com/valyala/fasthttp"
 	"merchant/contrib/helper"
@@ -111,20 +111,16 @@ type RecordController struct{}
 // Transaction 账变记录列表
 func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 
-	ty := ctx.QueryArgs().GetUintOrZero("ty")               // 1中心钱包 2佣金钱包
-	username := string(ctx.QueryArgs().Peek("username"))    // 用户名
-	billNo := string(ctx.QueryArgs().Peek("bill_no"))       // 订单号
-	uid := string(ctx.QueryArgs().Peek("uid"))              //
-	types := string(ctx.QueryArgs().Peek("types"))          // 账变类型
-	startTime := string(ctx.QueryArgs().Peek("start_time")) // 查询开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))     // 查询结束时间
-	page := ctx.QueryArgs().GetUintOrZero("page")           // 页码
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")  // 页大小
-
-	if ty < 1 || ty > 2 {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	username := string(ctx.QueryArgs().Peek("username"))        // 用户名
+	platformID := string(ctx.QueryArgs().Peek("platform_id"))   // 场馆id 0中心钱包
+	billNo := string(ctx.QueryArgs().Peek("bill_no"))           // 订单号
+	operationNo := string(ctx.QueryArgs().Peek("operation_no")) // 操作号
+	uid := string(ctx.QueryArgs().Peek("uid"))                  //
+	types := string(ctx.QueryArgs().Peek("types"))              // 账变类型
+	startTime := string(ctx.QueryArgs().Peek("start_time"))     // 查询开始时间
+	endTime := string(ctx.QueryArgs().Peek("end_time"))         // 查询结束时间
+	page := ctx.QueryArgs().GetUintOrZero("page")               // 页码
+	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")      // 页大小
 
 	if page == 0 {
 		page = 1
@@ -139,6 +135,14 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 	// 账变类型筛选
 	if uid == "" {
 		ex["tester"] = 1
+	}
+
+	if platformID != "" {
+		ex["platform_id"] = platformID
+	}
+
+	if operationNo != "" {
+		ex["operation_no"] = operationNo
 	}
 
 	if types != "" {
@@ -167,6 +171,7 @@ func (that *RecordController) Transaction(ctx *fasthttp.RequestCtx) {
 		}
 		ex["uid"] = uid
 	} else if username != "" { // 用户名校验
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -215,6 +220,7 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	username = strings.ToLower(username)
 	if ty == 1 && !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
@@ -239,15 +245,27 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		}
 
 		if pidIn > 0 && pidOut == 0 {
-			ex["platform_id"] = pidIn
+			if pidIn == 1 {
+				ex["transfer_type"] = model.TransferOut
+			} else {
+				ex["platform_id"] = pidIn
+			}
 		}
 
 		if pidIn == 0 && pidOut > 0 {
-			ex["platform_id"] = pidOut
+			if pidOut == 1 {
+				ex["transfer_type"] = model.TransferIn
+			} else {
+				ex["platform_id"] = pidOut
+			}
 		}
 
 		if pidIn > 0 && pidOut > 0 {
-			ex["platform_id"] = []int{pidIn, pidOut}
+			if pidIn == 1 && pidOut == 1 {
+				ex["transfer_type"] = []int{model.TransferOut, model.TransferIn}
+			} else {
+				ex["platform_id"] = []int{pidIn, pidOut}
+			}
 		}
 
 		if state > 0 {
@@ -260,7 +278,8 @@ func (that *RecordController) Transfer(ctx *fasthttp.RequestCtx) {
 		}
 
 		if confirmName != "" {
-			if !validator.CheckUName(confirmName, 5, 14) {
+			confirmName = strings.ToLower(confirmName)
+			if !validator.CheckAName(confirmName, 5, 14) {
 				helper.Print(ctx, false, errors.New(helper.UsernameErr))
 			}
 			if confirmName == "系统处理" {
@@ -384,7 +403,7 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 	}
 
 	if ty < model.GameMemberTransferGroup {
-		data, err := model.Game(ty, pageSize, page, param)
+		data, err := model.Game(ty, uint(pageSize), uint(page), param)
 		if err != nil {
 			helper.Print(ctx, false, err.Error())
 			return
@@ -413,39 +432,39 @@ func (that *RecordController) Game(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	query := elastic.NewBoolQuery()
+	ex := g.Ex{}
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		query = query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+		ex["parent_name"] = param.ParentName
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
+		ex["parent_name"] = g.Op{"neq": "root"}
 	}
 
 	// 校验username
 	// 如果username为空则取改代理下所有的会员
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("name", param.Username))
+		ex["name"] = param.Username
 	}
 
 	if param.Pid != "0" {
-		query.Filter(elastic.NewTermQuery("api_type", param.Pid))
+		ex["api_type"] = param.Pid
 	}
 
 	data, err := model.RecordAdminGame(
-		param.Flag, param.StartTime, param.EndTime, param.Page, param.PageSize, query)
+		param.Flag, param.StartTime, param.EndTime, uint(param.Page), uint(param.PageSize), ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -470,6 +489,7 @@ func (that *RecordController) LoginLog(ctx *fasthttp.RequestCtx) {
 	ex := g.Ex{}
 	username := param.Username
 	if len(username) > 0 {
+		username = strings.ToLower(username)
 		if !validator.CheckUName(username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
@@ -509,19 +529,19 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	query := elastic.NewBoolQuery()
+	ex := g.Ex{}
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+		ex["parent_name"] = param.ParentName
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
+		ex["parent_name"] = g.Op{"neq": "root"}
 	}
 
 	if param.State > 0 {
@@ -531,28 +551,29 @@ func (that *RecordController) Deposit(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("state", param.State))
+		ex["state"] = param.State
 	}
 
 	if param.State == 0 {
-		query.Filter(elastic.NewTermsQuery("state", model.DepositSuccess, model.DepositCancelled))
+		ex["state"] = []int{model.DepositSuccess, model.DepositCancelled}
 	}
 
 	if param.Username != "" {
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("username", param.Username))
+		ex["username"] = param.Username
 	}
 
 	if param.ChannelId > 0 {
 
-		query.Filter(elastic.NewTermQuery("channel_id", param.ChannelId))
+		ex["channel_id"] = param.ChannelId
 	}
 
-	data, err := model.RecordDeposit(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	data, err := model.RecordDeposit(uint(param.Page), uint(param.PageSize), param.StartTime, param.EndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -570,19 +591,19 @@ func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	query := elastic.NewBoolQuery()
+	ex := g.Ex{}
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+		ex["parent_name"] = param.ParentName
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
+		ex["parent_name"] = g.Op{"neq": "root"}
 	}
 
 	if param.Ty > 0 {
@@ -591,21 +612,19 @@ func (that *RecordController) Dividend(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.StateParamErr)
 			return
 		}
-
-		query.Filter(elastic.NewTermQuery("ty", param.Ty))
+		ex["ty"] = param.Ty
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		query.Filter(elastic.NewTermQuery("username", param.Username))
+		ex["username"] = param.Username
 	}
 
-	data, err := model.RecordDividend(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	data, err := model.RecordDividend(uint(param.Page), uint(param.PageSize), param.StartTime, param.EndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -653,29 +672,28 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	query := elastic.NewBoolQuery()
+	ex := g.Ex{}
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+		ex["parent_name"] = param.ParentName
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
+		ex["parent_name"] = g.Op{"neq": "root"}
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
-
-		query.Filter(elastic.NewTermQuery("username", param.Username))
+		ex["username"] = param.Username
 	}
 
 	if param.State > 0 {
@@ -685,7 +703,7 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("hand_out_state", param.State))
+		ex["hand_out_state"] = param.State
 	}
 
 	if param.AdjustType != "0" {
@@ -695,10 +713,10 @@ func (that *RecordController) Adjust(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("adjust_type", param.AdjustType))
+		ex["adjust_type"] = param.AdjustType
 	}
 
-	data, err := model.RecordAdjust(param.Page, param.PageSize, param.StartTime, param.EndTime, query)
+	data, err := model.RecordAdjust(param.Page, param.PageSize, param.StartTime, param.EndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -717,19 +735,19 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	query := elastic.NewBoolQuery()
+	ex := g.Ex{}
 	if param.ParentName != "" {
-
+		param.ParentName = strings.ToLower(param.ParentName)
 		if !validator.CheckUName(param.ParentName, 5, 14) {
 			helper.Print(ctx, false, helper.AgentNameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("parent_name", param.ParentName))
+		ex["parent_name"] = param.ParentName
 	}
 
 	if param.ParentName == "" {
-		query.MustNot(elastic.NewTermsQuery("parent_name", "root"))
+		ex["parent_name"] = g.Op{"neq": "root"}
 	}
 
 	if param.State > 0 {
@@ -739,7 +757,7 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("state", param.State))
+		ex["state"] = param.State
 	}
 
 	if param.MinAmount != "0" || param.MaxAmount != "0" {
@@ -765,21 +783,21 @@ func (that *RecordController) Withdraw(ctx *fasthttp.RequestCtx) {
 		minVal, _ := min.Float64()
 		maxVal, _ := max.Float64()
 
-		query.Filter(elastic.NewRangeQuery("amount").Gte(minVal).Lte(maxVal))
+		ex["amount"] = g.Op{"between": exp.NewRangeVal(minVal, maxVal)}
 	}
 
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return
 		}
 
-		query.Filter(elastic.NewTermQuery("username", param.Username))
+		ex["username"] = param.Username
 	}
 
 	data, err := model.RecordWithdraw(param.Page,
-		param.PageSize, param.StartTime, param.EndTime, param.ApplyStartTime, param.ApplyEndTime, query)
+		param.PageSize, param.StartTime, param.EndTime, param.ApplyStartTime, param.ApplyEndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -804,7 +822,7 @@ func (that *RecordController) Group(ctx *fasthttp.RequestCtx) {
 	}
 	ex := g.Ex{}
 	if param.Username != "" {
-
+		param.Username = strings.ToLower(param.Username)
 		if !validator.CheckUName(param.Username, 5, 14) {
 			helper.Print(ctx, false, helper.UsernameErr)
 			return

@@ -2,13 +2,14 @@ package controller
 
 import (
 	"fmt"
-	g "github.com/doug-martin/goqu/v9"
-	"github.com/shopspring/decimal"
-	"github.com/valyala/fasthttp"
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
 	"strings"
+
+	g "github.com/doug-martin/goqu/v9"
+	"github.com/shopspring/decimal"
+	"github.com/valyala/fasthttp"
 )
 
 type dividendInsertParam struct {
@@ -146,23 +147,23 @@ func (that *DividendController) Insert(ctx *fasthttp.RequestCtx) {
 // 红利列表
 func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 
-	id := ctx.QueryArgs().GetUintOrZero("id")                            //订单号
-	username := string(ctx.QueryArgs().Peek("username"))                 //用户名
-	ty := ctx.QueryArgs().GetUintOrZero("ty")                            //红利类型
-	waterLimit := ctx.QueryArgs().GetUintOrZero("water_limit")           //流水限制 1无需流水限制 2需要流水限制
-	applyName := string(ctx.QueryArgs().Peek("apply_name"))              //申请人名字
-	reviewName := string(ctx.QueryArgs().Peek("review_name"))            //审核人名字
-	startTime := string(ctx.QueryArgs().Peek("start_time"))              //申请开始时间
-	endTime := string(ctx.QueryArgs().Peek("end_time"))                  //申请结束时间
-	reviewStartTime := string(ctx.QueryArgs().Peek("review_start_time")) //审核开始时间
-	reviewEndTime := string(ctx.QueryArgs().Peek("review_end_time"))     //审核结束时间
-	remarkFlag := ctx.QueryArgs().GetUintOrZero("remark_flag")           //0全部 1申请备注 2审核备注
-	remark := string(ctx.QueryArgs().Peek("remark"))                     //备注内容
-	page := ctx.QueryArgs().GetUintOrZero("page")                        //页数
-	pageSize := ctx.QueryArgs().GetUintOrZero("page_size")               //页大小
-	flag := ctx.QueryArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
-	state := ctx.QueryArgs().GetUintOrZero("state")                      //审核状态
-	handOutState := ctx.QueryArgs().GetUintOrZero("hand_out_state")      //发放状态
+	id := ctx.PostArgs().GetUintOrZero("id")                            //订单号
+	username := string(ctx.PostArgs().Peek("username"))                 //用户名
+	ty := ctx.PostArgs().GetUintOrZero("ty")                            //红利类型
+	waterLimit := ctx.PostArgs().GetUintOrZero("water_limit")           //流水限制 1无需流水限制 2需要流水限制
+	applyName := string(ctx.PostArgs().Peek("apply_name"))              //申请人名字
+	reviewName := string(ctx.PostArgs().Peek("review_name"))            //审核人名字
+	startTime := string(ctx.PostArgs().Peek("start_time"))              //申请开始时间
+	endTime := string(ctx.PostArgs().Peek("end_time"))                  //申请结束时间
+	reviewStartTime := string(ctx.PostArgs().Peek("review_start_time")) //审核开始时间
+	reviewEndTime := string(ctx.PostArgs().Peek("review_end_time"))     //审核结束时间
+	remarkFlag := ctx.PostArgs().GetUintOrZero("remark_flag")           //0全部 1申请备注 2审核备注
+	remark := string(ctx.PostArgs().Peek("remark"))                     //备注内容
+	page := ctx.PostArgs().GetUintOrZero("page")                        //页数
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")               //页大小
+	flag := ctx.PostArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
+	state := ctx.PostArgs().GetUintOrZero("state")                      //审核状态
+	handOutState := ctx.PostArgs().GetUintOrZero("hand_out_state")      //发放状态
 
 	ex := g.Ex{}
 	if username != "" {
@@ -279,6 +280,7 @@ func (that *DividendController) MemberList(ctx *fasthttp.RequestCtx) {
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 
+	username = strings.ToLower(username)
 	if username == "" || !validator.CheckUName(username, 5, 14) {
 		helper.Print(ctx, false, helper.UsernameErr)
 		return
