@@ -327,7 +327,7 @@ type BannerData struct {
 
 type Banner struct {
 	ID          string `json:"id" db:"id" rule:"none"`                                                                       //
-	Title       string `json:"title" db:"title" msg:"title error" rule:"filter" min:"3" max:"200" name:"title"`              //标题
+	Title       string `json:"title" db:"title" msg:"title error" rule:"filter" name:"title"`                                //标题
 	Device      string `json:"device" db:"device" rule:"sDigit" msg:"device error" name:"device"`                            //设备类型(1,2)
 	RedirectURL string `json:"redirect_url" db:"redirect_url" rule:"none" msg:"redirect_url error" name:"redirect_url"`      //跳转地址
 	Images      string `json:"images" db:"images" rule:"none"`                                                               //图片路径
