@@ -381,7 +381,7 @@ func RecordAdminGame(flag, startTime, endTime string, page, pageSize uint, ex g.
 	}
 	ex["prefix"] = meta.Prefix
 	ex["tester"] = 1
-	ex[betTimeFlags[flag]] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	ex[betTimeFlags[flag]] = g.Op{"between": exp.NewRangeVal(startAt, endAt+999)}
 	query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT("id")).Where(ex).Limit(1).ToSQL()
 	fmt.Println(query)
 	err = meta.TiDB.Get(&data.T, query)

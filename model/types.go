@@ -736,6 +736,7 @@ type MemberLevel struct {
 	LateMonthPacket   int     `db:"late_month_packet" json:"late_month_packet" name:"late_month_packet" rule:"digit" msg:"late_month_packet error"`
 	CreateAt          uint32  `db:"created_at" json:"created_at" name:"created_at" rule:"none"` // 创建时间
 	UpdatedAt         uint32  `db:"updated_at" json:"updated_at" name:"updated_at" rule:"none"`
+	UserCount         int     `db:"user_count" json:"user_count"`
 }
 
 type MemberLevelRecordData struct {
