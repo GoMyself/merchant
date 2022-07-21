@@ -346,6 +346,7 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 	device := string(ctx.PostArgs().Peek("device"))           //设备号
 	page := ctx.PostArgs().GetUintOrZero("page")              //页码
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")     //每页数量
+	level := string(ctx.PostArgs().Peek("level"))             //设备号
 
 	if ty != 1 {
 
@@ -468,6 +469,15 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 			ex["last_login_device"] = device
 		} else if deviceFlag == 2 { // 注册设备号
 			ex["reg_device"] = device
+		}
+	}
+
+	if level != "" {
+		if len(level) == 1 && validator.CtypeDigit(level) {
+			ex["level"] = level
+		} else {
+			levels := strings.Split(level, ",")
+			ex["level"] = levels
 		}
 	}
 
