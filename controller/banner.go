@@ -74,25 +74,49 @@ func (that *BannerController) List(ctx *fasthttp.RequestCtx) {
 
 func (that *BannerController) Insert(ctx *fasthttp.RequestCtx) {
 
-	params := model.Banner{}
-	err := validator.Bind(ctx, &params)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
+	device := string(ctx.PostArgs().Peek("device"))
+	flags := string(ctx.PostArgs().Peek("flags"))
+	hideAt := string(ctx.PostArgs().Peek("hide_at"))
+	images := string(ctx.PostArgs().Peek("images"))
+	redirectUrl := string(ctx.PostArgs().Peek("redirect_url"))
+	seq := ctx.PostArgs().GetUintOrZero("seq")
+	showAt := string(ctx.PostArgs().Peek("show_at"))
+	showType := string(ctx.PostArgs().Peek("show_type"))
+	title := string(ctx.PostArgs().Peek("title"))
+	urlType := string(ctx.PostArgs().Peek("url_type"))
+
+	title = strings.ReplaceAll(title, "&nbsp;", " ")
+	if len(title) < 3 || len(title) > 200 {
+		helper.Print(ctx, false, helper.ContentLengthErr)
 		return
 	}
 
-	params.Title = strings.ReplaceAll(params.Title, "&nbsp;", " ")
-	fmt.Println("banner Insert", params)
-	if params.ShowType == model.BannerShowTypeSpecify {
-		_, err := time.Parse("2006-01-02 15:04:05", params.ShowAt)
+	ds := strings.Split(device, ",")
+	if len(ds) > 0 {
+		for _, v := range ds {
+			i, _ := strconv.Atoi(v)
+			if _, ok := model.DeviceMap[i]; !ok {
+				helper.Print(ctx, false, helper.DeviceTypeErr)
+				return
+			}
+		}
+	}
+
+	if seq < 1 || seq > 100 {
+		helper.Print(ctx, false, helper.PlatSeqErr)
+		return
+	}
+
+	if showType == model.BannerShowTypeSpecify {
+		_, err := time.Parse("2006-01-02 15:04:05", showAt)
 		if err != nil {
-			helper.Print(ctx, false, helper.ParamErr)
+			helper.Print(ctx, false, helper.DateTimeErr)
 			return
 		}
 
-		_, err = time.Parse("2006-01-02 15:04:05", params.HideAt)
+		_, err = time.Parse("2006-01-02 15:04:05", hideAt)
 		if err != nil {
-			helper.Print(ctx, false, helper.ParamErr)
+			helper.Print(ctx, false, helper.DateTimeErr)
 			return
 		}
 	}
@@ -103,27 +127,41 @@ func (that *BannerController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	params.UpdatedAt = fmt.Sprintf("%d", ctx.Time().Unix())
-	params.ID = helper.GenId()
-	params.UpdatedName = data["name"]
-	params.UpdatedUID = data["id"]
-	params.State = model.BannerStateWait
-
-	switch params.URLType {
+	switch urlType {
 	case "1": //站内链接
-		if !strings.HasPrefix(params.RedirectURL, "/") {
-			helper.Print(ctx, false, helper.ParamErr)
+		if !strings.HasPrefix(redirectUrl, "/") {
+			helper.Print(ctx, false, helper.URLErr)
 			return
 		}
 	case "2": //站外链接
-		_, err := url.Parse(params.RedirectURL)
+		_, err := url.Parse(redirectUrl)
 		if err != nil {
-			helper.Print(ctx, false, helper.ParamErr)
+			helper.Print(ctx, false, helper.URLErr)
 			return
 		}
+	default:
+		helper.Print(ctx, false, helper.ParamErr)
+		return
 	}
 
-	err = model.BannerInsert(params)
+	banner := model.Banner{
+		ID:          helper.GenId(),
+		Title:       title,
+		Images:      images,
+		Flags:       flags,
+		Device:      device,
+		URLType:     urlType,
+		RedirectURL: redirectUrl,
+		Seq:         fmt.Sprintf("%d", seq),
+		HideAt:      hideAt,
+		ShowType:    showType,
+		ShowAt:      showAt,
+		UpdatedAt:   fmt.Sprintf("%d", ctx.Time().Unix()),
+		UpdatedName: data["name"],
+		UpdatedUID:  data["id"],
+		State:       model.BannerStateWait,
+	}
+	err = model.BannerInsert(banner)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
