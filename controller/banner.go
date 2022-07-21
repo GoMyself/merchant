@@ -172,60 +172,93 @@ func (that *BannerController) Insert(ctx *fasthttp.RequestCtx) {
 
 func (that *BannerController) Update(ctx *fasthttp.RequestCtx) {
 
-	params := bannerUpdateParam{}
-	err := validator.Bind(ctx, &params)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	id := string(ctx.PostArgs().Peek("id"))
+	device := string(ctx.PostArgs().Peek("device"))
+	flags := string(ctx.PostArgs().Peek("flags"))
+	hideAt := string(ctx.PostArgs().Peek("hide_at"))
+	images := string(ctx.PostArgs().Peek("images"))
+	redirectUrl := string(ctx.PostArgs().Peek("redirect_url"))
+	seq := ctx.PostArgs().GetUintOrZero("seq")
+	showAt := string(ctx.PostArgs().Peek("show_at"))
+	showType := string(ctx.PostArgs().Peek("show_type"))
+	title := string(ctx.PostArgs().Peek("title"))
+	urlType := string(ctx.PostArgs().Peek("url_type"))
 
-	params.Title = strings.ReplaceAll(params.Title, "&nbsp;", " ")
-	fmt.Println("banner Update", params)
+	title = strings.ReplaceAll(title, "&nbsp;", " ")
 	record := g.Record{}
-	if len(params.Title) > 0 {
-		record["title"] = params.Title
+	if title != "" {
+		if len(title) < 3 || len(title) > 200 {
+			helper.Print(ctx, false, helper.ContentLengthErr)
+			return
+		}
+
+		record["title"] = title
 	}
 
-	if len(params.Device) > 0 {
-		record["device"] = params.Device
+	if device != "" {
+		ds := strings.Split(device, ",")
+		if len(ds) > 0 {
+			for _, v := range ds {
+				i, _ := strconv.Atoi(v)
+				if _, ok := model.DeviceMap[i]; !ok {
+					helper.Print(ctx, false, helper.DeviceTypeErr)
+					return
+				}
+			}
+		}
+
+		record["device"] = device
 	}
 
-	if len(params.RedirectURL) > 0 {
-		switch params.URLType {
+	if redirectUrl != "" {
+		switch urlType {
 		case "1": //站内链接
-			if !strings.HasPrefix(params.RedirectURL, "/") {
+			if !strings.HasPrefix(redirectUrl, "/") {
 				helper.Print(ctx, false, helper.ParamErr)
 				return
 			}
 		case "2": //站外链接
-			_, err := url.Parse(params.RedirectURL)
+			_, err := url.Parse(redirectUrl)
 			if err != nil {
 				helper.Print(ctx, false, helper.ParamErr)
 				return
 			}
+		default:
+			helper.Print(ctx, false, helper.ParamErr)
+			return
 		}
 
-		record["redirect_url"] = params.RedirectURL
+		record["redirect_url"] = redirectUrl
 	}
 
-	if len(params.Images) > 0 {
-		record["images"] = params.Images
+	if images != "" {
+		record["images"] = images
 	}
 
-	if len(params.Seq) > 0 {
-		record["seq"] = params.Seq
+	if seq != 0 {
+		if seq < 1 || seq > 100 {
+			helper.Print(ctx, false, helper.PlatSeqErr)
+			return
+		}
+
+		record["seq"] = seq
 	}
 
-	if len(params.Flags) > 0 {
-		record["flags"] = params.Flags
+	if flags != "" {
+		record["flags"] = flags
 	}
 
-	if len(params.ShowType) > 0 {
-		record["show_type"] = params.ShowType
+	if showType != "" {
+		if showType != "1" && showType != "2" {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
+
+		record["show_type"] = showType
 	}
 
-	if len(params.URLType) > 0 {
-		record["url_type"] = params.URLType
+	if urlType != "" {
+		record["url_type"] = urlType
 	}
 
 	if len(record) == 0 {
@@ -242,7 +275,7 @@ func (that *BannerController) Update(ctx *fasthttp.RequestCtx) {
 	record["updated_name"] = data["name"]
 	record["updated_uid"] = data["id"]
 	record["updated_at"] = fmt.Sprintf("%d", ctx.Time().Unix())
-	err = model.BannerUpdate(params.ShowAt, params.HideAt, params.ID, record)
+	err = model.BannerUpdate(showAt, hideAt, id, record)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
