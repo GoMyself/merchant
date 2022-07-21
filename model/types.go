@@ -326,22 +326,22 @@ type BannerData struct {
 }
 
 type Banner struct {
-	ID          string `json:"id" db:"id" rule:"none"`                                                                       //
-	Title       string `json:"title" db:"title" msg:"title error" rule:"filter" name:"title"`                                //标题
-	Device      string `json:"device" db:"device" rule:"sDigit" msg:"device error" name:"device"`                            //设备类型(1,2)
-	RedirectURL string `json:"redirect_url" db:"redirect_url" rule:"none" msg:"redirect_url error" name:"redirect_url"`      //跳转地址
-	Images      string `json:"images" db:"images" rule:"none"`                                                               //图片路径
-	Seq         string `json:"seq" db:"seq" rule:"digit" min:"1" max:"100" msg:"seq error" name:"seq"`                       //排序
-	Flags       string `json:"flags" db:"flags" rule:"digit" min:"1" max:"10" msg:"flags error" name:"flags"`                //广告类型
-	ShowType    string `json:"show_type" db:"show_type" rule:"digit" min:"1" max:"2" msg:"show_type error" name:"show_type"` //1 永久有效 2 指定时间
-	ShowAt      string `json:"show_at" db:"show_at" rule:"none" msg:"show_at error" name:"show_at"`                          //开始展示时间
-	HideAt      string `json:"hide_at" db:"hide_at" rule:"none" msg:"hide_at error" name:"hide_at"`                          //结束展示时间
-	URLType     string `json:"url_type" db:"url_type" rule:"digit" min:"0" max:"3" msg:"url_type error" name:"url_type"`     //链接类型 1站内 2站外
-	UpdatedName string `json:"updated_name" db:"updated_name" rule:"none"`                                                   //更新人name
-	UpdatedUID  string `json:"updated_uid" db:"updated_uid" rule:"none"`                                                     //更新人id
-	UpdatedAt   string `json:"updated_at" db:"updated_at" rule:"none"`                                                       //更新时间
-	State       uint8  `json:"state" db:"state" rule:"none"`                                                                 //0:关闭1:开启
-	Prefix      string `json:"prefix" db:"prefix" rule:"none"`
+	ID          string `json:"id" db:"id"`                     //
+	Title       string `json:"title" db:"title"`               //标题
+	Device      string `json:"device" db:"device"`             //设备类型(1,2)
+	RedirectURL string `json:"redirect_url" db:"redirect_url"` //跳转地址
+	Images      string `json:"images" db:"images"`             //图片路径
+	Seq         string `json:"seq" db:"seq"`                   //排序
+	Flags       string `json:"flags" db:"flags"`               //广告类型
+	ShowType    string `json:"show_type" db:"show_type"`       //1 永久有效 2 指定时间
+	ShowAt      string `json:"show_at" db:"show_at"`           //开始展示时间
+	HideAt      string `json:"hide_at" db:"hide_at"`           //结束展示时间
+	URLType     string `json:"url_type" db:"url_type"`         //链接类型 1站内 2站外
+	UpdatedName string `json:"updated_name" db:"updated_name"` //更新人name
+	UpdatedUID  string `json:"updated_uid" db:"updated_uid"`   //更新人id
+	UpdatedAt   string `json:"updated_at" db:"updated_at"`     //更新时间
+	State       uint8  `json:"state" db:"state"`               //0:关闭1:开启
+	Prefix      string `json:"prefix" db:"prefix"`
 }
 
 type BlacklistData struct {
