@@ -481,6 +481,15 @@ func (that *MemberController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
+	if level != "" {
+		if len(level) == 1 && validator.CtypeDigit(level) {
+			ex["level"] = level
+		} else {
+			levels := strings.Split(level, ",")
+			ex["level"] = levels
+		}
+	}
+
 	data, err := model.MemberList(page, pageSize, tag, regStartTime, regEndTime, ex)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
