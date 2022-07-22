@@ -163,7 +163,6 @@ func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")               //页大小
 	flag := ctx.PostArgs().GetUintOrZero("flag")                        //0 所有 1 审核列表 2历史列表
 	state := ctx.PostArgs().GetUintOrZero("state")                      //审核状态
-	handOutState := ctx.PostArgs().GetUintOrZero("hand_out_state")      //发放状态
 
 	ex := g.Ex{}
 	if username != "" {
@@ -236,20 +235,6 @@ func (that *DividendController) List(ctx *fasthttp.RequestCtx) {
 			}
 
 			ex["state"] = state
-			// 只有审核通过才能判断发放成功或者失败状态
-			if state == model.DividendReviewPass && handOutState > 0 {
-				s := map[int]bool{
-					model.DividendFailed:      true, //红利发放失败
-					model.DividendSuccess:     true, //红利发放成功
-					model.DividendPlatDealing: true, //红利发放场馆处理中
-				}
-				if _, ok := s[handOutState]; !ok {
-					helper.Print(ctx, false, helper.HandOutStateErr)
-					return
-				}
-
-				ex["hand_out_state"] = handOutState
-			}
 		}
 	}
 
