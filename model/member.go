@@ -744,7 +744,7 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 
 	orderField := g.L("report_time")
 	if sortField != "" {
-		orderField = g.L(sortField)
+		orderField = g.L(fmt.Sprintf(`sum(%s)`, sortField))
 	}
 
 	orderBy := orderField.Desc()
@@ -776,6 +776,7 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 		g.SUM("withdrawal_amount").As("withdrawal_amount"),
 		g.SUM("valid_bet_amount").As("valid_bet_amount"),
 		g.SUM("rebate_amount").As("rebate_amount"),
+		g.SUM("rebate_point").As("rebate_point"),
 		g.SUM("company_net_amount").As("company_net_amount"),
 	).GroupBy("uid").
 		Where(and).
