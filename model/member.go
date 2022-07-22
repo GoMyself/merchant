@@ -445,7 +445,7 @@ func MemberList(page, pageSize int, tag, startTime, endTime string, ex g.Ex) (Me
 			"tag_name": tag,
 		}
 		var ids []uint64
-		query, _, _ := dialect.From("tbl_member_tags").Select(g.DISTINCT(g.C("uid"))).Where(ex1).Order(g.C("created_at").Desc()).Limit(100).ToSQL()
+		query, _, _ := dialect.From("tbl_member_tags").Select(g.DISTINCT(g.C("uid"))).Where(ex1).Order(g.C("uid").Desc()).Limit(100).ToSQL()
 		fmt.Println(query)
 		err := meta.TiDB.Select(&ids, query)
 		if err != nil {
@@ -744,7 +744,7 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 
 	orderField := g.L("report_time")
 	if sortField != "" {
-		orderField = g.L(sortField)
+		orderField = g.L(fmt.Sprintf(`sum(%s)`, sortField))
 	}
 
 	orderBy := orderField.Desc()
@@ -776,6 +776,7 @@ func memberListSort(ex exp.ExpressionList, parentID, sortField string, startAt, 
 		g.SUM("withdrawal_amount").As("withdrawal_amount"),
 		g.SUM("valid_bet_amount").As("valid_bet_amount"),
 		g.SUM("rebate_amount").As("rebate_amount"),
+		g.SUM("rebate_point").As("rebate_point"),
 		g.SUM("company_net_amount").As("company_net_amount"),
 	).GroupBy("uid").
 		Where(and).

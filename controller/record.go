@@ -311,6 +311,7 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 	parentName := string(ctx.PostArgs().Peek("parent_name"))
 	topName := string(ctx.PostArgs().Peek("top_name"))
 	billNo := string(ctx.PostArgs().Peek("bill_no"))
+	apiBillNo := string(ctx.PostArgs().Peek("api_bill_no"))
 	flag := string(ctx.PostArgs().Peek("flag"))
 	gameNo := string(ctx.PostArgs().Peek("game_no"))
 	presettle := string(ctx.PostArgs().Peek("presettle"))
@@ -395,6 +396,7 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 		"game_no":     gameNo,
 		"pre_settle":  presettle,
 		"resettle":    resettle,
+		"api_bill_no": apiBillNo,
 	}
 
 	if betMax != "" && betMin != "" && betMax != "0" && betMin != "0" {

@@ -249,6 +249,10 @@ func Game(ty int, pageSize, page uint, params map[string]string) (GameRecordData
 		ex["bill_no"] = params["bill_no"]
 	}
 
+	if params["api_bill_no"] != "" {
+		ex["api_bill_no"] = params["api_bill_no"]
+	}
+
 	if params["pre_settle"] != "" {
 		early, _ := strconv.Atoi(params["pre_settle"])
 		ex["presettle"] = early
