@@ -142,11 +142,18 @@ func RecordTransfer(page, pageSize int, startTime, endTime string, ex g.Ex) (Tra
 func Game(ty int, pageSize, page uint, params map[string]string) (GameRecordData, error) {
 
 	data := GameRecordData{}
-
+	if len(params["username"]) > 0 {
+		username := strings.ToLower(params["username"])
+		mb, err := memberInfoCache(username)
+		if err != nil {
+			return data, errors.New(helper.UsernameErr)
+		}
+		params["uid"] = mb.UID
+	}
 	if ty == GameTyValid {
 
 		ex := g.Ex{
-			"name":   params["username"],
+			"uid":    params["uid"],
 			"flag":   "1",
 			"prefix": meta.Prefix,
 		}
