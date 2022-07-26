@@ -92,6 +92,11 @@ func main() {
 		return
 	}
 
+	if os.Args[3] == "loadLink" {
+		model.LoadLinks()
+		return
+	}
+
 	defer func() {
 		model.Close()
 		mt = nil

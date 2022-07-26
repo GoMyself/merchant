@@ -41,14 +41,18 @@ func LoadLinks() {
 
 		pipe := meta.MerchantPika.Pipeline()
 		pipe.Unlink(ctx, shortKey)
+
+		fmt.Println("set", shortKey, value)
 		// 设置短链
 		pipe.Set(ctx, shortKey, value, 100*time.Hour)
 		pipe.Persist(ctx, shortKey)
 		// 设置是否显示广告页的状态
 		if v.NoAd == 0 {
-			pipe.SRem(ctx, noAdKey, shortKey)
+			fmt.Println("SRem", noAdKey, v.ShortURL)
+			pipe.SRem(ctx, noAdKey, v.ShortURL)
 		} else if v.NoAd == 1 {
-			pipe.SAdd(ctx, noAdKey, shortKey)
+			fmt.Println("SAdd", noAdKey, v.ShortURL)
+			pipe.SAdd(ctx, noAdKey, v.ShortURL)
 		}
 		_, _ = pipe.Exec(ctx)
 		_ = pipe.Close()
