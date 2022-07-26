@@ -37,7 +37,7 @@ func LoadLinks() {
 		}
 
 		shortKey := fmt.Sprintf("%s:shortcode:%s", meta.Prefix, v.ShortURL)
-		value := fmt.Sprintf("%s", uri)
+		value := fmt.Sprintf("%s/entry/register?id=%s|%s", uri, v.UID, v.ID)
 
 		pipe := meta.MerchantPika.Pipeline()
 		pipe.Unlink(ctx, shortKey)
