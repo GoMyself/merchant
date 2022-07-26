@@ -24,6 +24,7 @@ func LoadLinks() {
 	}
 
 	uri := meta.IndexUrl
+	noAdKey := fmt.Sprintf("%s:shortcode:noad", meta.Prefix)
 	bcs := make(map[string]map[string]Link_t)
 	for _, v := range data {
 		key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.UID)
@@ -40,8 +41,15 @@ func LoadLinks() {
 
 		pipe := meta.MerchantPika.Pipeline()
 		pipe.Unlink(ctx, shortKey)
+		// 设置短链
 		pipe.Set(ctx, shortKey, value, 100*time.Hour)
 		pipe.Persist(ctx, shortKey)
+		// 设置是否显示广告页的状态
+		if v.NoAd == 0 {
+			pipe.SRem(ctx, noAdKey, shortKey)
+		} else if v.NoAd == 1 {
+			pipe.SAdd(ctx, noAdKey, shortKey)
+		}
 		_, _ = pipe.Exec(ctx)
 		_ = pipe.Close()
 	}
