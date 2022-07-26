@@ -141,21 +141,21 @@ func Constructor(mt *MetaTable, rpc string) {
 func Load() {
 
 	LoadAppUpgrades()
-	LoadLinks()
-	LoadMembers()
-	LoadMemberLevels()
+	//LoadLinks()
+	//LoadMembers()
+	//LoadMemberLevels()
 
 	//_ = LoadBankcards()
 	_ = LoadPrivs()
 	_ = LoadGroups()
-	_ = LoadMemberPlatforms()
-	_ = LoadBlacklists(0)
+	//_ = LoadMemberPlatforms()
+	//_ = LoadBlacklists(0)
 	_ = LoadBanners()
-	_ = LoadMemberRebates()
+	//_ = LoadMemberRebates()
 	_ = LoadTrees()
 	_ = LoadPlatforms()
 	_ = LoadSMSChannels()
-	_ = LoadGameLists()
+	//_ = LoadGameLists()
 }
 
 func MurmurHash(str string, seed uint32) uint64 {

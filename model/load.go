@@ -42,7 +42,7 @@ func LoadLinks() {
 		pipe := meta.MerchantPika.Pipeline()
 		pipe.Unlink(ctx, shortKey)
 
-		fmt.Println("set", shortKey, value)
+		fmt.Println("Set", shortKey, value)
 		// 设置短链
 		pipe.Set(ctx, shortKey, value, 100*time.Hour)
 		pipe.Persist(ctx, shortKey)

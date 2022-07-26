@@ -97,6 +97,41 @@ func main() {
 		return
 	}
 
+	if os.Args[3] == "loadMembers" {
+		model.LoadMembers()
+		return
+	}
+
+	if os.Args[3] == "loadMemberLevels" {
+		model.LoadMemberLevels()
+		return
+	}
+
+	if os.Args[3] == "loadMemberPlatforms" {
+		_ = model.LoadMemberPlatforms()
+		return
+	}
+
+	if os.Args[3] == "loadBlacklists" {
+		_ = model.LoadBlacklists(0)
+		return
+	}
+
+	if os.Args[3] == "loadMemberRebates" {
+		_ = model.LoadMemberRebates()
+		return
+	}
+
+	if os.Args[3] == "loadGameLists" {
+		_ = model.LoadGameLists()
+		return
+	}
+
+	if os.Args[3] == "loadBankcards" {
+		_ = model.LoadBankcards()
+		return
+	}
+
 	defer func() {
 		model.Close()
 		mt = nil
