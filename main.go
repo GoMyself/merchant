@@ -132,6 +132,26 @@ func main() {
 		return
 	}
 
+	if os.Args[3] == "loadSMSChannels" {
+		_ = model.LoadSMSChannels()
+		return
+	}
+
+	if os.Args[3] == "loadPlatforms" {
+		_ = model.LoadPlatforms()
+		return
+	}
+
+	if os.Args[3] == "loadTrees" {
+		_ = model.LoadTrees()
+		return
+	}
+
+	if os.Args[3] == "loadBanners" {
+		_ = model.LoadBanners()
+		return
+	}
+
 	defer func() {
 		model.Close()
 		mt = nil

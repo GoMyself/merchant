@@ -150,11 +150,11 @@ func Load() {
 	_ = LoadGroups()
 	//_ = LoadMemberPlatforms()
 	//_ = LoadBlacklists(0)
-	_ = LoadBanners()
+	//_ = LoadBanners()
 	//_ = LoadMemberRebates()
-	_ = LoadTrees()
-	_ = LoadPlatforms()
-	_ = LoadSMSChannels()
+	//_ = LoadTrees()
+	//_ = LoadPlatforms()
+	//_ = LoadSMSChannels()
 	//_ = LoadGameLists()
 }
 
