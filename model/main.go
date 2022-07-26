@@ -34,6 +34,7 @@ var grpc_t struct {
 type MetaTable struct {
 	VenueRebate   MemberRebateResult_t
 	MerchantRedis *redis.ClusterClient
+	MerchantPika  *redis.Client
 	MerchantTD    *sqlx.DB
 	MerchantDB    *sqlx.DB
 	MerchantBean  *beanstalk.Conn
@@ -44,6 +45,7 @@ type MetaTable struct {
 	PromoteConfig map[string]map[string]interface{}
 	NatsConn      *nats.Conn
 	IsDev         bool
+	IndexUrl      string
 	Prefix        string
 	EsPrefix      string
 	PullPrefix    string

@@ -55,11 +55,13 @@ func main() {
 	mt.ReportDB = conn.InitDB(cfg.Db.Report.Addr, cfg.Db.Report.MaxIdleConn, cfg.Db.Report.MaxOpenConn)
 	mt.BetDB = conn.InitDB(cfg.Db.Bet.Addr, cfg.Db.Bet.MaxIdleConn, cfg.Db.Bet.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisCluster(cfg.Redis.Addr, cfg.Redis.Password)
+	mt.MerchantPika = conn.InitRedisSentinel(cfg.Pika.Addr, cfg.Pika.Password, cfg.Pika.Sentinel, 0)
 
 	mt.TiDB = conn.InitDB(cfg.Db.Tidb.Addr, cfg.Db.Tidb.MaxIdleConn, cfg.Db.Tidb.MaxOpenConn)
 	bin := strings.Split(os.Args[0], "/")
 	mt.Program = bin[len(bin)-1]
 	mt.GcsDoamin = cfg.GcsDoamin
+	mt.IndexUrl = cfg.IndexUrl
 
 	mt.MerchantBean, err = beanstalk.Dial("tcp", cfg.Beanstalkd.Addr)
 	if err != nil {
@@ -87,11 +89,6 @@ func main() {
 
 	if os.Args[3] == "load" {
 		model.Load()
-		return
-	}
-
-	if os.Args[3] == "ShortURLInitNoAd" {
-		fmt.Println(model.ShortURLInitNoAd())
 		return
 	}
 

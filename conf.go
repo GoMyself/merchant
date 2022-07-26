@@ -6,6 +6,7 @@ type conf struct {
 	EsPrefix       string `json:"es_prefix"`
 	PullPrefix     string `json:"pull_prefix"`
 	IsDev          bool   `json:"is_dev"`
+	IndexUrl       string `json:"index_url"`
 	GcsDoamin      string `json:"gcs_doamin"`
 	AutoCommission bool   `json:"auto_commission"`
 	Sock5          string `json:"sock5"`
@@ -58,6 +59,12 @@ type conf struct {
 		Addr     []string `json:"addr"`
 		Password string   `json:"password"`
 	} `json:"redis"`
+	Pika struct {
+		Addr     []string `json:"addr"`
+		Password string   `json:"password"`
+		Sentinel string   `json:"sentinel"`
+		Db       int      `json:"db"`
+	} `json:"pika"`
 	Es struct {
 		Host     []string `json:"host"`
 		Username string   `json:"username"`

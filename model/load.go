@@ -6,6 +6,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"merchant/contrib/helper"
+	"time"
 )
 
 func LoadLinks() {
@@ -22,6 +23,7 @@ func LoadLinks() {
 		return
 	}
 
+	uri := meta.IndexUrl
 	bcs := make(map[string]map[string]Link_t)
 	for _, v := range data {
 		key := fmt.Sprintf("%s:lk:%s", meta.Prefix, v.UID)
@@ -32,6 +34,16 @@ func LoadLinks() {
 				"$" + v.ID: v,
 			}
 		}
+
+		shortKey := fmt.Sprintf("%s:shortcode:%s", meta.Prefix, v.ShortURL)
+		value := fmt.Sprintf("%s", uri)
+
+		pipe := meta.MerchantPika.Pipeline()
+		pipe.Unlink(ctx, shortKey)
+		pipe.Set(ctx, shortKey, value, 100*time.Hour)
+		pipe.Persist(ctx, shortKey)
+		_, _ = pipe.Exec(ctx)
+		_ = pipe.Close()
 	}
 
 	for k, v := range bcs {

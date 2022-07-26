@@ -2,12 +2,10 @@ package model
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
 	"merchant/contrib/helper"
-	"time"
 )
 
 func LinkList(page, pageSize uint, ex g.Ex) (LinkData, error) {
@@ -54,51 +52,21 @@ type shortUR struct {
 
 func LinkSetNoAd(shortCode, noAd string) error {
 
-	data := shortUR{}
 	ex := g.Ex{
 		"short_url": shortCode,
 	}
-	query, _, _ := dialect.From("shorturl").Select("ts", "no_ad").Where(ex).ToSQL()
+	query, _, _ := dialect.Update("tbl_member_link").Set(g.Record{"no_ad": noAd}).Where(ex).ToSQL()
 	fmt.Println(query)
-	err := meta.MerchantTD.Get(&data, query)
-	if err != nil && err != sql.ErrNoRows {
-		return pushLog(err, helper.DBErr)
-	}
-
-	if err == sql.ErrNoRows {
-		return errors.New(helper.RecordNotExistErr)
-	}
-
-	if data.NoAd == noAd {
-		return errors.New(helper.NoDataUpdate)
-	}
-
-	l := len(data.TS)
-	if l < 26 {
-		return errors.New(helper.DateTimeErr)
-	}
-	data.TS = data.TS[:l-6] + "+" + data.TS[l-5:]
-	t, err := time.ParseInLocation("2006-01-02T15:04:05.999999+07:00", data.TS, loc)
-	if err != nil {
-		return pushLog(err, helper.DateTimeErr)
-	}
-
-	record := g.Record{
-		"ts":    t.UnixMicro(),
-		"no_ad": noAd,
-	}
-	query, _, _ = dialect.Insert("shorturl").Rows(record).ToSQL()
-	fmt.Println(query)
-	_, err = meta.MerchantTD.Exec(query)
+	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.DBErr)
 	}
 
-	query, _, _ = dialect.Update("tbl_member_link").Set(g.Record{"no_ad": noAd}).Where(ex).ToSQL()
-	fmt.Println(query)
-	_, err = meta.MerchantDB.Exec(query)
-	if err != nil {
-		return pushLog(err, helper.DBErr)
+	noAdKey := fmt.Sprintf("%s:shortcode:noad", meta.Prefix)
+	if noAd == "0" {
+		_ = meta.MerchantPika.SRem(ctx, noAdKey, shortCode)
+	} else if noAd == "1" {
+		_ = meta.MerchantPika.SAdd(ctx, noAdKey, shortCode)
 	}
 
 	return nil
