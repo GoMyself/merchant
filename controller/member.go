@@ -5,6 +5,7 @@ import (
 	"merchant/contrib/helper"
 	"merchant/contrib/validator"
 	"merchant/model"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -591,6 +592,7 @@ func (that *MemberController) Update(ctx *fasthttp.RequestCtx) {
 	email := string(ctx.PostArgs().Peek("email"))
 	zalo := string(ctx.PostArgs().Peek("zalo"))
 	address := string(ctx.PostArgs().Peek("address")) //收货地址
+	address, _ = url.QueryUnescape(address)
 
 	username = strings.ToLower(username)
 	if !validator.CheckUName(username, 5, 14) {
