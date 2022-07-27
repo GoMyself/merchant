@@ -337,6 +337,9 @@ func (that *RecordController) RecordGame(ctx *fasthttp.RequestCtx) {
 		"1": true,
 		"2": true,
 		"3": true,
+		"4": true,
+		"5": true,
+		"6": true,
 	}
 	if _, ok := tf[timeFlag]; !ok {
 		helper.Print(ctx, false, helper.ParamErr)
