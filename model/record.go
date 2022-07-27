@@ -149,6 +149,7 @@ func Game(ty int, pageSize, page uint, params map[string]string) (GameRecordData
 			return data, errors.New(helper.UsernameErr)
 		}
 		params["uid"] = mb.UID
+		params["name"] = ""
 	}
 	if ty == GameTyValid {
 
