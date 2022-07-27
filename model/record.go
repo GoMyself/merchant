@@ -31,7 +31,8 @@ type GameGroupData struct {
 }
 
 type GameGroup_t struct {
-	Num            int64   `json:"num" db:"num"`
+	ApiName        string  `json:"api_name" db:"api_name"`
+	Total          int64   `json:"total" db:"total"`
 	NetAmount      float64 `json:"net_amount" db:"net_amount"`
 	ValidBetAmount float64 `json:"valid_bet_amount" db:"valid_bet_amount"`
 	BetAmount      float64 `json:"bet_amount" db:"bet_amount"`
@@ -359,13 +360,15 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 			}
 			ex["uid"] = mb.UID
 		}
-		query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT("id").As("num"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+		query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
 			g.SUM("bet_amount").As("bet_amount")).Where(ex).ToSQL()
 		fmt.Println(query)
 		err = meta.TiDB.Select(&data.D, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
+
+		return data, nil
 	}
 
 	if ty == GameMemberTransferGroup {
@@ -378,13 +381,15 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 			}
 			ex["uid"] = mb.UID
 		}
-		query, _, _ := dialect.From("tbl_game_record").Select(g.C("api_type"), g.COUNT("id").As("num"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
-			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("api_type").ToSQL()
+		query, _, _ := dialect.From("tbl_game_record").Select(g.C("api_name"), g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("api_name").ToSQL()
 		fmt.Println(query)
 		err = meta.TiDB.Select(&data.D, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
+
+		return data, nil
 	}
 
 	return GameGroupData{}, errors.New("ty error")
