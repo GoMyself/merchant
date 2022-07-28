@@ -31,11 +31,11 @@ type GameGroupData struct {
 }
 
 type GameGroup_t struct {
-	ApiName        string  `json:"api_name" db:"api_name"`
-	Total          int64   `json:"total" db:"total"`
-	NetAmount      float64 `json:"net_amount" db:"net_amount"`
-	ValidBetAmount float64 `json:"valid_bet_amount" db:"valid_bet_amount"`
-	BetAmount      float64 `json:"bet_amount" db:"bet_amount"`
+	ApiName        string `json:"api_name" db:"api_type"`
+	Total          string `json:"total" db:"total"`
+	NetAmount      string `json:"net_amount" db:"net_amount"`
+	ValidBetAmount string `json:"valid_bet_amount" db:"valid_bet_amount"`
+	BetAmount      string `json:"bet_amount" db:"bet_amount"`
 }
 
 func RecordTransaction(page, pageSize int, startTime, endTime string, ex g.Ex) (TransactionData, error) {
@@ -352,18 +352,28 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 
 	ex[rangeField] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
 	if ty == GameMemberDayGroup {
+		ex = g.Ex{
+			"report_time": g.Op{"between": exp.NewRangeVal(startAt/1000, endAt/1000)},
+		}
 		if params["username"] != "" {
 			username := strings.ToLower(params["username"])
-			mb, err := memberInfoCache(username)
-			if err != nil {
-				return data, errors.New(helper.UsernameErr)
-			}
-			ex["uid"] = mb.UID
+			ex["username"] = username
+			ex["report_type"] = 2
 		}
-		query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
-			g.SUM("bet_amount").As("bet_amount")).Where(ex).ToSQL()
+
+		query, _, _ := dialect.From("tbl_report_game_user").Select(g.COUNT("id")).Where(ex).ToSQL()
 		fmt.Println(query)
-		err = meta.TiDB.Select(&data.D, query)
+		err = meta.ReportDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+		if data.T == 0 {
+			return data, nil
+		}
+		query, _, _ = dialect.From("tbl_report_game_user").Select(g.C("report_time").As("api_type"), g.C("bet_count").As("total"), g.L("0-company_net_amount").As("net_amount"), g.C("valid_bet_amount").As("valid_bet_amount"),
+			g.C("bet_amount").As("bet_amount")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.ReportDB.Select(&data.D, query)
 		if err != nil {
 			return data, pushLog(err, helper.DBErr)
 		}
@@ -381,8 +391,17 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 			}
 			ex["uid"] = mb.UID
 		}
-		query, _, _ := dialect.From("tbl_game_record").Select(g.C("api_name"), g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
-			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("api_name").ToSQL()
+		query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT(g.DISTINCT("api_type"))).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.TiDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+		if data.T == 0 {
+			return data, nil
+		}
+		query, _, _ = dialect.From("tbl_game_record").Select(g.C("api_type"), g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("api_type").ToSQL()
 		fmt.Println(query)
 		err = meta.TiDB.Select(&data.D, query)
 		if err != nil {
@@ -392,7 +411,7 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 		return data, nil
 	}
 
-	return GameGroupData{}, errors.New("ty error")
+	return data, errors.New("ty error")
 }
 
 func RecordAdminGame(flag, startTime, endTime string, page, pageSize uint, ex g.Ex) (GameRecordData, error) {
