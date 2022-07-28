@@ -370,8 +370,8 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 		if data.T == 0 {
 			return data, nil
 		}
-		query, _, _ = dialect.From("tbl_report_game_user").Select(g.C("report_time").As("api_type"), g.C("bet_count").As("total"), g.L("0-company_net_amount").As("net_amount"), g.C("valid_bet_amount").As("valid_bet_amount"),
-			g.C("bet_amount").As("bet_amount")).Where(ex).ToSQL()
+		query, _, _ = dialect.From("tbl_report_game_user").Select(g.C("report_time").As("api_type"), g.SUM("bet_count").As("total"), g.L("sum(0-company_net_amount)").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("report_time").ToSQL()
 		fmt.Println(query)
 		err = meta.ReportDB.Select(&data.D, query)
 		if err != nil {
