@@ -36,6 +36,7 @@ type MetaTable struct {
 	MerchantRedis *redis.ClusterClient
 	MerchantPika  *redis.Client
 	MerchantTD    *sqlx.DB
+	MerchantLogTD *sqlx.DB
 	MerchantDB    *sqlx.DB
 	MerchantBean  *beanstalk.Conn
 	MerchantMQ    rocketmq.Producer
@@ -83,7 +84,6 @@ var (
 	colsTransfer             = helper.EnumFields(Transfer{})
 	colsTransaction          = helper.EnumFields(Transaction{})
 	colsCommPlan             = helper.EnumFields(CommissionPlan{})
-	colsCommissionTransfer   = helper.EnumFields(CommissionTransfer{})
 	colsMemberRebate         = helper.EnumFields(MemberRebate{})
 	colsMemberInfo           = helper.EnumFields(memberInfo{})
 	colLevelRecord           = helper.EnumFields(MemberLevelRecord{})
@@ -103,10 +103,6 @@ var (
 	colsMemberRemarksLog     = helper.EnumFields(MemberRemarksLog{})
 	colRebateReport          = helper.EnumFields(RebateReportItem{})
 	colsGameRecord           = helper.EnumFields(GameRecord{})
-	dividendFields           = []string{"id", "uid", "prefix", "ty", "username", "top_uid", "top_name", "parent_uid", "parent_name", "amount", "review_at", "review_uid", "review_name", "water_multiple", "water_flow"}
-	adjustFields             = []string{"id", "prefix", "uid", "parent_uid", "parent_name", "username", "agent_id", "agency_type", "amount", "adjust_type", "adjust_mode", "is_turnover", "turnover_multi", "pid", "apply_remark", "review_remark", "agent_name", "state", "hand_out_state", "images", "level", "svip", "is_agent", "apply_at", "apply_uid", "apply_name", "review_at", "review_uid", "review_name"}
-	depositFields            = []string{"id", "parent_name", "prefix", "oid", "channel_id", "finance_type", "uid", "level", "parent_uid", "agency_type", "username", "cid", "pid", "amount", "state", "automatic", "created_at", "created_uid", "created_name", "confirm_at", "confirm_uid", "confirm_name", "review_remark"}
-	withdrawFields           = []string{"id", "parent_name", "prefix", "bid", "flag", "finance_type", "oid", "uid", "level", "parent_uid", "agency_type", "username", "pid", "amount", "state", "automatic", "created_at", "confirm_at", "confirm_uid", "review_remark", "withdraw_at", "confirm_name", "withdraw_uid", "withdraw_name", "withdraw_remark", "bank_name", "card_name", "card_no"}
 )
 
 func Constructor(mt *MetaTable, rpc string) {
@@ -191,7 +187,7 @@ func pushLog(err error, code string) error {
 	}
 	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
 	fmt.Println("insert SMS = sql ", query)
-	_, err1 := meta.MerchantTD.Exec(query)
+	_, err1 := meta.MerchantLogTD.Exec(query)
 	if err1 != nil {
 		fmt.Println("insert SMS = sql ", query)
 		fmt.Println("insert SMS = error ", err1.Error())
