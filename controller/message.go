@@ -15,7 +15,6 @@ type MessageController struct{}
 func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 
 	title := string(ctx.PostArgs().Peek("title"))        //标题
-	subTitle := string(ctx.PostArgs().Peek("sub_title")) //副标题
 	content := string(ctx.PostArgs().Peek("content"))    //内容
 	ty := ctx.PostArgs().GetUintOrZero("ty")             //1站内消息 2活动消息
 	isTop := ctx.PostArgs().GetUintOrZero("is_top")      //0不置顶 1置顶
@@ -27,7 +26,7 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	names := string(ctx.PostArgs().Peek("names"))        //会员名，多个用逗号分割
 
 	if len(title) < 1 || len(title) > 255 ||
-		len(subTitle) < 1 || len(subTitle) > 255 ||
+		//len(subTitle) < 1 || len(subTitle) > 255 ||
 		len(content) == 0 ||
 		len(sendName) < 1 || len(sendName) > 100 {
 
@@ -99,7 +98,6 @@ func (that *MessageController) Insert(ctx *fasthttp.RequestCtx) {
 	record := g.Record{
 		"id":          helper.GenId(),
 		"title":       title,             //标题
-		"sub_title":   subTitle,          //副标题
 		"content":     content,           //内容
 		"is_top":      isTop,             //0不置顶 1置顶
 		"is_push":     isPush,            //0不推送 1推送
@@ -212,7 +210,6 @@ func (that *MessageController) Update(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	title := string(ctx.PostArgs().Peek("title"))        //标题
-	subTitle := string(ctx.PostArgs().Peek("sub_title")) //副标题
 	content := string(ctx.PostArgs().Peek("content"))    //内容
 	isTop := string(ctx.PostArgs().Peek("is_top"))       //0不置顶 1置顶
 	sendName := string(ctx.PostArgs().Peek("send_name")) //发送人名
@@ -226,10 +223,6 @@ func (that *MessageController) Update(ctx *fasthttp.RequestCtx) {
 
 	if title != "" {
 		record["title"] = title
-	}
-
-	if subTitle != "" {
-		record["sub_title"] = subTitle
 	}
 
 	if content != "" {

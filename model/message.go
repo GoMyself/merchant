@@ -23,7 +23,6 @@ func MessageInsert(record g.Record, sendAt string) error {
 
 	record["send_at"] = stAt
 	record["prefix"] = meta.Prefix
-
 	query, _, _ := dialect.Insert("tbl_messages").Rows(record).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
@@ -230,7 +229,6 @@ func MessageReview(id string, state, flag int, admin map[string]string) error {
 			"flag":       "1",                            //发送站内信
 			"message_id": data.ID,                        //id
 			"title":      data.Title,                     //标题
-			"sub_title":  data.SubTitle,                  //副标题
 			"content":    data.Content,                   //内容
 			"is_top":     fmt.Sprintf("%d", data.IsTop),  //0不置顶 1置顶
 			"is_push":    fmt.Sprintf("%d", data.IsPush), //0不推送 1推送
@@ -307,7 +305,6 @@ func MessageDetail(id string, page, pageSize int) (MessageTDData, error) {
 	query, _, _ = t.Select(colsMessageTD...).Where(ex).Offset(uint(offset)).Limit(uint(pageSize)).Order(g.C("ts").Desc()).ToSQL()
 	fmt.Println(query)
 	err = meta.MerchantTD.Select(&data.D, query)
-	//b, err := helper.JsonMarshal	(data)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
