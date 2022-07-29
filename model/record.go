@@ -24,10 +24,18 @@ var (
 )
 
 type GameGroupData struct {
-	Agg map[string]string   `json:"agg"`
-	D   []map[string]string `json:"d"`
-	T   int                 `json:"t"`
-	S   int                 `json:"s"`
+	Agg map[string]string `json:"agg"`
+	D   []GameGroup_t     `json:"d"`
+	T   int               `json:"t"`
+	S   int               `json:"s"`
+}
+
+type GameGroup_t struct {
+	ApiName        string `json:"api_name" db:"api_type"`
+	Total          string `json:"total" db:"total"`
+	NetAmount      string `json:"net_amount" db:"net_amount"`
+	ValidBetAmount string `json:"valid_bet_amount" db:"valid_bet_amount"`
+	BetAmount      string `json:"bet_amount" db:"bet_amount"`
 }
 
 func RecordTransaction(page, pageSize int, startTime, endTime string, ex g.Ex) (TransactionData, error) {
@@ -149,6 +157,7 @@ func Game(ty int, pageSize, page uint, params map[string]string) (GameRecordData
 			return data, errors.New(helper.UsernameErr)
 		}
 		params["uid"] = mb.UID
+		params["name"] = ""
 	}
 	if ty == GameTyValid {
 
@@ -304,7 +313,7 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 	}
 
 	//查询条件
-	param := map[string]interface{}{
+	ex := g.Ex{
 		"prefix": meta.Prefix,
 	}
 	if params["pid"] != "" {
@@ -318,18 +327,18 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 				}
 			}
 
-			param["api_type"] = ids
+			ex["api_type"] = ids
 		}
 
 		if !strings.Contains(params["pid"], ",") {
 			if validator.CtypeDigit(params["pid"]) {
-				param["api_type"] = params["pid"]
+				ex["api_type"] = params["pid"]
 			}
 		}
 	}
 
 	if params["flag"] != "" {
-		param["flag"] = params["flag"]
+		ex["flag"] = params["flag"]
 	}
 
 	rangeField := ""
@@ -341,36 +350,68 @@ func GameGroup(ty, pageSize, page int, params map[string]string) (GameGroupData,
 		return data, errors.New(helper.QueryTermsErr)
 	}
 
-	//rangeParam := map[string][]interface{}{
-	//	rangeField: {startAt, endAt},
-	//}
-	//if ty == GameMemberDayGroup {
-	//	param["name"] = params["username"]
-	//
-	//	other := map[string]string{
-	//		"index":           "tbl_game_record",
-	//		"range_field":     rangeField,
-	//		"agg_group_field": rangeField,
-	//		"interal":         "1d",
-	//	}
-	//
-	//	return groupByEs(page, pageSize, other, param, rangeParam, aggParam)
-	//}
-	//
-	//if ty == GameMemberTransferGroup {
-	//	param["name"] = params["username"]
-	//
-	//	other := map[string]string{
-	//		"index":           "tbl_game_record",
-	//		"range_field":     rangeField,
-	//		"agg_group_field": "api_type",
-	//		"interal":         "",
-	//	}
-	//
-	//	return groupByEs(page, pageSize, other, param, rangeParam, aggParam)
-	//}
+	ex[rangeField] = g.Op{"between": exp.NewRangeVal(startAt, endAt)}
+	if ty == GameMemberDayGroup {
+		ex = g.Ex{
+			"report_time": g.Op{"between": exp.NewRangeVal(startAt/1000, endAt/1000)},
+		}
+		if params["username"] != "" {
+			username := strings.ToLower(params["username"])
+			ex["username"] = username
+			ex["report_type"] = 2
+		}
 
-	return GameGroupData{}, errors.New("ty error")
+		query, _, _ := dialect.From("tbl_report_game_user").Select(g.COUNT("id")).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.ReportDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+		if data.T == 0 {
+			return data, nil
+		}
+		query, _, _ = dialect.From("tbl_report_game_user").Select(g.C("report_time").As("api_type"), g.SUM("bet_count").As("total"), g.L("sum(0-company_net_amount)").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("report_time").ToSQL()
+		fmt.Println(query)
+		err = meta.ReportDB.Select(&data.D, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		return data, nil
+	}
+
+	if ty == GameMemberTransferGroup {
+
+		if params["username"] != "" {
+			username := strings.ToLower(params["username"])
+			mb, err := memberInfoCache(username)
+			if err != nil {
+				return data, errors.New(helper.UsernameErr)
+			}
+			ex["uid"] = mb.UID
+		}
+		query, _, _ := dialect.From("tbl_game_record").Select(g.COUNT(g.DISTINCT("api_type"))).Where(ex).ToSQL()
+		fmt.Println(query)
+		err = meta.TiDB.Get(&data.T, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+		if data.T == 0 {
+			return data, nil
+		}
+		query, _, _ = dialect.From("tbl_game_record").Select(g.C("api_type"), g.COUNT("id").As("total"), g.SUM("net_amount").As("net_amount"), g.SUM("valid_bet_amount").As("valid_bet_amount"),
+			g.SUM("bet_amount").As("bet_amount")).Where(ex).GroupBy("api_type").ToSQL()
+		fmt.Println(query)
+		err = meta.TiDB.Select(&data.D, query)
+		if err != nil {
+			return data, pushLog(err, helper.DBErr)
+		}
+
+		return data, nil
+	}
+
+	return data, errors.New("ty error")
 }
 
 func RecordAdminGame(flag, startTime, endTime string, page, pageSize uint, ex g.Ex) (GameRecordData, error) {
