@@ -1100,7 +1100,6 @@ type MessageTD struct {
 	MessageID string `json:"message_id" db:"message_id"` //站内信id
 	Username  string `json:"username" db:"username"`     //会员名
 	Title     string `json:"title" db:"title"`           //标题
-	SubTitle  string `json:"sub_title" db:"sub_title"`   //标题
 	Content   string `json:"content" db:"content"`       //内容
 	IsTop     int    `json:"is_top" db:"is_top"`         //0不置顶 1置顶
 	IsVip     int    `json:"is_vip" db:"is_vip"`         //0非vip站内信 1vip站内信
@@ -1121,7 +1120,6 @@ type MessageTDData struct {
 type Message struct {
 	ID         string ` db:"id" json:"id"`
 	Title      string `db:"title" json:"title"`             //标题
-	SubTitle   string `db:"sub_title" json:"sub_title"`     //标题
 	Content    string `db:"content" json:"content"`         //内容
 	IsTop      int    `db:"is_top" json:"is_top"`           //0不置顶 1置顶
 	IsPush     int    `db:"is_push" json:"is_push"`         //0不推送 1推送
